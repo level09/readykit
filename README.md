@@ -1,177 +1,239 @@
-# Project Enferno
+# ReadyKit
+
+**Production-ready Flask SaaS template for indie makers**
+
+Ship your SaaS in days, not months. ReadyKit gives you multi-tenant workspaces, Stripe billing, team collaboration, and authentication out of the box—so you can focus on building features customers will pay for.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Enferno is a modern Flask framework optimized for AI-assisted development workflows. By combining carefully crafted development patterns, smart Cursor Rules, and modern libraries, it enables developers to build sophisticated web applications with unprecedented speed. Whether you're using AI-powered IDEs like Cursor or traditional tools, Enferno's intelligent patterns and contextual guides help you create production-ready SAAS applications faster than ever.
+---
 
-![Enferno Demo](docs/enferno-demo.gif)
+## Why ReadyKit?
 
-Key Features
-===========
-- **Modern Stack**: Python 3.11+, Flask, Vue 3, Vuetify 3
-- **Authentication**: Flask-Security with role-based access control
-- **OAuth Integration**: Google and GitHub login via Flask-Dance
-- **Database**: SQLAlchemy ORM with PostgreSQL/SQLite support
-- **Task Queue**: Celery with Redis for background tasks
-- **Frontend**: Client-side Vue.js with Vuetify components
-- **Security**: CSRF protection, secure session handling
-- **Docker Ready**: Production-grade Docker configuration
-- **Cursor Rules**: Smart IDE-based code generation and assistance
-- **Package Management**: Modern uv workflow with pyproject.toml
+Building a SaaS from scratch means weeks of infrastructure work before you write a single feature. ReadyKit eliminates that.
 
-Frontend Features
----------------
-- Vue.js without build tools - direct browser integration
-- Vuetify Material Design components
-- Axios for API calls
-- Snackbar notifications pattern
-- Dialog forms pattern
-- Data table server pattern
-- Authentication state integration
-- Material Design Icons
+**You get:**
+- ✅ **Multi-tenant workspaces** - Scales from solo users to enterprise teams
+- ✅ **Stripe billing** - Checkout, webhooks, and customer portal ready
+- ✅ **OAuth authentication** - Google & GitHub login built-in
+- ✅ **Team collaboration** - Invite members, assign roles (admin/member)
+- ✅ **Modern stack** - Flask + Vue 3 + Vuetify (no build step)
+- ✅ **Production-ready** - Docker, Redis sessions, PostgreSQL
 
-OAuth Integration
----------------
-Supports social login with:
-- Google (profile and email scope)
-- GitHub (user:email scope)
+**Instead of building infrastructure, you build your product.**
 
-Configure in `.env`:
+---
+
+## The Smart Part: Invisible Workspaces
+
+Most SaaS templates force workspace complexity on all users. ReadyKit hides it for solo users and reveals it when needed:
+
+**Solo user (Day 1):**
+- Signs in with Google → Auto workspace created
+- Goes directly to your app (no "select workspace" screen)
+- Just works like a single-user product ✨
+
+**Growing team (Month 3):**
+- Adds teammates via simple admin panel
+- Everyone collaborates in same workspace
+- No migration, no rebuild—it just works
+
+**Power user (Year 1):**
+- Creates multiple workspaces or joins teams
+- Workspace switcher appears automatically
+- Full multi-tenant SaaS ready
+
+**This is the secret:** Multi-tenancy without the complexity.
+
+---
+
+## What's Included
+
+### Authentication & Users
+- OAuth (Google, GitHub) for instant signup
+- Email/password for team invites
+- 2FA & WebAuthn support
+- Session management with Redis
+
+### Multi-Tenancy & Teams
+- Workspace isolation (each tenant gets own data)
+- Automatic workspace creation on signup
+- Role-based access (admin/member)
+- Team member management
+
+### Billing & Payments
+- Stripe Checkout integration
+- Customer Portal (manage subscriptions)
+- Webhook handlers (auto-downgrade on cancellation/failure)
+- Free & Pro tier ready
+
+### Tech Stack
+- **Backend:** Flask 3.1, SQLAlchemy 2.x, Python 3.11+
+- **Frontend:** Vue 3, Vuetify 3 (Material Design, no build step)
+- **Database:** PostgreSQL (SQLite for dev)
+- **Cache:** Redis
+- **Background Jobs:** Celery
+- **Production:** Docker Compose, Nginx
+
+---
+
+## Quick Start
+
+### 1. Clone and Setup
+
 ```bash
-# Google OAuth
-GOOGLE_AUTH_ENABLED=true
+git clone git@github.com:level09/readykit.git
+cd readykit
+./setup.sh  # Creates environment, installs dependencies, generates .env
+```
+
+### 2. Configure OAuth & Stripe
+
+Edit `.env`:
+```bash
+# Google OAuth (get from console.cloud.google.com)
 GOOGLE_OAUTH_CLIENT_ID=your_client_id
 GOOGLE_OAUTH_CLIENT_SECRET=your_client_secret
 
-# GitHub OAuth
-GITHUB_AUTH_ENABLED=true
-GITHUB_OAUTH_CLIENT_ID=your_client_id
-GITHUB_OAUTH_CLIENT_SECRET=your_client_secret
+# Stripe (get from dashboard.stripe.com)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PRO_PRICE_ID=price_...
+PRO_PRICE_DISPLAY=$29
+PRO_PRICE_INTERVAL=month
 ```
 
-Prerequisites
-------------
-- Python 3.11+
-- Redis (for caching and sessions)
-- PostgreSQL (optional, SQLite works for development)
-- Git
-- uv (fast Python package installer and resolver)
+### 3. Initialize & Run
 
-Quick Start
-----------
-
-### Local Setup
-
-1. Install uv:
 ```bash
-# Install using pip
-pip install uv
-
-# Or using the installer script
-curl -sSf https://astral.sh/uv/install.sh | bash
+uv run flask create-db  # Create database tables
+uv run flask install    # Create super admin user
+uv run flask run        # Start dev server → http://localhost:5000
 ```
 
-2. Clone and setup:
-```bash
-git clone git@github.com:level09/enferno.git
-cd enferno
-./setup.sh  # Creates environment, installs requirements, generates secure .env
-```
+### 4. Test the Flow
 
-3. Initialize and run (modern uv workflow):
-```bash
-uv run flask create-db  # Setup database
-uv run flask install    # Create admin user
-uv run flask run        # Start development server
-```
+1. Sign in with Google → Workspace auto-created
+2. You land directly in your workspace (no selection screen)
+3. Try Settings → See billing/upgrade options
+4. Try Team (if admin) → Add teammates
 
-For Unix deployments that need uWSGI, install the optional extra:
-```bash
-uv sync --extra wsgi
-```
+**That's it. You're building your product now.**
 
-Or activate environment manually:
-```bash
-source .venv/bin/activate  # Linux/Mac
-# source .venv/Scripts/activate  # Windows
-flask create-db && flask install && flask run
-```
+---
 
-### Docker Setup
+## Production Deployment
 
-One-command setup with Docker:
+### Docker (Recommended)
+
 ```bash
 docker compose up --build
 ```
 
-The Docker setup includes:
-- Redis for caching and session management
-- PostgreSQL database
-- Nginx for serving static files
-- Celery for background tasks
+Includes: Flask, PostgreSQL, Redis, Nginx, Celery—ready to deploy.
 
-Configuration
-------------
+### Manual Deploy
 
-Key environment variables (.env):
+Works on any VPS, Render, Railway, Fly.io:
 
-```bash
-# Core
-FLASK_APP=run.py
-FLASK_DEBUG=1  # 0 in production
-SECRET_KEY=your_secret_key
+1. Set production environment variables
+2. Use PostgreSQL (not SQLite)
+3. Enable Redis for sessions
+4. Set `FLASK_ENV=production`
+5. Configure Stripe webhooks
 
-# Database (choose one)
-SQLALCHEMY_DATABASE_URI=sqlite:///enferno.sqlite3
-# Or for PostgreSQL:
-# SQLALCHEMY_DATABASE_URI=postgresql://username:password@localhost/dbname
+See `docs/` for detailed deployment guides.
 
-# Redis & Celery
-REDIS_URL=redis://localhost:6379/0
-CELERY_BROKER_URL=redis://localhost:6379/1
-CELERY_RESULT_BACKEND=redis://localhost:6379/2
+---
 
-# Email Settings (optional)
-MAIL_SERVER=smtp.example.com
-MAIL_PORT=465
-MAIL_USE_SSL=True
-MAIL_USERNAME=your_email
-MAIL_PASSWORD=your_password
-SECURITY_EMAIL_SENDER=noreply@example.com
+## Who Is This For?
 
-# OAuth (optional)
-GOOGLE_AUTH_ENABLED=true
-GOOGLE_OAUTH_CLIENT_ID=your_client_id
-GOOGLE_OAUTH_CLIENT_SECRET=your_client_secret
+**Perfect for:**
+- 🚀 Indie makers launching their first SaaS
+- 💼 Freelancers building client products
+- 🏗️ Startups validating ideas quickly
+- 👨‍💻 Developers tired of boilerplate
 
-GITHUB_AUTH_ENABLED=true
-GITHUB_OAUTH_CLIENT_ID=your_client_id
-GITHUB_OAUTH_CLIENT_SECRET=your_client_secret
+**Not ideal for:**
+- Pure B2C social apps (no teams needed)
+- Real-time chat/collaborative editing (needs WebSockets)
+- Mobile-first apps (web-focused, though API exists)
 
-# Security Settings
-SECURITY_PASSWORD_SALT=your_secure_salt
-SECURITY_TOTP_SECRETS=your_totp_secrets
+---
+
+## Customize for Your Product
+
+ReadyKit is a **foundation**, not a finished product. You add:
+
+1. **Your core feature** - Invoices, projects, analytics, whatever you're building
+2. **Your data models** - Extend with workspace-scoped tables
+3. **Your business logic** - The unique value customers pay for
+4. **Your branding** - Replace logo, colors, copy
+
+**Example: Building an invoice tool?**
+
+```python
+# Your model (workspace-scoped)
+from enferno.services.workspace import WorkspaceScoped
+
+class Invoice(db.Model, WorkspaceScoped):
+    workspace_id = db.Column(db.Integer, db.ForeignKey('workspace.id'))
+    # ... your invoice fields
+
+# Your protected route
+from enferno.services.workspace import require_workspace_access
+
+@app.get("/workspace/<int:workspace_id>/invoices/")
+@require_workspace_access("member")
+def invoices(workspace_id):
+    invoices = Invoice.for_current_workspace()  # Auto-scoped!
+    return render_template("invoices.html", invoices=invoices)
 ```
 
-Security Features
----------------
-- Two-factor authentication (2FA)
-- WebAuthn support
-- OAuth integration
-- Password policies
-- Session protection
-- CSRF protection
-- Secure cookie settings
-- Rate limiting
-- XSS protection
+**ReadyKit handles:** Auth, billing, teams, workspaces
+**You handle:** Making invoices awesome
 
-For detailed documentation, visit [docs.enferno.io](https://docs.enferno.io)
+---
 
-Contributing
------------
-Contributions welcome! Please read our [Contributing Guide](CONTRIBUTING.md).
+## Time Saved
 
-License
--------
-MIT licensed.
+Setting this up from scratch:
+- Multi-tenant architecture: 1-2 weeks
+- Stripe integration: 3-5 days
+- OAuth setup: 2-3 days
+- Team features: 1 week
+- Production Docker: 2-3 days
 
+**Total: 3-4 weeks of infrastructure work**
+
+With ReadyKit: **10 minutes to running app**
+
+---
+
+## Documentation
+
+- [Architecture Guide](docs/multi-tenant-implementation.md) - How multi-tenancy works
+- [Quick Start](docs/TEMPLATE-QUICK-START.md) - Detailed setup guide
+- [Deployment](docs/LEAN-LAUNCH.md) - Production deployment
+- [Development](CLAUDE.md) - Development patterns
+
+---
+
+## Support & Community
+
+- **Issues:** [GitHub Issues](https://github.com/level09/readykit/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/level09/readykit/discussions)
+- **Updates:** Watch this repo for updates
+
+---
+
+## License
+
+MIT License - Use it to build profitable products. No strings attached.
+
+---
+
+## Built With
+
+ReadyKit is built on [Enferno](https://github.com/level09/enferno), a modern Flask framework optimized for rapid development.
+
+**Ready to ship?** Clone, configure, and start building your product today. 🚀
