@@ -3,9 +3,9 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Project Enferno</title>
-    <meta name="description" content="A framework for the next decade">
-    <meta name="author" content="Enferno">
+    <title>ReadyKit - Production-Ready SaaS Template</title>
+    <meta name="description" content="Multi-tenant SaaS starter template with Flask, Vue 3, and modern authentication">
+    <meta name="author" content="ReadyKit">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
 
@@ -22,10 +22,9 @@
         <v-app-bar color="primary">
 
             <v-app-bar-title>
-
-                <a href="/"><img style="height: 60px; filter:invert()" class="pa-1" src="/static/img/enferno.svg"></a>
-
-
+                <a href="/" class="text-decoration-none text-white">
+                    <span class="text-h5 font-weight-bold">ReadyKit</span>
+                </a>
             </v-app-bar-title>
             <v-spacer></v-spacer>
             {% if current_user.is_authenticated %}
@@ -205,6 +204,13 @@
             {% block content %}
             {% endblock %}
         </v-main>
+
+        <!-- Footer Attribution -->
+        <v-footer app class="text-center py-2 text-caption text-medium-emphasis">
+            <v-container>
+                Powered by <a href="https://github.com/level09/enferno" target="_blank" class="text-decoration-none">Enferno Framework</a>
+            </v-container>
+        </v-footer>
         
         <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
