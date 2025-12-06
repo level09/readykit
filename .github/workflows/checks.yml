@@ -37,6 +37,14 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
+      - name: Create database tables
+        env:
+          SQLALCHEMY_DATABASE_URI: postgresql://test:test@localhost:5432/test
+          SECRET_KEY: test-secret-key-for-ci
+          SECURITY_PASSWORD_SALT: test-salt-for-ci
+          SECURITY_TOTP_SECRETS: test-totp-secret
+        run: uv run flask create-db
+
       - name: Run checks
         env:
           SQLALCHEMY_DATABASE_URI: postgresql://test:test@localhost:5432/test
