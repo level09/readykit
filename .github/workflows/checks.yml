@@ -39,6 +39,7 @@ jobs:
 
       - name: Create database tables
         env:
+          FLASK_APP: run.py
           SQLALCHEMY_DATABASE_URI: postgresql://test:test@localhost:5432/test
           SECRET_KEY: test-secret-key-for-ci
           SECURITY_PASSWORD_SALT: test-salt-for-ci
@@ -47,6 +48,7 @@ jobs:
 
       - name: Run checks
         env:
+          FLASK_APP: run.py
           SQLALCHEMY_DATABASE_URI: postgresql://test:test@localhost:5432/test
           SECRET_KEY: test-secret-key-for-ci
           SECURITY_PASSWORD_SALT: test-salt-for-ci
