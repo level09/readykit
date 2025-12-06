@@ -23,10 +23,10 @@ def check(name):
     """Decorator to register a check"""
 
     def decorator(f):
-        def wrapper():
+        def wrapper(app):
             global PASSED, FAILED
             try:
-                f()
+                f(app)
                 PASSED += 1
                 print(f"  \033[32m✓\033[0m {name}")
                 return True
@@ -44,53 +44,43 @@ def check(name):
 
 
 # =============================================================================
-# CHECKS - Add new checks here
+# CHECKS
 # =============================================================================
 
 
 @check("App boots without errors")
-def check_app_boots():
-    from enferno.app import create_app
-
-    app = create_app()
+def check_app_boots(app):
     assert app is not None
     assert app.config["SECRET_KEY"]
 
 
 @check("Database connection works")
-def check_database():
-    from enferno.app import create_app
+def check_database(app):
     from enferno.extensions import db
 
-    app = create_app()
     with app.app_context():
         db.session.execute(db.text("SELECT 1"))
 
 
 @check("User model loads")
-def check_user_model():
-    from enferno.app import create_app
+def check_user_model(app):
     from enferno.user.models import User
 
-    app = create_app()
     with app.app_context():
-        # Just verify we can query without error
         User.query.limit(1).all()
 
 
 @check("Workspace model and relationships")
-def check_workspace_model():
-    from enferno.app import create_app
+def check_workspace_model(app):
     from enferno.user.models import Membership, Workspace
 
-    app = create_app()
     with app.app_context():
         Workspace.query.limit(1).all()
         Membership.query.limit(1).all()
 
 
 @check("Workspace service imports")
-def check_workspace_service():
+def check_workspace_service(app):
     from enferno.services.workspace import (
         WorkspaceScoped,
         WorkspaceService,
@@ -105,7 +95,7 @@ def check_workspace_service():
 
 
 @check("Billing service imports")
-def check_billing_service():
+def check_billing_service(app):
     from enferno.services.billing import HostedBilling, requires_pro_plan
 
     assert callable(requires_pro_plan)
@@ -114,7 +104,7 @@ def check_billing_service():
 
 
 @check("Auth decorators work")
-def check_auth_decorators():
+def check_auth_decorators(app):
     from enferno.services.auth import require_superadmin, require_superadmin_api
 
     assert callable(require_superadmin)
@@ -122,10 +112,7 @@ def check_auth_decorators():
 
 
 @check("All blueprints register")
-def check_blueprints():
-    from enferno.app import create_app
-
-    app = create_app()
+def check_blueprints(app):
     blueprints = list(app.blueprints.keys())
     required = ["users", "public", "portal", "webhooks"]
     for bp in required:
@@ -133,10 +120,7 @@ def check_blueprints():
 
 
 @check("Critical routes exist")
-def check_routes():
-    from enferno.app import create_app
-
-    app = create_app()
+def check_routes(app):
     rules = [r.rule for r in app.url_map.iter_rules()]
 
     critical_routes = [
@@ -150,10 +134,7 @@ def check_routes():
 
 
 @check("Security config is sane")
-def check_security_config():
-    from enferno.app import create_app
-
-    app = create_app()
+def check_security_config(app):
     # Password security
     assert app.config["SECURITY_PASSWORD_LENGTH_MIN"] >= 8
     # Session security
@@ -168,12 +149,15 @@ def check_security_config():
 
 
 def run_checks():
+    from enferno.app import create_app
+
     print("\n\033[1mRunning checks...\033[0m\n")
 
+    app = create_app()
     checks = [v for v in globals().values() if hasattr(v, "_check_name")]
 
     for check_fn in checks:
-        check_fn()
+        check_fn(app)
 
     print()
     if FAILED == 0:
