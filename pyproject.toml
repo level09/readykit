@@ -1,7 +1,7 @@
 [project]
-name = "enferno"
-version = "12.0.0"
-description = "A modern Flask framework optimized for AI-assisted development workflows"
+name = "readykit"
+version = "1.0.0"
+description = "Production-ready Flask SaaS template with multi-tenant workspaces, Stripe billing, and OAuth"
 authors = [
     {name = "Level09", email = "hello@level09.com"}
 ]
@@ -90,6 +90,9 @@ wsgi = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["enferno"]
+
 [tool.ruff]
 line-length = 88
 target-version = "py311"
@@ -114,7 +117,7 @@ ignore = [
 "__init__.py" = ["F401"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["enferno"]
+known-first-party = ["enferno", "readykit"]
 
 [tool.ruff.format]
 quote-style = "double"
