@@ -74,15 +74,19 @@ app = 'your-app-name'  # Change this
 
 ### 7. Deploy
 
-Push to `master`:
-
-```bash
-git push origin master
-```
-
-Watch deployment: https://github.com/YOUR_USERNAME/YOUR_REPO/actions
+Go to Actions tab in your GitHub repo → "Deploy to Fly.io" → "Run workflow"
 
 Your app will be live at: `https://your-app-name.fly.dev`
+
+**Optional: Auto-deploy on push**
+
+Edit `.github/workflows/deploy-fly.yml` and uncomment the push trigger:
+```yaml
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+```
 
 ## Post-Deployment
 

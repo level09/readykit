@@ -1,9 +1,10 @@
 name: Deploy to Fly.io
 
 on:
-  push:
-    branches: [master]
   workflow_dispatch:
+  # Uncomment to auto-deploy on push:
+  # push:
+  #   branches: [master]
 
 jobs:
   deploy:
