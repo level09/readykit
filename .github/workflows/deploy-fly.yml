@@ -2,8 +2,8 @@ name: Deploy to Fly.io
 
 on:
   push:
-    branches: [cicd]  # Change to [master] after testing
-  workflow_dispatch:  # Allow manual trigger
+    branches: [master]
+  workflow_dispatch:
 
 jobs:
   deploy:
