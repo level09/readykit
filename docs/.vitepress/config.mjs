@@ -1,11 +1,12 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+  base: '/readykit/',
   title: 'ReadyKit',
   description: 'Production-ready Flask SaaS template with multi-tenant workspaces, Stripe billing, and team collaboration',
 
   head: [
-    ['link', { rel: 'icon', href: '/favicon.svg' }]
+    ['link', { rel: 'icon', href: '/readykit/favicon.svg' }]
   ],
 
   themeConfig: {
