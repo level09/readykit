@@ -158,11 +158,12 @@ def profile_update():
     """Update user profile"""
     data = request.get_json(silent=True) or {}
 
+    # Email changes not allowed - critical for multi-tenant security
+    if "email" in data:
+        return jsonify({"error": "Email cannot be changed"}), 400
+
     if "name" in data:
         current_user.name = data["name"]
-
-    if "email" in data:
-        current_user.email = data["email"]
 
     try:
         db.session.commit()
