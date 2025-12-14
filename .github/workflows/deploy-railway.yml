@@ -2,8 +2,9 @@ name: Deploy to Railway
 
 on:
   workflow_dispatch:
-  push:
-    branches: [railway-deploy]  # Test branch - change to master when ready
+  # Uncomment to auto-deploy on push:
+  # push:
+  #   branches: [master]
 
 jobs:
   deploy:
