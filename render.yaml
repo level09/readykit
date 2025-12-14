@@ -1,12 +1,21 @@
 # Render Blueprint - Infrastructure as Code
 # https://render.com/docs/blueprint-spec
+#
+# PRICING (change 'plan' values):
+#   Free tier:   web=free, redis=free, db=free     → $0/mo (DB expires in 30 days)
+#   Starter:     web=starter, redis=starter, db=basic-256mb → ~$27/mo
+#
+# Free tier limitations:
+#   - Web: spins down after 15 min inactivity (slow cold start)
+#   - PostgreSQL: deleted after 30 days
+#   - Redis: 25MB, no persistence
 
 services:
   # Flask Web Application
   - type: web
     name: readykit
     runtime: python
-    plan: starter
+    plan: free  # Change to 'starter' ($7/mo) for production
     region: oregon
     autoDeploy: false  # Manual deploy via GitHub Actions
     buildCommand: pip install uv && uv sync --extra wsgi --frozen
@@ -55,7 +64,7 @@ services:
   # Redis for sessions and Celery
   - type: keyvalue
     name: readykit-redis
-    plan: starter
+    plan: free  # Change to 'starter' ($10/mo) for persistence
     region: oregon
     ipAllowList:
       - source: 0.0.0.0/0
@@ -65,6 +74,6 @@ services:
 # PostgreSQL Database
 databases:
   - name: readykit-db
-    plan: basic-256mb  # Options: free, basic-256mb, basic-1gb, basic-4gb, pro-4gb+
+    plan: free  # Expires in 30 days! Use 'basic-256mb' ($10.5/mo) for production
     region: oregon
     postgresMajorVersion: "16"
