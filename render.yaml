@@ -8,8 +8,9 @@ services:
     runtime: python
     plan: starter
     region: oregon
+    autoDeploy: false  # Manual deploy via GitHub Actions
     buildCommand: pip install uv && uv sync --extra wsgi --frozen
-    startCommand: gunicorn run:app
+    startCommand: gunicorn run:app --bind 0.0.0.0:$PORT
     healthCheckPath: /
     envVars:
       - key: FLASK_APP
@@ -64,6 +65,6 @@ services:
 # PostgreSQL Database
 databases:
   - name: readykit-db
-    plan: starter
+    plan: basic-256mb  # Options: free, basic-256mb, basic-1gb, basic-4gb, pro-4gb+
     region: oregon
     postgresMajorVersion: "16"
