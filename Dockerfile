@@ -19,8 +19,7 @@ FROM python:3.12-slim
 WORKDIR /app
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PORT=5000
+    PYTHONUNBUFFERED=1
 
 # Install runtime deps and create user
 RUN apt-get update && apt-get install -y --no-install-recommends curl libexpat1 \
@@ -39,4 +38,4 @@ USER enferno
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:5000/ || exit 1
 
-CMD uwsgi --http 0.0.0.0:$PORT --master --wsgi run:app --processes 2 --threads 2
+CMD ["uwsgi", "--http", "0.0.0.0:5000", "--master", "--wsgi", "run:app", "--processes", "2", "--threads", "2"]
