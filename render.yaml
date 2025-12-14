@@ -1,0 +1,69 @@
+# Render Blueprint - Infrastructure as Code
+# https://render.com/docs/blueprint-spec
+
+services:
+  # Flask Web Application
+  - type: web
+    name: readykit
+    runtime: python
+    plan: starter
+    region: oregon
+    buildCommand: pip install uv && uv sync --extra wsgi --frozen
+    startCommand: gunicorn run:app
+    healthCheckPath: /
+    envVars:
+      - key: FLASK_APP
+        value: run.py
+      - key: FLASK_DEBUG
+        value: "0"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SECURITY_PASSWORD_SALT
+        generateValue: true
+      - key: SECURITY_TOTP_SECRETS
+        generateValue: true
+      - key: SQLALCHEMY_DATABASE_URI
+        fromDatabase:
+          name: readykit-db
+          property: connectionString
+      - key: REDIS_SESSION
+        fromService:
+          name: readykit-redis
+          type: keyvalue
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: readykit-redis
+          type: keyvalue
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: readykit-redis
+          type: keyvalue
+          property: connectionString
+      # Stripe keys - set in Render Dashboard (sync: false prompts for value)
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_PRO_PRICE_ID
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+
+  # Redis for sessions and Celery
+  - type: keyvalue
+    name: readykit-redis
+    plan: starter
+    region: oregon
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all (internal traffic only)
+    maxmemoryPolicy: allkeys-lru
+
+# PostgreSQL Database
+databases:
+  - name: readykit-db
+    plan: starter
+    region: oregon
+    postgresMajorVersion: "16"

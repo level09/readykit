@@ -9,7 +9,8 @@ ReadyKit provides multiple deployment options:
 1. **Docker Compose** - Full stack on any server
 2. **Fly.io** - Quick cloud deployment with CI/CD
 3. **Railway** - Simple cloud deployment with CI/CD
-4. **Traditional** - Manual setup on Ubuntu/Debian
+4. **Render** - Dashboard-friendly with Blueprint IaC
+5. **Traditional** - Manual setup on Ubuntu/Debian
 
 ## Docker Compose (Recommended)
 
@@ -98,6 +99,27 @@ Simple cloud deployment with automatic CI/CD. See [Railway Guide](/deployment/ra
 ```
 
 Your app will be live at the URL shown in Railway dashboard.
+
+## Render Deployment
+
+Dashboard-friendly deployment with Blueprint infrastructure-as-code. See [Render Guide](/deployment/render) for detailed setup.
+
+### Quick Start
+
+```bash
+# 1. Go to dashboard.render.com
+# 2. New → Blueprint
+# 3. Connect your GitHub repo
+# 4. Render detects render.yaml automatically
+# 5. Fill in Stripe keys when prompted
+# 6. Apply to create all services
+
+# Get deploy hook URL from service Settings
+# Add RENDER_DEPLOY_HOOK_URL to GitHub secrets
+# Run workflow to deploy
+```
+
+Your app will be live at `https://readykit.onrender.com`
 
 ## Traditional Deployment
 

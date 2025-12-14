@@ -1,0 +1,16 @@
+name: Deploy to Render
+
+on:
+  workflow_dispatch:
+  # Uncomment to auto-deploy on push:
+  # push:
+  #   branches: [master]
+
+jobs:
+  deploy:
+    name: Deploy app
+    runs-on: ubuntu-latest
+    concurrency: deploy-group
+    steps:
+      - name: Trigger Render Deploy
+        run: curl -s "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
