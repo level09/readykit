@@ -2,45 +2,44 @@
 
 Automated CI/CD deployment to Railway. Push to your deploy branch and your app deploys automatically.
 
-## One-Time Setup
+## One-Time Setup (5 minutes)
 
 ### 1. Create Railway Account
 
 Sign up at https://railway.app (sign in with GitHub recommended).
 
-### 2. Create Empty Project
+### 2. Create Project with Services
 
-1. Click "New Project"
-2. Select "Empty Project"
-3. Name it (e.g., `readykit`)
+1. Click **"New Project"** → **"Empty Project"**
+2. Name it (e.g., `my-saas`)
 
-### 3. Add PostgreSQL
+**Add the app service:**
+1. Click **"New"** → **"Empty Service"**
+2. Click on the new service → **Settings** → rename it to **`app`** (important!)
 
-1. In your project, click "Add Service"
-2. Select "Database" → "PostgreSQL"
-3. Railway auto-provisions and sets `DATABASE_URL`
+**Add databases:**
+1. Click **"New"** → **"Database"** → **"PostgreSQL"**
+2. Click **"New"** → **"Database"** → **"Redis"**
 
-### 4. Add Redis
+Your project should now have 3 services: `app`, `Postgres`, `Redis`
 
-1. Click "Add Service"
-2. Select "Database" → "Redis"
-3. Railway auto-provisions and sets `REDIS_URL`
+### 3. Get Project Token
 
-### 5. Create API Token
-
-1. Go to Account Settings → Tokens
-2. Click "Create Token"
-3. Name it `github-deploy`
+1. Click on **project name** (top left) → **Settings**
+2. Go to **"Tokens"** tab
+3. Click **"Create Token"** → name it `github-deploy`
 4. Copy the token
 
-### 6. Add GitHub Secret
+### 4. Add GitHub Secret
 
-1. Go to your repo → Settings → Secrets and variables → Actions
-2. New repository secret: `RAILWAY_TOKEN` = (paste token)
+1. Go to your GitHub repo → **Settings** → **Secrets and variables** → **Actions**
+2. Click **"New repository secret"**
+3. Name: `RAILWAY_TOKEN`
+4. Value: (paste the token)
 
-### 7. Set Environment Variables
+### 5. Configure Environment Variables
 
-In Railway dashboard, click on your app service and add these variables:
+In Railway dashboard, click on your **`app`** service and add variables:
 
 ```bash
 # Required
@@ -66,12 +65,13 @@ Generate secure keys:
 openssl rand -hex 32  # Run 3 times for each secret
 ```
 
-### 8. Deploy
+### 6. Deploy
 
-Push to your deploy branch or trigger manually:
-- Go to Actions tab → "Deploy to Railway" → "Run workflow"
+Push to `master` (or your deploy branch) and GitHub Actions deploys automatically.
 
-Your app will be live at the URL shown in Railway dashboard.
+Or trigger manually: **Actions** → **"Deploy to Railway"** → **"Run workflow"**
+
+Your app will be live at the URL shown in Railway dashboard (click on `app` service → **Settings** → **Domains**).
 
 ## Post-Deployment
 
