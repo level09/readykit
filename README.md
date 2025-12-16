@@ -79,6 +79,13 @@ docker compose up --build
 
 Includes PostgreSQL, Redis, Nginx, Celery.
 
+**VPS Deploy** - One command for Ubuntu (Hetzner, DigitalOcean, etc.):
+```bash
+curl -sSL https://raw.githubusercontent.com/level09/ignite/main/ignite.sh | sudo DOMAIN=your-domain.com REPO=level09/readykit bash
+```
+
+Handles Caddy (auto SSL), Python 3.13, Redis, systemd. See [Ignite](https://github.com/level09/ignite).
+
 ---
 
 ## Customize
