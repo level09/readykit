@@ -23,8 +23,8 @@ else:
     _SESSION_REDIS = None
 
 
-def uia_username_mapper(identity):
-    # Sanitize and strip whitespace from email input - Flask-Security handles case insensitivity
+def uia_email_mapper(identity):
+    # Sanitize and strip whitespace from email input
     return bleach.clean(identity, strip=True).strip() if identity else identity
 
 
@@ -67,7 +67,7 @@ class Config:
         raise ValueError("SECURITY_PASSWORD_SALT environment variable is required")
     # Email-only login - simplest and most user-friendly
     SECURITY_USER_IDENTITY_ATTRIBUTES = [
-        {"email": {"mapper": uia_username_mapper, "case_insensitive": True}},
+        {"email": {"mapper": uia_email_mapper, "case_insensitive": True}},
     ]
     SECURITY_USERNAME_ENABLE = False  # Disable username completely
 

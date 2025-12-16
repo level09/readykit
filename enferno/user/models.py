@@ -47,8 +47,9 @@ class User(UserMixin, db.Model, BaseMixin):
     )
     name = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
-    email = db.Column(db.String(255), nullable=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
+    password_set = db.Column(db.Boolean, default=True, nullable=False)
     active = db.Column(db.Boolean, default=False, nullable=True)
     is_superadmin = db.Column(db.Boolean, default=False, nullable=False)
 
@@ -72,12 +73,25 @@ class User(UserMixin, db.Model, BaseMixin):
     def webauthn(cls):
         return relationship("WebAuthn", backref="users", cascade="all, delete")
 
+    @property
+    def display_name(self):
+        """Return best available display name for UI."""
+        return self.name or self.email
+
+    @property
+    def has_usable_password(self):
+        """Check if user has a password they actually know.
+
+        OAuth users are created with password_set=False. Once they set
+        a password via the change password form, password_set becomes True.
+        """
+        return self.password_set
+
     def to_dict(self):
         return {
             "id": self.id,
             "active": self.active,
             "name": self.name,
-            "username": self.username,
             "email": self.email,
             "is_superadmin": self.is_superadmin,
         }
@@ -100,7 +114,7 @@ class User(UserMixin, db.Model, BaseMixin):
         """
         Return an unambiguous string representation of the object.
         """
-        return f"{self.username} {self.id} {self.email}"
+        return f"<User {self.id}: {self.email}>"
 
     meta = {
         "allow_inheritance": True,
@@ -221,18 +235,16 @@ class Activity(db.Model, BaseMixin):
 
     @classmethod
     def register(cls, user_id, action, data=None, workspace_id=None):
-        """Register an activity for audit purposes (optionally workspace-scoped)."""
+        """Register an activity for audit purposes (optionally workspace-scoped).
+
+        Note: Does not commit - caller is responsible for transaction management.
+        This prevents activity logging from rolling back other pending changes.
+        """
         activity = cls(
             user_id=user_id, action=action, data=data, workspace_id=workspace_id
         )
         db.session.add(activity)
-        try:
-            db.session.commit()
-            return activity
-        except Exception as e:
-            print(f"Error registering activity: {e}")
-            db.session.rollback()
-            return None
+        return activity
 
 
 class StripeEvent(db.Model, BaseMixin):
@@ -248,14 +260,21 @@ class Workspace(db.Model, BaseMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     slug = db.Column(db.String(100), unique=True, nullable=False)
-    owner_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    owner_id = db.Column(
+        db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False
+    )
 
     # Billing fields
     plan = db.Column(db.String(10), default="free")  # 'free' or 'pro'
     stripe_customer_id = db.Column(db.String(100), nullable=True)
     upgraded_at = db.Column(db.DateTime, nullable=True)
 
-    owner = relationship("User", backref=db.backref("owned_workspaces", cascade="all, delete-orphan", passive_deletes=True))
+    owner = relationship(
+        "User",
+        backref=db.backref(
+            "owned_workspaces", cascade="all, delete-orphan", passive_deletes=True
+        ),
+    )
 
     def to_dict(self):
         return {
@@ -299,8 +318,18 @@ class Membership(db.Model, BaseMixin):
         db.String(20), nullable=False, default="member"
     )  # 'admin' or 'member'
 
-    workspace = relationship("Workspace", backref=db.backref("memberships", cascade="all, delete-orphan", passive_deletes=True))
-    user = relationship("User", backref=db.backref("memberships", cascade="all, delete-orphan", passive_deletes=True))
+    workspace = relationship(
+        "Workspace",
+        backref=db.backref(
+            "memberships", cascade="all, delete-orphan", passive_deletes=True
+        ),
+    )
+    user = relationship(
+        "User",
+        backref=db.backref(
+            "memberships", cascade="all, delete-orphan", passive_deletes=True
+        ),
+    )
 
     def to_dict(self):
         return {
@@ -318,8 +347,15 @@ class Session(db.Model, BaseMixin):
     __tablename__ = "user_sessions"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
-    user = db.relationship("User", backref=db.backref("sessions", lazy=True, cascade="all, delete-orphan", passive_deletes=True))
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False
+    )
+    user = db.relationship(
+        "User",
+        backref=db.backref(
+            "sessions", lazy=True, cascade="all, delete-orphan", passive_deletes=True
+        ),
+    )
 
     session_token = db.Column(db.String(255), unique=True, nullable=False)
     last_active = db.Column(db.DateTime, default=datetime.now)
@@ -345,21 +381,33 @@ class Session(db.Model, BaseMixin):
 
     @classmethod
     def create_session(cls, user_id, session_token, ip_address=None, meta=None):
-        """Create a new session for a user."""
-        session = cls(
+        """Create or update a session for a user.
+
+        Uses get-or-create pattern to avoid unique constraint violations
+        that would rollback other pending changes (like password updates).
+        """
+        # Try to find existing session first
+        existing = cls.query.filter_by(session_token=session_token).first()
+        if existing:
+            # Update existing session
+            existing.user_id = user_id
+            existing.ip_address = ip_address
+            existing.meta = meta
+            existing.is_active = True
+            existing.last_active = datetime.now()
+            db.session.add(existing)
+            return existing
+
+        # Create new session
+        session_record = cls(
             user_id=user_id,
             session_token=session_token,
             ip_address=ip_address,
             meta=meta,
             is_active=True,
         )
-        db.session.add(session)
-        try:
-            db.session.commit()
-            return session
-        except Exception:
-            db.session.rollback()
-            return None
+        db.session.add(session_record)
+        return session_record
 
     @classmethod
     def deactivate_user_sessions(cls, user_id, exclude_token=None):

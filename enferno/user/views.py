@@ -227,7 +227,7 @@ def api_activities():
         user = db.session.get(User, activity.user_id)
         return {
             "id": activity.id,
-            "user": user.username if user else f"User ID: {activity.user_id}",
+            "user": user.display_name if user else f"User ID: {activity.user_id}",
             "action": activity.action,
             "data": activity.data,
             "created_at": activity.created_at.strftime("%Y-%m-%d %H:%M:%S"),
@@ -279,7 +279,9 @@ def user_authenticated_handler(app, user, authn_via, **extra_args):
 
 @password_changed.connect
 def after_password_change(sender, user, **extra_args):
-    """Log password change activity."""
+    """Log password change and mark password as user-set."""
+    user.password_set = True
+    db.session.add(user)
     Activity.register(user.id, "Password Changed", {"email": user.email})
 
 
