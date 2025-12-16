@@ -63,9 +63,14 @@ Visit http://localhost:5000 and sign in with Google.
 
 ## Production Deploy
 
-**Fly.io (CI/CD)** - Push to master, deploys in ~2 minutes.
+**One-Click Cloud Platforms:**
 
-See [docs/deployment/fly.md](docs/deployment/fly.md) for full setup guide.
+| Platform | Cost | Guide |
+|----------|------|-------|
+| [Fly.io](https://fly.io) | ~$5/month | [Setup Guide](docs/deployment/fly.md) |
+| [Railway](https://railway.app) | ~$5/month | [Setup Guide](docs/deployment/railway.md) |
+
+All platforms include PostgreSQL, Redis, and CI/CD (push to deploy).
 
 **Docker Compose** - Self-hosted:
 ```bash

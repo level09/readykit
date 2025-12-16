@@ -45,7 +45,8 @@ export default defineConfig({
         text: 'Deployment',
         items: [
           { text: 'Overview', link: '/deployment' },
-          { text: 'Fly.io', link: '/deployment/fly' }
+          { text: 'Fly.io', link: '/deployment/fly' },
+          { text: 'Railway', link: '/deployment/railway' }
         ]
       }
     ],
