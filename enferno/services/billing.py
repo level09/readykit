@@ -102,7 +102,7 @@ class HostedBilling:
         # Upgrade workspace
         try:
             workspace.plan = "pro"
-            workspace.stripe_customer_id = session.customer
+            workspace.billing_customer_id = session.customer
             workspace.upgraded_at = datetime.utcnow()
             db.session.commit()
             return workspace.id

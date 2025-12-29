@@ -433,7 +433,7 @@ def upgrade_workspace(workspace_id):
 
     workspace = g.current_workspace
     current_app.logger.debug(
-        f"Current workspace plan: {workspace.plan}, stripe_customer_id: {workspace.stripe_customer_id}"
+        f"Current workspace plan: {workspace.plan}, billing_customer_id: {workspace.billing_customer_id}"
     )
 
     # Prevent duplicate subscriptions - redirect to billing portal if already Pro
@@ -442,7 +442,7 @@ def upgrade_workspace(workspace_id):
             f"Workspace {workspace_id} already on Pro plan, redirecting to billing portal"
         )
         # Only redirect if we have a customer ID, otherwise show settings
-        if workspace.stripe_customer_id:
+        if workspace.billing_customer_id:
             return redirect(url_for("portal.billing_portal", workspace_id=workspace_id))
         else:
             # Pro workspace without Stripe customer (manual upgrade, legacy)
@@ -472,10 +472,10 @@ def upgrade_workspace(workspace_id):
 def billing_portal(workspace_id):
     """Redirect to Stripe Customer Portal - fully hosted"""
     workspace = g.current_workspace
-    if workspace.stripe_customer_id:
+    if workspace.billing_customer_id:
         try:
             session = HostedBilling.create_portal_session(
-                workspace.stripe_customer_id, workspace_id, request.url_root
+                workspace.billing_customer_id, workspace_id, request.url_root
             )
             return redirect(session.url)
         except Exception as e:

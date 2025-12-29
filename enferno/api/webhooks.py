@@ -51,7 +51,7 @@ def stripe_webhook():
         from enferno.user.models import Workspace
 
         workspace = db.session.execute(
-            db.select(Workspace).where(Workspace.stripe_customer_id == customer_id)
+            db.select(Workspace).where(Workspace.billing_customer_id == customer_id)
         ).scalar_one_or_none()
 
         if workspace:
@@ -69,7 +69,7 @@ def stripe_webhook():
         from enferno.user.models import Workspace
 
         workspace = db.session.execute(
-            db.select(Workspace).where(Workspace.stripe_customer_id == customer_id)
+            db.select(Workspace).where(Workspace.billing_customer_id == customer_id)
         ).scalar_one_or_none()
 
         if workspace and workspace.plan == "pro":

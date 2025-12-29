@@ -254,7 +254,7 @@ class Workspace(db.Model, BaseMixin):
 
     # Billing fields
     plan = db.Column(db.String(10), default="free")  # 'free' or 'pro'
-    stripe_customer_id = db.Column(db.String(100), nullable=True)
+    billing_customer_id = db.Column(db.String(100), nullable=True)
     upgraded_at = db.Column(db.DateTime, nullable=True)
 
     owner = relationship(
