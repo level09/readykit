@@ -510,8 +510,9 @@ def billing_portal(workspace_id):
 @portal.get("/billing/success")
 @auth_required("session")
 def billing_success():
-    """Handle successful Stripe checkout - validate and upgrade workspace"""
-    session_id = request.args.get("session_id")
+    """Handle successful checkout - validate and upgrade workspace"""
+    # Stripe uses ?session_id=, Chargebee uses ?id=
+    session_id = request.args.get("session_id") or request.args.get("id")
 
     if not session_id:
         return redirect("/dashboard")
