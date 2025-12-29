@@ -3,7 +3,7 @@ from flask import Blueprint, current_app, request
 from sqlalchemy.exc import IntegrityError
 
 from enferno.extensions import db
-from enferno.user.models import StripeEvent
+from enferno.user.models import BillingEvent
 
 webhooks_bp = Blueprint("webhooks", __name__)
 
@@ -27,7 +27,7 @@ def stripe_webhook():
     # Skip duplicate events
     event_id = event.get("id")
     try:
-        db.session.add(StripeEvent(event_id=event_id, event_type=event.get("type")))
+        db.session.add(BillingEvent(event_id=event_id, event_type=event.get("type"), provider="stripe"))
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
