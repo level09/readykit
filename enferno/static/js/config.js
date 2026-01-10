@@ -41,7 +41,7 @@ const config = {
             }
         },
         theme: {
-            defaultTheme: window.__settings__?.dark ? 'dark' : 'light',
+            defaultTheme: localStorage.getItem('enferno-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
             themes: {
                 light: {
                     dark: false,
