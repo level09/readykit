@@ -9,7 +9,7 @@ from flask_security import AsaList
 from flask_security.core import RoleMixin, UserMixin
 from flask_security.utils import hash_password
 from sluggi import slugify
-from sqlalchemy import Column, ForeignKey, Integer, Table, select
+from sqlalchemy import Column, ForeignKey, Integer, Table, select, update
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import declared_attr, relationship
 
@@ -115,12 +115,6 @@ class User(UserMixin, db.Model, BaseMixin):
         Return an unambiguous string representation of the object.
         """
         return f"<User {self.id}: {self.email}>"
-
-    meta = {
-        "allow_inheritance": True,
-        "indexes": ["-created_at", "email", "username"],
-        "ordering": ["-created_at"],
-    }
 
     @staticmethod
     def random_password(length=32):
@@ -290,13 +284,7 @@ class Workspace(db.Model, BaseMixin):
 
     @property
     def is_pro(self):
-        """Check if workspace is on pro plan with live Stripe sync"""
-        # For performance, only sync if we have a customer ID and it's been a while
-        # or if plan status is critical to check
-        if self.stripe_customer_id and self.plan == "pro":
-            # Optionally sync in background or on-demand
-            # For now, trust database but provide sync method
-            pass
+        """Check if workspace is on pro plan."""
         return self.plan == "pro"
 
     @staticmethod
@@ -387,7 +375,9 @@ class Session(db.Model, BaseMixin):
         that would rollback other pending changes (like password updates).
         """
         # Try to find existing session first
-        existing = cls.query.filter_by(session_token=session_token).first()
+        existing = db.session.execute(
+            db.select(cls).where(cls.session_token == session_token)
+        ).scalar_one_or_none()
         if existing:
             # Update existing session
             existing.user_id = user_id
@@ -412,8 +402,10 @@ class Session(db.Model, BaseMixin):
     @classmethod
     def deactivate_user_sessions(cls, user_id, exclude_token=None):
         """Deactivate all sessions for a user, optionally excluding current."""
-        query = cls.query.filter_by(user_id=user_id, is_active=True)
+        conditions = [cls.user_id == user_id, cls.is_active.is_(True)]
         if exclude_token:
-            query = query.filter(cls.session_token != exclude_token)
-        query.update({"is_active": False})
+            conditions.append(cls.session_token != exclude_token)
+        db.session.execute(
+            update(cls).where(*conditions).values(is_active=False)
+        )
         db.session.commit()
