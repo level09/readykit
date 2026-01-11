@@ -42,7 +42,7 @@ class Config:
     )
     # for postgres
     # SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI', 'postgresql:///enferno')
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Celery configuration - only set if Redis available and configured
     CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL") if REDIS_AVAILABLE else None

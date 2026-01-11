@@ -135,9 +135,9 @@ def api_user_create():
         db.session.commit()
         Activity.register(current_user.id, "User Create", user.to_dict())
         return jsonify({"message": "User successfully created!"})
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": "Failed to create user"}), 400
 
 
 @bp_user.post("/api/user/<int:id>")
@@ -172,9 +172,9 @@ def api_user_update(id):
             {"old": old_user_data, "new": user.to_dict()},
         )
         return jsonify({"message": "User successfully updated!"})
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": "Failed to update user"}), 400
 
 
 @bp_user.delete("/api/user/<int:id>")
@@ -204,9 +204,9 @@ def api_user_delete(id):
         db.session.commit()
         Activity.register(current_user.id, "User Delete", user_data)
         return jsonify({"message": "User successfully deleted!"})
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": "Failed to delete user"}), 400
 
 
 @bp_user.get("/activities/")
@@ -222,18 +222,17 @@ def api_activities():
     query = db.select(Activity).order_by(Activity.created_at.desc())
     pagination = db.paginate(query, page=page, per_page=per_page)
 
-    def activity_to_dict(activity):
-        """Convert activity to dict with user info"""
-        user = db.session.get(User, activity.user_id)
-        return {
+    # Activity.user relationship is lazy="joined", so user is already loaded
+    items = [
+        {
             "id": activity.id,
-            "user": user.display_name if user else f"User ID: {activity.user_id}",
+            "user": activity.user.display_name if activity.user else f"User ID: {activity.user_id}",
             "action": activity.action,
             "data": activity.data,
             "created_at": activity.created_at.strftime("%Y-%m-%d %H:%M:%S"),
         }
-
-    items = [activity_to_dict(activity) for activity in pagination.items]
+        for activity in pagination.items
+    ]
 
     return Response(
         json.dumps(

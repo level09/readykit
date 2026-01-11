@@ -118,8 +118,8 @@ def create_workspace():
                 "workspace": workspace.to_dict(),
             }
         )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        return jsonify({"error": "Failed to create workspace"}), 500
 
 
 @portal.get("/api/workspace/<int:workspace_id>/stats")
@@ -147,9 +147,9 @@ def workspace_update(workspace_id):
     try:
         db.session.commit()
         return jsonify({"message": "Workspace updated successfully"})
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        return jsonify({"message": "Failed to update workspace", "error": str(e)}), 400
+        return jsonify({"error": "Failed to update workspace"}), 400
 
 
 @portal.put("/api/profile")
@@ -168,9 +168,9 @@ def profile_update():
     try:
         db.session.commit()
         return jsonify({"message": "Profile updated successfully"})
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        return jsonify({"message": "Failed to update profile", "error": str(e)}), 400
+        return jsonify({"error": "Failed to update profile"}), 400
 
 
 @portal.post("/api/workspace/<int:workspace_id>/members")

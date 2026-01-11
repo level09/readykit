@@ -1,4 +1,3 @@
-import dataclasses
 import secrets
 import string
 from datetime import datetime
@@ -23,7 +22,6 @@ roles_users: Table = db.Table(
 )
 
 
-@dataclasses.dataclass
 class Role(db.Model, RoleMixin, BaseMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=True)
@@ -38,7 +36,6 @@ class Role(db.Model, RoleMixin, BaseMixin):
         return self
 
 
-@dataclasses.dataclass
 class User(UserMixin, db.Model, BaseMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), unique=True, nullable=True)
@@ -229,15 +226,12 @@ class Activity(db.Model, BaseMixin):
 
     @classmethod
     def register(cls, user_id, action, data=None, workspace_id=None):
-        """Register an activity for audit purposes (optionally workspace-scoped).
-
-        Note: Does not commit - caller is responsible for transaction management.
-        This prevents activity logging from rolling back other pending changes.
-        """
+        """Register an activity for audit purposes (optionally workspace-scoped)."""
         activity = cls(
             user_id=user_id, action=action, data=data, workspace_id=workspace_id
         )
         db.session.add(activity)
+        db.session.commit()
         return activity
 
 
@@ -249,7 +243,6 @@ class StripeEvent(db.Model, BaseMixin):
     event_type = db.Column(db.String(128), nullable=True)
 
 
-@dataclasses.dataclass
 class Workspace(db.Model, BaseMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
@@ -294,7 +287,6 @@ class Workspace(db.Model, BaseMixin):
         return slugify(name)
 
 
-@dataclasses.dataclass
 class Membership(db.Model, BaseMixin):
     workspace_id = db.Column(
         db.Integer, db.ForeignKey("workspace.id", ondelete="CASCADE"), primary_key=True
