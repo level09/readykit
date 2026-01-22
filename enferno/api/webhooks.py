@@ -13,6 +13,8 @@ PROVIDER = os.environ.get("BILLING_PROVIDER", "stripe")
 if PROVIDER == "stripe":
     import stripe
 
+    from enferno.services.billing import HostedBilling
+
     @webhooks_bp.route("/stripe/webhook", methods=["POST"])
     def stripe_webhook():
         payload = request.get_data()
