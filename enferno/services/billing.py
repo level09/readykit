@@ -104,7 +104,9 @@ if PROVIDER == "stripe":
                 return workspace.id
             except Exception as e:
                 db.session.rollback()
-                current_app.logger.error(f"Failed to upgrade workspace {workspace_id}: {e}")
+                current_app.logger.error(
+                    f"Failed to upgrade workspace {workspace_id}: {e}"
+                )
                 return None
 
 elif PROVIDER == "chargebee":
@@ -136,13 +138,15 @@ elif PROVIDER == "chargebee":
             if not item_price_id:
                 raise RuntimeError("Chargebee item price not configured")
 
-            result = cb.HostedPage.checkout_new_for_items({
-                "subscription_items": [{"item_price_id": item_price_id}],
-                "customer": {"email": user_email},
-                "redirect_url": f"{base_url}billing/success",  # Chargebee appends ?id=xxx&state=yyy
-                "cancel_url": f"{base_url}dashboard",
-                "pass_thru_content": json.dumps({"workspace_id": str(workspace_id)}),
-            })
+            result = cb.HostedPage.checkout_new_for_items(
+                {
+                    "subscription_items": [{"item_price_id": item_price_id}],
+                    "customer": {"email": user_email},
+                    "redirect_url": f"{base_url}billing/success",
+                    "cancel_url": f"{base_url}dashboard",
+                    "pass_thru_content": json.dumps({"workspace_id": str(workspace_id)}),
+                }
+            )
             hosted_page = result.hosted_page
             current_app.logger.info(f"Created Chargebee Checkout: {hosted_page.id}")
             return hosted_page
@@ -153,13 +157,24 @@ elif PROVIDER == "chargebee":
         ) -> Any:
             """Create Chargebee Portal session for billing management."""
             cb = _init_chargebee()
-            result = cb.PortalSession.create({
-                "customer": {"id": customer_id},
-                "redirect_url": f"{base_url}workspace/{workspace_id}/settings",
-            })
+            result = cb.PortalSession.create(
+                {
+                    "customer": {"id": customer_id},
+                    "redirect_url": f"{base_url}workspace/{workspace_id}/settings",
+                }
+            )
             portal_session = result.portal_session
-            current_app.logger.info(f"Created Chargebee Portal session: {portal_session.id}")
-            return portal_session
+            current_app.logger.info(
+                f"Created Chargebee Portal session: {portal_session.id}"
+            )
+
+            # Wrap to provide consistent .url interface (Chargebee uses access_url)
+            class PortalSessionWrapper:
+                def __init__(self, session):
+                    self.id = session.id
+                    self.url = session.access_url
+
+            return PortalSessionWrapper(portal_session)
 
         @staticmethod
         def handle_successful_payment(hosted_page_id: str) -> int:
@@ -198,7 +213,9 @@ elif PROVIDER == "chargebee":
                 return workspace.id
             except Exception as e:
                 db.session.rollback()
-                current_app.logger.error(f"Failed to upgrade workspace {workspace_id}: {e}")
+                current_app.logger.error(
+                    f"Failed to upgrade workspace {workspace_id}: {e}"
+                )
                 return None
 
 else:

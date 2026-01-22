@@ -4,7 +4,7 @@ from flask import Blueprint, current_app, request
 from sqlalchemy.exc import IntegrityError
 
 from enferno.extensions import db
-from enferno.user.models import BillingEvent
+from enferno.user.models import BillingEvent, Workspace
 
 webhooks_bp = Blueprint("webhooks", __name__)
 
@@ -32,7 +32,11 @@ if PROVIDER == "stripe":
         # Skip duplicate events
         event_id = event.get("id")
         try:
-            db.session.add(BillingEvent(event_id=event_id, event_type=event.get("type"), provider="stripe"))
+            db.session.add(
+                BillingEvent(
+                    event_id=event_id, event_type=event.get("type"), provider="stripe"
+                )
+            )
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
@@ -43,8 +47,6 @@ if PROVIDER == "stripe":
             session = event["data"]["object"]
             session_id = session.get("id")
 
-            from enferno.services.billing import HostedBilling
-
             HostedBilling.handle_successful_payment(session_id)
             current_app.logger.info(f"Processed checkout: {session_id}")
 
@@ -52,8 +54,6 @@ if PROVIDER == "stripe":
         elif event["type"] == "customer.subscription.deleted":
             subscription = event["data"]["object"]
             customer_id = subscription.get("customer")
-
-            from enferno.user.models import Workspace
 
             workspace = db.session.execute(
                 db.select(Workspace).where(Workspace.billing_customer_id == customer_id)
@@ -71,8 +71,6 @@ if PROVIDER == "stripe":
             invoice = event["data"]["object"]
             customer_id = invoice.get("customer")
 
-            from enferno.user.models import Workspace
-
             workspace = db.session.execute(
                 db.select(Workspace).where(Workspace.billing_customer_id == customer_id)
             ).scalar_one_or_none()
@@ -89,12 +87,15 @@ if PROVIDER == "stripe":
 elif PROVIDER == "chargebee":
 
     def _verify_chargebee_auth():
-        """Verify Chargebee webhook using Basic Auth."""
+        """Verify Chargebee webhook using Basic Auth (required in production)."""
         username = current_app.config.get("CHARGEBEE_WEBHOOK_USERNAME")
         password = current_app.config.get("CHARGEBEE_WEBHOOK_PASSWORD")
 
         if not username or not password:
-            return True  # No auth configured, allow (dev mode)
+            if not current_app.debug:
+                current_app.logger.error("Chargebee webhook credentials not configured")
+                return False
+            return True  # Allow in debug mode for local testing
 
         auth = request.authorization
         if not auth or auth.username != username or auth.password != password:
@@ -116,7 +117,11 @@ elif PROVIDER == "chargebee":
 
         # Skip duplicate events
         try:
-            db.session.add(BillingEvent(event_id=event_id, event_type=event_type, provider="chargebee"))
+            db.session.add(
+                BillingEvent(
+                    event_id=event_id, event_type=event_type, provider="chargebee"
+                )
+            )
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
@@ -124,29 +129,11 @@ elif PROVIDER == "chargebee":
 
         content = event.get("content", {})
 
-        # Handle subscription created (upgrade to pro)
-        if event_type == "subscription_created":
-            customer = content.get("customer", {})
-            customer_id = customer.get("id")
-
-            from enferno.user.models import Workspace
-
-            # Find workspace by customer_id (set during checkout)
-            workspace = db.session.execute(
-                db.select(Workspace).where(Workspace.billing_customer_id == customer_id)
-            ).scalar_one_or_none()
-
-            if workspace and not workspace.is_pro:
-                workspace.plan = "pro"
-                db.session.commit()
-                current_app.logger.info(f"Upgraded workspace {workspace.id} to pro")
-
         # Handle subscription cancellation (downgrade to free)
-        elif event_type == "subscription_cancelled":
+        # Note: Upgrades handled via redirect flow, not webhook
+        if event_type == "subscription_cancelled":
             customer = content.get("customer", {})
             customer_id = customer.get("id")
-
-            from enferno.user.models import Workspace
 
             workspace = db.session.execute(
                 db.select(Workspace).where(Workspace.billing_customer_id == customer_id)
@@ -163,8 +150,6 @@ elif PROVIDER == "chargebee":
         elif event_type == "payment_failed":
             customer = content.get("customer", {})
             customer_id = customer.get("id")
-
-            from enferno.user.models import Workspace
 
             workspace = db.session.execute(
                 db.select(Workspace).where(Workspace.billing_customer_id == customer_id)
