@@ -1,4 +1,3 @@
-import time
 from datetime import datetime
 
 from flask import (
@@ -426,26 +425,15 @@ def admin_users():
 @portal.get("/workspace/<int:workspace_id>/upgrade")
 @require_workspace_access("admin")
 def upgrade_workspace(workspace_id):
-    """Redirect to Stripe Checkout - fully hosted"""
-    current_app.logger.info(
-        f"NEW UPGRADE REQUEST - workspace {workspace_id} for user {current_user.email} at {time.time()}"
-    )
-
+    """Redirect to hosted checkout for workspace upgrade"""
     workspace = g.current_workspace
-    current_app.logger.debug(
-        f"Current workspace plan: {workspace.plan}, billing_customer_id: {workspace.billing_customer_id}"
-    )
 
     # Prevent duplicate subscriptions - redirect to billing portal if already Pro
     if workspace.is_pro:
-        current_app.logger.info(
-            f"Workspace {workspace_id} already on Pro plan, redirecting to billing portal"
-        )
-        # Only redirect if we have a customer ID, otherwise show settings
         if workspace.billing_customer_id:
             return redirect(url_for("portal.billing_portal", workspace_id=workspace_id))
         else:
-            # Pro workspace without Stripe customer (manual upgrade, legacy)
+            # Pro workspace without billing customer (manual upgrade, legacy)
             return redirect(
                 url_for("portal.workspace_settings", workspace_id=workspace_id)
             )
@@ -454,14 +442,9 @@ def upgrade_workspace(workspace_id):
         session = HostedBilling.create_upgrade_session(
             workspace_id, current_user.email, request.url_root
         )
-        current_app.logger.info(f"Created NEW session {session.id}")
-        current_app.logger.debug(f"Session URL: {session.url}")
-        current_app.logger.debug(f"Session status: {session.status}")
         return redirect(session.url)
     except Exception as e:
-        current_app.logger.exception(
-            f"FAILED - Error creating checkout session: {type(e).__name__}: {e}"
-        )
+        current_app.logger.error(f"Checkout session error: {e}")
         return jsonify(
             {"error": "Failed to create checkout session", "details": str(e)}
         ), 500
@@ -470,7 +453,7 @@ def upgrade_workspace(workspace_id):
 @portal.get("/workspace/<int:workspace_id>/billing")
 @require_workspace_access("admin")
 def billing_portal(workspace_id):
-    """Redirect to Stripe Customer Portal - fully hosted"""
+    """Redirect to billing provider's customer portal"""
     workspace = g.current_workspace
     if workspace.billing_customer_id:
         try:
@@ -480,28 +463,16 @@ def billing_portal(workspace_id):
             return redirect(session.url)
         except Exception as e:
             error_msg = str(e)
-
-            # Handle specific Stripe Customer Portal configuration error
-            if "No configuration provided" in error_msg:
-                return render_template(
-                    "billing_error.html",
-                    error_type="portal_config",
-                    title="Customer Portal Not Configured",
-                    message="The billing portal needs to be set up in Stripe.",
-                    action_text="Contact Support",
-                    action_url="/dashboard",
-                    details="Please contact support to enable billing management features.",
-                )
-            else:
-                return render_template(
-                    "billing_error.html",
-                    error_type="portal_error",
-                    title="Billing Portal Error",
-                    message="Unable to access billing portal at this time.",
-                    action_text="Try Again Later",
-                    action_url=f"/workspace/{workspace_id}/settings",
-                    details=error_msg,
-                )
+            current_app.logger.error(f"Billing portal error: {error_msg}")
+            return render_template(
+                "billing_error.html",
+                error_type="portal_error",
+                title="Billing Portal Error",
+                message="Unable to access billing portal at this time.",
+                action_text="Try Again Later",
+                action_url=f"/workspace/{workspace_id}/settings",
+                details=error_msg,
+            )
     else:
         # No customer ID, redirect to upgrade
         return redirect(url_for("portal.upgrade_workspace", workspace_id=workspace_id))
