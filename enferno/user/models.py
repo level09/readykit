@@ -235,12 +235,13 @@ class Activity(db.Model, BaseMixin):
         return activity
 
 
-class StripeEvent(db.Model, BaseMixin):
-    """Durable store for processed Stripe webhook events (idempotency)."""
+class BillingEvent(db.Model, BaseMixin):
+    """Durable store for processed billing webhook events (idempotency)."""
 
     id = db.Column(db.Integer, primary_key=True)
     event_id = db.Column(db.String(255), unique=True, nullable=False)
     event_type = db.Column(db.String(128), nullable=True)
+    provider = db.Column(db.String(20), nullable=True)  # 'stripe' or 'chargebee'
 
 
 class Workspace(db.Model, BaseMixin):
@@ -253,7 +254,7 @@ class Workspace(db.Model, BaseMixin):
 
     # Billing fields
     plan = db.Column(db.String(10), default="free")  # 'free' or 'pro'
-    stripe_customer_id = db.Column(db.String(100), nullable=True)
+    billing_customer_id = db.Column(db.String(100), nullable=True)
     upgraded_at = db.Column(db.DateTime, nullable=True)
 
     owner = relationship(

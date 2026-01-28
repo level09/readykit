@@ -146,12 +146,22 @@ class Config:
     GITHUB_OAUTH_CLIENT_ID = os.environ.get("GITHUB_OAUTH_CLIENT_ID")
     GITHUB_OAUTH_CLIENT_SECRET = os.environ.get("GITHUB_OAUTH_CLIENT_SECRET")
 
-    # Stripe Settings
+    # Billing Provider: 'stripe' or 'chargebee'
+    BILLING_PROVIDER = os.environ.get("BILLING_PROVIDER", "stripe")
+
+    # Stripe Settings (if BILLING_PROVIDER=stripe)
     STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY")
     STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
     STRIPE_PRO_PRICE_ID = os.environ.get("STRIPE_PRO_PRICE_ID")
     STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
-    # Pricing Display (update when Stripe price changes)
+    # Chargebee Settings (if BILLING_PROVIDER=chargebee)
+    CHARGEBEE_SITE = os.environ.get("CHARGEBEE_SITE")
+    CHARGEBEE_API_KEY = os.environ.get("CHARGEBEE_API_KEY")
+    CHARGEBEE_PRO_ITEM_PRICE_ID = os.environ.get("CHARGEBEE_PRO_ITEM_PRICE_ID")
+    CHARGEBEE_WEBHOOK_USERNAME = os.environ.get("CHARGEBEE_WEBHOOK_USERNAME")
+    CHARGEBEE_WEBHOOK_PASSWORD = os.environ.get("CHARGEBEE_WEBHOOK_PASSWORD")
+
+    # Pricing Display (update when price changes)
     PRO_PRICE_DISPLAY = os.environ.get("PRO_PRICE_DISPLAY", "$29")
     PRO_PRICE_INTERVAL = os.environ.get("PRO_PRICE_INTERVAL", "month")
