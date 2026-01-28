@@ -15,9 +15,9 @@ Every user gets their own workspace. Data is automatically scoped to workspaces,
 - Session-based workspace context
 - Solo users never see workspace UI (invisible until they need teams)
 
-### Stripe Billing
+### Subscription Billing
 
-Complete billing integration using Stripe's hosted pages - no custom checkout UI to maintain.
+Stripe or Chargebee - your choice. Hosted pages, no custom checkout UI to maintain.
 
 - Hosted checkout for upgrades
 - Customer portal for subscription management
@@ -57,7 +57,7 @@ Comprehensive auth system with modern security features.
 |---------|-------------|
 | [Quick Start](/getting-started) | Get up and running in 5 minutes |
 | [Workspaces](/workspaces) | Multi-tenant architecture guide |
-| [Billing](/billing) | Stripe integration and plans |
+| [Billing](/billing) | Stripe/Chargebee integration and plans |
 | [Teams](/teams) | Member management and roles |
 
 ## Who is ReadyKit For?

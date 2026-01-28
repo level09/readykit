@@ -4,7 +4,7 @@ layout: home
 hero:
   name: ReadyKit
   text: Production-ready Flask SaaS Template
-  tagline: Multi-tenant workspaces, Stripe billing, OAuth authentication, and team collaboration - ready to ship.
+  tagline: Multi-tenant workspaces, subscription billing (Stripe/Chargebee), OAuth authentication, and team collaboration - ready to ship.
   actions:
     - theme: brand
       text: Get Started
@@ -18,8 +18,8 @@ features:
     title: Multi-Tenant Workspaces
     details: Every user gets their own workspace with complete data isolation. Built-in workspace-scoped models and queries.
   - icon: 💳
-    title: Stripe Billing
-    details: Hosted checkout, customer portal, and webhook handlers. Free and Pro plans out of the box.
+    title: Subscription Billing
+    details: Stripe or Chargebee. Hosted checkout, customer portal, and webhook handlers. Free and Pro plans out of the box.
   - icon: 👥
     title: Team Collaboration
     details: Invite members with admin or member roles. Owner protection and role-based access control.

@@ -40,7 +40,8 @@ FLASK_DEBUG=0
 SECRET_KEY=your_secure_random_key
 SQLALCHEMY_DATABASE_URI=postgresql://user:pass@postgres:5432/readykit
 
-# Stripe (required for billing)
+# Billing (Stripe or Chargebee)
+BILLING_PROVIDER=stripe  # or chargebee
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
@@ -226,10 +227,10 @@ sudo certbot --nginx -d yourdomain.com
 - [ ] Configure firewall (allow 80, 443, 22)
 :::
 
-::: details Stripe
+::: details Billing (Stripe/Chargebee)
 - [ ] Use live API keys (not test)
 - [ ] Configure webhook endpoint
-- [ ] Test webhook signature verification
+- [ ] Test webhook authentication
 - [ ] Verify pricing displays correctly
 :::
 
@@ -243,7 +244,7 @@ sudo certbot --nginx -d yourdomain.com
 - [ ] Set up error tracking (Sentry)
 - [ ] Configure logging
 - [ ] Set up uptime monitoring
-- [ ] Monitor Stripe webhooks
+- [ ] Monitor billing webhooks
 :::
 
 ## Environment Variables
@@ -263,9 +264,9 @@ SQLALCHEMY_DATABASE_URI=postgresql://user:pass@localhost/readykit
 REDIS_SESSION=redis://localhost:6379/1
 CELERY_BROKER_URL=redis://localhost:6379/2
 
-# Stripe
+# Billing (Stripe or Chargebee)
+BILLING_PROVIDER=stripe  # or chargebee
 STRIPE_SECRET_KEY=sk_live_...
-STRIPE_PUBLISHABLE_KEY=pk_live_...
 STRIPE_PRO_PRICE_ID=price_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
@@ -297,11 +298,11 @@ psql -U user -h localhost -d readykit
 echo $SQLALCHEMY_DATABASE_URI
 ```
 
-### Stripe Webhooks Not Working
+### Billing Webhooks Not Working
 
 ```bash
-# Check webhook logs in Stripe Dashboard
-# Verify STRIPE_WEBHOOK_SECRET is set correctly
-# Test locally with Stripe CLI:
-stripe listen --forward-to localhost:5000/api/webhooks/stripe/webhook
+# Check webhook logs in your billing provider's dashboard
+# Verify webhook secrets are set correctly
+# For Stripe, test locally with:
+stripe listen --forward-to localhost:5000/stripe/webhook
 ```

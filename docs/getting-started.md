@@ -97,9 +97,9 @@ GITHUB_AUTH_ENABLED=true
 GITHUB_OAUTH_CLIENT_ID=your_client_id
 GITHUB_OAUTH_CLIENT_SECRET=your_secret
 
-# Stripe (required for billing)
+# Billing (Stripe or Chargebee)
+BILLING_PROVIDER=stripe  # or chargebee
 STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_PRO_PRICE_ID=price_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
@@ -129,6 +129,6 @@ uv run celery -A enferno.tasks worker --loglevel=info
 | Guide | Description |
 |-------|-------------|
 | [Workspaces](/workspaces) | Understand multi-tenant architecture |
-| [Billing](/billing) | Set up Stripe integration |
+| [Billing](/billing) | Set up Stripe or Chargebee |
 | [Teams](/teams) | Configure team management |
 | [Authentication](/authentication) | Configure OAuth and 2FA |

@@ -12,13 +12,13 @@ readykit/
 │   ├── extensions.py      # Flask extensions
 │   ├── commands.py        # CLI commands
 │   ├── api/               # API endpoints
-│   │   └── webhooks.py    # Stripe webhooks
+│   │   └── webhooks.py    # Billing webhooks
 │   ├── portal/            # Authenticated routes
 │   ├── public/            # Public routes
 │   ├── user/              # User models and auth
 │   ├── services/          # Business logic
 │   │   ├── workspace.py   # Multi-tenant core
-│   │   ├── billing.py     # Stripe integration
+│   │   ├── billing.py     # Stripe/Chargebee billing
 │   │   └── auth.py        # Authorization
 │   ├── tasks/             # Celery tasks
 │   ├── static/            # CSS, JS, images
