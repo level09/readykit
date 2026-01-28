@@ -100,7 +100,17 @@ def check_billing_service(app):
 
     assert callable(requires_pro_plan)
     assert hasattr(HostedBilling, "create_upgrade_session")
+    assert hasattr(HostedBilling, "create_portal_session")
     assert hasattr(HostedBilling, "handle_successful_payment")
+
+
+@check("BillingEvent model exists")
+def check_billing_event_model(app):
+    from enferno.user.models import BillingEvent
+
+    with app.app_context():
+        assert hasattr(BillingEvent, "provider")
+        BillingEvent.query.limit(1).all()
 
 
 @check("Auth decorators work")
@@ -127,10 +137,14 @@ def check_routes(app):
         "/",
         "/login",
         "/dashboard/",
-        "/stripe/webhook",
     ]
+
     for route in critical_routes:
         assert route in rules, f"Missing route: {route}"
+
+    # Billing webhook - one of these must exist based on provider
+    webhook_routes = ["/stripe/webhook", "/chargebee/webhook"]
+    assert any(r in rules for r in webhook_routes), "Missing billing webhook route"
 
 
 @check("Security config is sane")
