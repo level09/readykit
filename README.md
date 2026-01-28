@@ -2,7 +2,7 @@
 
 **Production-ready Flask SaaS template**
 
-Multi-tenant workspaces, Stripe billing, OAuth, and team collaboration out of the box. Build your product, not infrastructure.
+Multi-tenant workspaces, subscription billing (Stripe or Chargebee), OAuth, and team collaboration out of the box. Build your product, not infrastructure.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -21,7 +21,7 @@ https://github.com/user-attachments/assets/c955e2a2-8f25-4430-98fe-5bbc95ffb4da
 ## What's Included
 
 - **Multi-tenant workspaces** - Data isolation, scales from solo to teams
-- **Stripe billing** - Checkout, webhooks, customer portal
+- **Subscription billing** - Stripe or Chargebee, hosted checkout, webhooks, customer portal
 - **OAuth authentication** - Google & GitHub login
 - **Team collaboration** - Roles (admin/member), member management
 - **Modern stack** - Flask 3.1, Vue 3, Vuetify 3, PostgreSQL, Redis
@@ -48,6 +48,9 @@ cd readykit
 # 2. Configure (edit .env)
 GOOGLE_OAUTH_CLIENT_ID=your_id
 GOOGLE_OAUTH_CLIENT_SECRET=your_secret
+
+# Billing: choose stripe (default) or chargebee
+BILLING_PROVIDER=stripe
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_PRO_PRICE_ID=price_...
 
