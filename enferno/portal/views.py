@@ -50,9 +50,12 @@ def dashboard():
     return render_template("dashboard.html", workspaces=workspace_data)
 
 
-@portal.get("/workspace/<int:workspace_id>/")
+# Page Routes (use session for workspace context)
+
+
+@portal.get("/workspace/")
 @require_workspace_access("member")
-def workspace_view(workspace_id):
+def workspace_view():
     """Main workspace interface"""
     return render_template(
         "workspace.html",
@@ -61,9 +64,9 @@ def workspace_view(workspace_id):
     )
 
 
-@portal.get("/workspace/<int:workspace_id>/team/")
+@portal.get("/workspace/team/")
 @require_workspace_access("admin")
-def workspace_team(workspace_id):
+def workspace_team():
     """Team management (admin only)"""
     return render_template(
         "workspace_team.html",
@@ -72,9 +75,9 @@ def workspace_team(workspace_id):
     )
 
 
-@portal.get("/workspace/<int:workspace_id>/settings/")
+@portal.get("/workspace/settings/")
 @require_workspace_access("member")
-def workspace_settings(workspace_id):
+def workspace_settings():
     """Workspace settings"""
     return render_template(
         "workspace_settings.html",
@@ -89,15 +92,14 @@ def workspace_settings(workspace_id):
 @auth_required("session")
 def switch_workspace(workspace_id):
     """Switch to a workspace"""
-    # Verify user has access
     if current_user.get_workspace_role(workspace_id):
         session["current_workspace_id"] = workspace_id
-        return redirect(url_for("portal.workspace_view", workspace_id=workspace_id))
+        return redirect(url_for("portal.workspace_view"))
     else:
         return redirect(url_for("portal.dashboard"))
 
 
-# API Endpoints
+# API Endpoints (keep workspace_id in URL for REST correctness)
 @portal.post("/api/workspaces")
 @require_superadmin_api()
 def create_workspace():
@@ -421,28 +423,25 @@ def admin_users():
     return jsonify({"users": user_data})
 
 
-# Billing Routes
-@portal.get("/workspace/<int:workspace_id>/upgrade")
+# Billing Routes (use session for workspace context)
+@portal.get("/workspace/upgrade")
 @require_workspace_access("admin")
-def upgrade_workspace(workspace_id):
+def upgrade_workspace():
     """Redirect to hosted checkout for workspace upgrade"""
     workspace = g.current_workspace
 
     # Prevent duplicate subscriptions - redirect to billing portal if already Pro
     if workspace.is_pro:
         if workspace.billing_customer_id:
-            return redirect(url_for("portal.billing_portal", workspace_id=workspace_id))
+            return redirect(url_for("portal.billing_portal"))
         else:
-            # Pro workspace without billing customer (manual upgrade, legacy)
-            return redirect(
-                url_for("portal.workspace_settings", workspace_id=workspace_id)
-            )
+            return redirect(url_for("portal.workspace_settings"))
 
     try:
-        session = HostedBilling.create_upgrade_session(
-            workspace_id, current_user.email, request.url_root
+        checkout_session = HostedBilling.create_upgrade_session(
+            workspace.id, current_user.email, request.url_root
         )
-        return redirect(session.url)
+        return redirect(checkout_session.url)
     except Exception as e:
         current_app.logger.error(f"Checkout session error: {e}")
         return jsonify(
@@ -450,17 +449,17 @@ def upgrade_workspace(workspace_id):
         ), 500
 
 
-@portal.get("/workspace/<int:workspace_id>/billing")
+@portal.get("/workspace/billing")
 @require_workspace_access("admin")
-def billing_portal(workspace_id):
+def billing_portal():
     """Redirect to billing provider's customer portal"""
     workspace = g.current_workspace
     if workspace.billing_customer_id:
         try:
-            session = HostedBilling.create_portal_session(
-                workspace.billing_customer_id, workspace_id, request.url_root
+            portal_session = HostedBilling.create_portal_session(
+                workspace.billing_customer_id, workspace.id, request.url_root
             )
-            return redirect(session.url)
+            return redirect(portal_session.url)
         except Exception as e:
             error_msg = str(e)
             current_app.logger.error(f"Billing portal error: {error_msg}")
@@ -470,12 +469,11 @@ def billing_portal(workspace_id):
                 title="Billing Portal Error",
                 message="Unable to access billing portal at this time.",
                 action_text="Try Again Later",
-                action_url=f"/workspace/{workspace_id}/settings",
+                action_url="/workspace/settings/",
                 details=error_msg,
             )
     else:
-        # No customer ID, redirect to upgrade
-        return redirect(url_for("portal.upgrade_workspace", workspace_id=workspace_id))
+        return redirect(url_for("portal.upgrade_workspace"))
 
 
 @portal.get("/billing/success")

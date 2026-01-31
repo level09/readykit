@@ -6,7 +6,7 @@
     <!-- Header -->
     <div class="d-flex align-center mb-6">
         <v-btn
-            href="/workspace/{{ workspace.id }}"
+            href="/workspace/"
             icon="mdi-arrow-left"
             variant="text"
             size="small"
@@ -125,7 +125,7 @@
             </div>
             <v-btn
                 color="primary"
-                href="/workspace/{{ workspace.id }}/upgrade"
+                href="/workspace/upgrade"
                 class="text-none"
             >
                 Upgrade to Pro — {{ pro_price }}/{{ pro_interval }}
@@ -139,7 +139,7 @@
             </div>
             <v-btn
                 variant="outlined"
-                href="/workspace/{{ workspace.id }}/billing"
+                href="/workspace/billing"
                 class="text-none"
             >
                 Manage Subscription

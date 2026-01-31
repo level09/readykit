@@ -69,13 +69,13 @@
                     <div class="px-4 py-2 text-caption text-medium-emphasis text-truncate">{{ current_workspace.name }}</div>
                     {% endif %}
 
-                    <v-list-item href="/workspace/{{ current_workspace.id }}/" title="Home" prepend-icon="mdi-home-outline"></v-list-item>
+                    <v-list-item href="/workspace/" title="Home" prepend-icon="mdi-home-outline"></v-list-item>
 
                     {% if current_user.is_superadmin or current_user.get_workspace_role(current_workspace.id) == 'admin' %}
-                    <v-list-item href="/workspace/{{ current_workspace.id }}/team/" title="Team" prepend-icon="mdi-account-group-outline"></v-list-item>
+                    <v-list-item href="/workspace/team/" title="Team" prepend-icon="mdi-account-group-outline"></v-list-item>
                     {% endif %}
 
-                    <v-list-item href="/workspace/{{ current_workspace.id }}/settings/" title="Settings" prepend-icon="mdi-cog-outline"></v-list-item>
+                    <v-list-item href="/workspace/settings/" title="Settings" prepend-icon="mdi-cog-outline"></v-list-item>
 
                     {% if current_user.get_workspaces()|length > 1 %}
                     <v-list-item href="/dashboard" title="Switch Workspace" prepend-icon="mdi-swap-horizontal"></v-list-item>

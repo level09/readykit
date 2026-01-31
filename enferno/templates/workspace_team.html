@@ -8,7 +8,7 @@
         <v-toolbar-title>Team Members</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn 
-            href="/workspace/{{ workspace.id }}" 
+            href="/workspace/"
             prepend-icon="mdi-arrow-left"
             variant="outlined"
             size="small"
@@ -182,9 +182,6 @@ const vuetify = createVuetify(config.vuetifyConfig);
 window.app = createApp({
     data() {
         return {
-            config: config,
-            menu: config.menu,
-            rail: config.rail,
             snackBar: false,
             snackMessage: "",
             items: [],
@@ -192,7 +189,7 @@ window.app = createApp({
             loading: false,
             options: {
                 page: 1,
-                itemsPerPage: config.itemsPerPage || 25
+                itemsPerPage: 25
             },
             drawer: true,
             workspaceData: {},
