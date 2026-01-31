@@ -1,75 +1,82 @@
 # AGENTS.md
 
-This file provides comprehensive architectural patterns and coding standards for AI agents working with the Enferno framework.
+This file provides comprehensive architectural patterns and coding standards for AI agents working with ReadyKit, a production-ready Flask SaaS template built on the Enferno framework.
 
 ## Framework Overview
 
-**Enferno** is a Flask-based web framework optimized for rapid development with modern tooling:
+**ReadyKit** is a Flask-based SaaS template with multi-tenant workspaces, billing, OAuth, and team collaboration:
 
-- **Backend**: Flask 3.x with Blueprint organization
-- **Frontend**: Vue 3 + Vuetify (no build step required)
+- **Backend**: Flask 3.1+ with Blueprint organization
+- **Frontend**: Vue 3 + Vuetify 3 (no build step required)
 - **Database**: SQLAlchemy 2.x with modern statement-based queries
-- **Auth**: Flask-Security-Too with 2FA, WebAuthn, OAuth support
-- **Tasks**: Celery + Redis for background processing
+- **Auth**: Flask-Security-Too with 2FA, WebAuthn, OAuth support (Google, GitHub via Flask-Dance)
+- **Tasks**: Celery + Redis (optional, via `full` extra)
+- **Billing**: Stripe or Chargebee (configurable via `BILLING_PROVIDER`)
 - **Package Manager**: uv for fast dependency management
 
 ## Project Structure
 
 ```
-enferno/
-├── enferno/                # Main application package
-│   ├── app.py             # Application factory (create_app)
-│   ├── settings.py        # Environment-based configuration
-│   ├── extensions.py      # Flask extensions initialization
-│   ├── commands.py        # Custom Flask CLI commands
-│   ├── public/            # Public routes (no auth)
-│   │   ├── views.py
-│   │   ├── models.py
-│   │   └── templates/
-│   ├── user/              # Authentication & user management
-│   │   ├── views.py
-│   │   ├── models.py
-│   │   ├── forms.py
-│   │   └── templates/
-│   ├── portal/            # Protected dashboard/admin
-│   │   ├── views.py
-│   │   └── templates/
-│   ├── services/          # Business logic layer
-│   ├── tasks/             # Celery task definitions
-│   ├── utils/             # Utility functions
-│   ├── static/            # CSS, JS, images
-│   │   ├── css/
-│   │   ├── js/
+readykit/
+├── enferno/                   # Main application package
+│   ├── app.py                 # Application factory (create_app)
+│   ├── settings.py            # Environment-based configuration (single Config class)
+│   ├── extensions.py          # Flask extensions initialization
+│   ├── commands.py            # Custom Flask CLI commands
+│   ├── public/                # Public routes (no auth)
+│   │   └── views.py
+│   ├── user/                  # Superadmin user management (CMS)
+│   │   ├── views.py           # bp_user blueprint (superadmin-only)
+│   │   ├── models.py          # User, Role, Workspace, Membership, OAuth, APIKey, Activity, Session
+│   │   └── forms.py
+│   ├── portal/                # Protected dashboard/workspace routes
+│   │   └── views.py
+│   ├── api/                   # API endpoints
+│   │   └── webhooks.py        # Stripe/Chargebee webhook handlers
+│   ├── services/              # Business logic layer
+│   │   ├── workspace.py       # Multi-tenant workspace management
+│   │   ├── billing.py         # Stripe/Chargebee billing via hosted pages
+│   │   └── auth.py            # Authorization decorators
+│   ├── tasks/                 # Celery task definitions (optional)
+│   ├── utils/                 # Utility functions
+│   │   └── base.py            # BaseMixin (created_at, updated_at)
+│   ├── static/                # CSS, JS, images
+│   │   ├── css/               # layout.css, app.css, vuetify.min.css
+│   │   ├── js/                # vue.min.js, vuetify.min.js, axios.min.js, config.js
+│   │   ├── mdi/               # Material Design Icons (local)
 │   │   └── img/
-│   └── templates/         # Global Jinja2 templates
-├── docs/                  # Documentation
-├── nginx/                 # Nginx configuration
-├── instance/              # Instance-specific files (gitignored)
-├── pyproject.toml         # Dependencies and project metadata
-├── uv.lock               # Lock file for reproducible installs
-├── .env                   # Environment variables (gitignored)
-├── .env-sample            # Environment template
-├── setup.sh              # Setup script
-├── run.py                # Application entry point
-├── Dockerfile            # Docker configuration
-└── docker-compose.yml    # Docker Compose orchestration
+│   └── templates/             # All Jinja2 templates (single directory, not per-blueprint)
+├── nginx/                     # Nginx configuration
+├── instance/                  # Instance-specific files (gitignored)
+├── pyproject.toml             # Dependencies and project metadata
+├── uv.lock                    # Lock file for reproducible installs
+├── .env                       # Environment variables (gitignored)
+├── .env-sample                # Environment template
+├── setup.sh                   # Setup script
+├── run.py                     # Application entry point
+├── Dockerfile                 # Docker configuration
+└── docker-compose.yml         # Docker Compose orchestration
 ```
 
 ## Development Commands
 
 ### Setup & Installation
 ```bash
-./setup.sh                    # Create virtual environment, install dependencies, generate .env
-uv sync --extra dev           # Install dependencies with dev tools
-uv sync --extra wsgi          # For Unix deployments that need uWSGI
+./setup.sh                        # Create virtual environment, install dependencies, generate .env
+uv sync --extra dev               # Install dependencies with dev tools
+uv sync --extra full              # Install Celery + Redis support
+uv sync --extra wsgi              # For Unix deployments that need uWSGI
 ```
 
 ### Database Management
 ```bash
-uv run flask create-db               # Initialize database tables
-uv run flask install                 # Create admin user with secure password
+uv run flask create-db                            # Initialize database tables
+uv run flask install                              # Create admin user (interactive, auto-generates password)
+uv run flask install -e admin@x.com -p pass123    # Non-interactive admin setup
+uv run flask create -e user@x.com -p pass123      # Create regular user
+uv run flask create -e user@x.com -p pass123 --super-admin  # Create superadmin
 uv run flask reset -e <email/username> -p <password>  # Reset user password
-uv run flask add-role -e <email> -r <role>  # Add role to user
+uv run flask add-role -e <email> -r <role>        # Add role to user
 ```
 
 ### Development Server
@@ -88,7 +95,7 @@ uv run pre-commit install            # Install pre-commit hooks
 
 ### Docker Development
 ```bash
-docker compose up --build            # Full stack with Redis, PostgreSQL, Nginx
+docker compose up --build            # Full stack with Redis, PostgreSQL, Nginx, Celery
 ```
 
 ### Internationalization
@@ -108,7 +115,6 @@ The app is created using the factory pattern in `enferno/app.py`:
 ```python
 from flask import Flask
 from enferno.settings import Config
-from enferno.extensions import db, cache, mail, session
 
 def create_app(config_object=Config):
     app = Flask(__name__)
@@ -117,8 +123,8 @@ def create_app(config_object=Config):
     register_blueprints(app)
     register_extensions(app)
     register_errorhandlers(app)
-    register_commands(app)
-
+    register_shellcontext(app)
+    register_commands(app, commands)
     return app
 ```
 
@@ -127,8 +133,19 @@ def create_app(config_object=Config):
 Extensions are initialized in `enferno/extensions.py`:
 
 ```python
+from flask_babel import Babel
+from flask_caching import Cache
+from flask_mail import Mail
+from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
+
+# Optional dev dependency
+try:
+    from flask_debugtoolbar import DebugToolbarExtension
+    debug_toolbar = DebugToolbarExtension()
+except ImportError:
+    debug_toolbar = None
 
 class BaseModel(DeclarativeBase):
     pass
@@ -137,9 +154,10 @@ db = SQLAlchemy(model_class=BaseModel)
 cache = Cache()
 mail = Mail()
 session = Session()
+babel = Babel()
 
 # Import initialized extensions anywhere:
-from enferno.extensions import db, cache, mail
+from enferno.extensions import db, cache, mail, babel
 ```
 
 ### Blueprint Organization
@@ -152,26 +170,31 @@ Routes accessible without authentication:
 ```python
 from flask import Blueprint, render_template
 
-public = Blueprint('public', __name__)
+public = Blueprint("public", __name__, static_folder="../static")
 
-@public.route('/')
+@public.get("/")
 def index():
-    return render_template('public/index.html')
+    return render_template("index.html")
 ```
 
-#### 2. User Blueprint (`enferno/user/`)
-Authentication and user account management:
+#### 2. User Blueprint (`enferno/user/`) — Superadmin Only
+CMS-style user management restricted to superadmins via `before_request`:
 
 ```python
-from flask import Blueprint
-from flask_security import auth_required
+from flask import Blueprint, abort
+from flask_security import auth_required, current_user
 
-bp_user = Blueprint('user', __name__)
+bp_user = Blueprint("users", __name__, static_folder="../static")
 
-@bp_user.route('/profile')
-@auth_required()
-def profile():
-    return render_template('user/profile.html')
+@bp_user.before_request
+@auth_required("session")
+def before_request():
+    if not current_user.is_superadmin:
+        abort(403)
+
+@bp_user.get("/users/")
+def users():
+    return render_template("cms/users.html")
 ```
 
 #### 3. Portal Blueprint (`enferno/portal/`)
@@ -181,24 +204,32 @@ Protected routes requiring authentication. Uses `before_request` to protect all 
 from flask import Blueprint
 from flask_security import auth_required
 
-portal = Blueprint('portal', __name__)
+portal = Blueprint("portal", __name__, static_folder="../static")
 
-# Protect all routes in this blueprint
 @portal.before_request
-@auth_required()
+@auth_required("session")
 def before_request():
     pass
 
-@portal.route('/dashboard')
+@portal.get("/dashboard/")
 def dashboard():
-    return render_template('portal/dashboard.html')
+    return render_template("dashboard.html")
+```
+
+#### 4. Webhooks Blueprint (`enferno/api/`)
+Billing provider webhook handlers:
+
+```python
+from flask import Blueprint
+
+webhooks_bp = Blueprint("webhooks", __name__)
 ```
 
 ### Creating New Blueprints
 
 1. Create directory: `enferno/feature_name/`
 2. Add files: `views.py`, `models.py`, optionally `forms.py`
-3. Create templates: `templates/feature_name/`
+3. Create templates in: `enferno/templates/feature_name/`
 4. Register in `app.py`:
 
 ```python
@@ -210,35 +241,37 @@ app.register_blueprint(feature_bp)
 
 ### Model Definition
 
-Models inherit from `db.Model` which uses a custom `BaseModel` with `DeclarativeBase`:
+Models inherit from `db.Model`. Use `BaseMixin` for automatic timestamps:
 
 ```python
 from enferno.extensions import db
-from datetime import datetime
+from enferno.utils.base import BaseMixin
 
-class Post(db.Model):
+class BaseMixin:
+    created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
+
+class Post(db.Model, BaseMixin):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     content = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    workspace_id = db.Column(db.Integer, db.ForeignKey("workspace.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
     # Relationships
-    user = db.relationship('User', backref='posts')
+    user = db.relationship("User", backref="posts")
 
     def to_dict(self):
-        """Convert model to dictionary for JSON serialization"""
         return {
-            'id': self.id,
-            'title': self.title,
-            'content': self.content,
-            'created_at': self.created_at.isoformat()
+            "id": self.id,
+            "title": self.title,
+            "content": self.content,
+            "created_at": self.created_at.isoformat()
         }
 
     def from_dict(self, data):
-        """Update model attributes from dictionary"""
-        self.title = data.get('title', self.title)
-        self.content = data.get('content', self.content)
+        self.title = data.get("title", self.title)
+        self.content = data.get("content", self.content)
         return self
 ```
 
@@ -281,6 +314,12 @@ stmt = (
 )
 posts = db.session.scalars(stmt).all()
 
+# Pagination (built-in)
+query = db.select(User)
+pagination = db.paginate(query, page=page, per_page=per_page)
+items = pagination.items
+total = pagination.total
+
 # Update
 stmt = db.update(User).where(User.id == user_id).values(active=False)
 db.session.execute(stmt)
@@ -296,7 +335,7 @@ db.session.commit()
 
 ```python
 # Create
-post = Post(title='New Post', content='Content here')
+post = Post(title="New Post", content="Content here")
 db.session.add(post)
 db.session.commit()
 
@@ -304,7 +343,7 @@ db.session.commit()
 post = db.session.get(Post, 1)
 
 # Update
-post.title = 'Updated Title'
+post.title = "Updated Title"
 db.session.commit()
 
 # Delete
@@ -328,60 +367,58 @@ from flask import Blueprint, jsonify, request
 from enferno.extensions import db
 from enferno.user.models import User
 
-api = Blueprint('api', __name__)
+api = Blueprint("api", __name__)
 
 # List with pagination
-@api.route('/api/users')
+@api.get("/api/users")
 def get_users():
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 25, type=int)
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 25, type=int)
 
-    stmt = db.select(User).offset((page-1) * per_page).limit(per_page)
-    users = db.session.scalars(stmt).all()
-    total = db.session.scalar(db.select(db.func.count(User.id)))
+    query = db.select(User)
+    pagination = db.paginate(query, page=page, per_page=per_page)
 
     return jsonify({
-        'items': [user.to_dict() for user in users],
-        'total': total,
-        'page': page,
-        'per_page': per_page
+        "items": [user.to_dict() for user in pagination.items],
+        "total": pagination.total,
+        "perPage": pagination.per_page
     })
 
 # Update with error handling
-@api.route('/api/users/<int:user_id>', methods=['POST'])
+@api.post("/api/users/<int:user_id>")
 def update_user(user_id):
     try:
         user = db.session.get(User, user_id)
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            return jsonify({"error": "User not found"}), 404
 
         data = request.get_json()
         user.from_dict(data)
         db.session.commit()
 
         return jsonify({
-            'message': 'User updated successfully',
-            'data': user.to_dict()
+            "message": "User updated successfully",
+            "data": user.to_dict()
         })
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 # Delete
-@api.route('/api/users/<int:user_id>', methods=['DELETE'])
+@api.delete("/api/users/<int:user_id>")
 def delete_user(user_id):
     try:
         user = db.session.get(User, user_id)
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            return jsonify({"error": "User not found"}), 404
 
         db.session.delete(user)
         db.session.commit()
 
-        return jsonify({'message': 'User deleted successfully'})
+        return jsonify({"message": "User deleted successfully"})
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 ```
 
 ## Security Patterns
@@ -394,24 +431,21 @@ Flask-Security provides comprehensive auth with decorators:
 from flask_security import auth_required, roles_required, current_user
 
 # Require authentication
-@app.route('/protected')
-@auth_required()
+@app.route("/protected")
+@auth_required("session")
 def protected_route():
-    return render_template('protected.html')
-
-# Require specific role
-@app.route('/admin')
-@auth_required()
-@roles_required('admin')
-def admin_route():
-    return render_template('admin.html')
+    return render_template("protected.html")
 
 # Access current user
-@app.route('/profile')
-@auth_required()
+@app.route("/profile")
+@auth_required("session")
 def profile():
     user_name = current_user.name
-    return render_template('profile.html', user=current_user)
+    return render_template("profile.html", user=current_user)
+
+# Superadmin check
+if not current_user.is_superadmin:
+    abort(403)
 ```
 
 ### Input Validation with WTForms
@@ -421,11 +455,11 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, validators
 
 class PostForm(FlaskForm):
-    title = StringField('Title', [
+    title = StringField("Title", [
         validators.DataRequired(),
         validators.Length(min=3, max=255)
     ])
-    content = TextAreaField('Content', [
+    content = TextAreaField("Content", [
         validators.DataRequired(),
         validators.Length(min=10)
     ])
@@ -439,14 +473,14 @@ CSRF is automatically enabled via Flask-WTF. For AJAX requests include the token
 // Include CSRF token in AJAX requests
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-axios.post('/api/endpoint', data, {
+axios.post("/api/endpoint", data, {
     headers: {
-        'X-CSRFToken': csrfToken
+        "X-CSRFToken": csrfToken
     }
 });
 ```
 
-## Frontend Architecture (Vue 3 + Vuetify)
+## Frontend Architecture (Vue 3 + Vuetify 3)
 
 ### No Build Step Philosophy
 
@@ -454,16 +488,33 @@ axios.post('/api/endpoint', data, {
 - Components defined using `Vue.defineComponent` with template strings
 - Per-page Vue instances (not SPA architecture)
 - Global configuration in `enferno/static/js/config.js`
+- Axios loaded for HTTP requests
 
 ### CRITICAL: Custom Vue Delimiters
 
-**IMPORTANT**: Enferno uses `${` and `}` for Vue expressions to avoid conflicts with Jinja's `{{ }}`:
+**IMPORTANT**: ReadyKit uses `${` and `}` for Vue expressions to avoid conflicts with Jinja's `{{ }}`:
 
 ```javascript
 // In config.js
 const config = {
     delimiters: ['${', '}'],
-    // ... other config
+    vuetifyConfig: {
+        defaults: { /* Vuetify component defaults */ },
+        theme: {
+            defaultTheme: 'light',
+            themes: {
+                light: {
+                    colors: {
+                        primary: '#18181B',
+                        secondary: '#71717A',
+                        accent: '#F97316',
+                        // ... other colors
+                    }
+                }
+            }
+        },
+        icons: { defaultSet: 'mdi' }
+    }
 };
 ```
 
@@ -485,45 +536,77 @@ const config = {
 
 ### Base Template Structure
 
-All pages extend `layout.html` which provides Vue/Vuetify setup:
+All pages extend `layout.html` which provides the full app shell (app bar, sidebar navigation, footer) plus Vue/Vuetify setup:
 
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <link href="/static/css/vuetify.min.css" rel="stylesheet">
-    <link href="/static/mdi/css/materialdesignicons.min.css" rel="stylesheet">
-    {% block head %}{% endblock %}
+    <link rel="stylesheet" href="/static/css/vuetify.min.css">
+    <link rel="stylesheet" href="/static/mdi/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+    {% block css %}{% endblock %}
 </head>
 <body>
-    <div id="app">
-        {% block content %}{% endblock %}
-    </div>
+<v-app id="app" v-cloak>
+    <v-layout>
+        <!-- App bar with user profile menu -->
+        <!-- Navigation drawer with workspace-aware sidebar -->
+        <v-main>
+            {% block content %}{% endblock %}
+        </v-main>
+        <!-- Footer -->
+    </v-layout>
+</v-app>
 
-    <script src="/static/js/vue.min.js"></script>
-    <script src="/static/js/vuetify.min.js"></script>
-    <script src="/static/js/config.js"></script>
-    {% block js %}{% endblock %}
+<!-- Scripts loaded in this order: -->
+<script src="/static/js/vue.min.js"></script>
+<script src="/static/js/config.js"></script>
+<script src="/static/js/vuetify.min.js"></script>
+<script src="/static/js/axios.min.js"></script>
+
+<script>
+    // layoutMixin — provides drawer state and mobile detection
+    const layoutMixin = {
+        data() {
+            return {
+                drawer: true,
+                isMobile: window.innerWidth < 960
+            };
+        },
+        methods: {
+            handleResize() {
+                this.isMobile = window.innerWidth < 960;
+            }
+        },
+        mounted() {
+            window.addEventListener('resize', this.handleResize);
+        },
+        beforeUnmount() {
+            window.removeEventListener('resize', this.handleResize);
+        }
+    };
+</script>
+
+{% block js %}{% endblock %}
 </body>
 </html>
 ```
 
 ### Vue App Initialization Pattern
 
-Every page that uses Vue must follow this pattern:
+Every page that uses Vue must include `layoutMixin` and follow this pattern:
 
 ```html
 {% extends 'layout.html' %}
 
 {% block content %}
-<v-app>
-    <v-main>
-        <v-container>
-            <h1>${ pageTitle }</h1>
-            <!-- Vue content here -->
-        </v-container>
-    </v-main>
-</v-app>
+<v-container>
+    <h1>${ pageTitle }</h1>
+    <!-- Vue content here -->
+</v-container>
 {% endblock %}
 
 {% block js %}
@@ -533,11 +616,10 @@ const {createVuetify} = Vuetify;
 const vuetify = createVuetify(config.vuetifyConfig);
 
 const app = createApp({
+    mixins: [layoutMixin],  // REQUIRED: provides drawer, isMobile
     data() {
         return {
             config: config,
-            menu: config.menu,
-            drawer: true,  // false for public pages
             pageTitle: 'My Page',
             items: []
         };
@@ -576,6 +658,7 @@ const serverData = JSON.parse(
 );
 
 const app = createApp({
+    mixins: [layoutMixin],
     data() {
         return {
             items: serverData.items || [],
@@ -592,6 +675,7 @@ const app = createApp({
 
 ```javascript
 const app = createApp({
+    mixins: [layoutMixin],
     data() {
         return {
             items: [],
@@ -822,12 +906,37 @@ methods: {
     <v-btn href="/login">Login</v-btn>
 {% endif %}
 
-{% if current_user.has_role('admin') %}
-    <v-btn href="/admin">Admin Panel</v-btn>
+{% if current_user.is_superadmin %}
+    <v-btn href="/users/">User Management</v-btn>
 {% endif %}
 ```
 
 ## Background Tasks (Celery)
+
+### Optional Dependency
+
+Celery and Redis are optional dependencies installed via `uv sync --extra full`. The task system gracefully handles their absence:
+
+```python
+# enferno/tasks/__init__.py
+import importlib.util
+
+CELERY_AVAILABLE = importlib.util.find_spec("celery") is not None
+
+celery = None
+
+if CELERY_AVAILABLE:
+    from celery import Celery
+    from enferno.settings import Config as cfg
+
+    if cfg.CELERY_BROKER_URL:
+        celery = Celery(
+            "enferno.tasks",
+            broker=cfg.CELERY_BROKER_URL,
+            backend=cfg.CELERY_RESULT_BACKEND,
+            broker_connection_retry_on_startup=True,
+        )
+```
 
 ### Task Definition
 
@@ -835,21 +944,21 @@ Tasks are defined in `enferno/tasks/`:
 
 ```python
 from enferno.tasks import celery
-from enferno.extensions import db, mail
 
 @celery.task
 def send_welcome_email(user_id):
     from enferno.user.models import User
     from flask_mail import Message
+    from enferno.extensions import mail
 
     user = db.session.get(User, user_id)
     if not user:
         return False
 
     msg = Message(
-        subject='Welcome!',
+        subject="Welcome!",
         recipients=[user.email],
-        body=f'Welcome {user.name}!'
+        body=f"Welcome {user.name}!"
     )
     mail.send(msg)
     return True
@@ -874,108 +983,120 @@ send_welcome_email.apply_async(
 ### Running Celery Worker
 
 ```bash
-celery -A enferno.tasks worker --loglevel=info
+celery -A enferno.tasks worker -l info
 ```
 
 ## Docker Deployment
 
-### Modern Dockerfile with uv
+### Dockerfile
 
 ```dockerfile
-# Build stage
+# syntax=docker/dockerfile:1.4
 FROM python:3.12-slim AS builder
 WORKDIR /app
 
-# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    python3-dev \
-    && rm -rf /var/lib/apt/lists/*
+    build-essential python3-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir uv
 
-# Install uv
-RUN pip install --no-cache-dir uv
-
-# Install dependencies using uv (with optional wsgi extra)
 COPY pyproject.toml uv.lock ./
-RUN uv sync --extra wsgi --frozen
+RUN uv sync --extra wsgi --frozen --no-install-project
 
-# Runtime stage
 FROM python:3.12-slim
 WORKDIR /app
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Copy virtual environment from build stage
-COPY --from=builder /app/.venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+RUN apt-get update && apt-get install -y --no-install-recommends curl libexpat1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -m -u 1000 enferno
 
-# Create non-root user and ensure permissions
-RUN useradd -m -u 1000 enferno && \
-    chown -R enferno:enferno /app /opt/venv
-
-# Install only runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    libexpat1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy project files
+COPY --from=builder --chown=enferno:enferno /app/.venv ./.venv
 COPY --chown=enferno:enferno . .
 
-# Switch to non-root user
+RUN mkdir -p /app/instance && chown enferno:enferno /app/instance
+
 USER enferno
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5000/ || exit 1
+    CMD curl -f http://localhost:5000/ || exit 1
 
-EXPOSE 5000
-CMD ["uwsgi", "--ini", "uwsgi.ini"]
+CMD ["uwsgi", "--http", "0.0.0.0:5000", "--master", "--wsgi", "run:app", "--processes", "2", "--threads", "2"]
 ```
 
 ### Docker Compose
 
 ```yaml
-version: '3.8'
-
 services:
-  web:
-    build: .
-    ports:
-      - "8000:5000"
-    environment:
-      - FLASK_ENV=production
-      - SQLALCHEMY_DATABASE_URI=postgresql://enferno:${DB_PASSWORD}@postgres/enferno
-      - REDIS_SESSION=redis://:${REDIS_PASSWORD}@redis:6379/1
-    depends_on:
-      - postgres
-      - redis
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD:-verystrongpass}
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
 
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: enferno
-      POSTGRES_USER: enferno
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      - POSTGRES_USER=enferno
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-verystrongpass}
+      - POSTGRES_DB=enferno
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "enferno"]
+      interval: 5s
 
-  redis:
-    image: redis:7-alpine
-    command: redis-server --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - redis_data:/data
+  website:
+    build: .
+    depends_on:
+      - redis
+      - postgres
+    ports:
+      - "8000:5000"
+    env_file:
+      - .env
+    environment:
+      - SQLALCHEMY_DATABASE_URI=postgresql://enferno:${DB_PASSWORD:-verystrongpass}@postgres/enferno
+      - REDIS_SESSION=redis://:${REDIS_PASSWORD:-verystrongpass}@redis:6379/1
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-verystrongpass}@redis:6379/2
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-verystrongpass}@redis:6379/3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
 
   nginx:
     image: nginx:alpine
     ports:
       - "80:80"
     volumes:
-      - ./nginx:/etc/nginx/conf.d
+      - ./enferno/static/:/app/static/:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/enferno.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      - web
+      - website
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+
+  celery:
+    build: .
+    command: celery -A enferno.tasks worker -l info
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    environment:
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-verystrongpass}@redis:6379/2
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-verystrongpass}@redis:6379/3
 
 volumes:
-  postgres_data:
-  redis_data:
+  redis-data:
+  postgres-data:
 ```
 
 ## Error Handling
@@ -990,11 +1111,11 @@ try:
     db.session.commit()
 except IntegrityError:
     db.session.rollback()
-    return jsonify({'error': 'Data integrity violation'}), 400
+    return jsonify({"error": "Data integrity violation"}), 400
 except Exception as e:
     db.session.rollback()
-    current_app.logger.error(f'Unexpected error: {str(e)}')
-    return jsonify({'error': 'Internal server error'}), 500
+    current_app.logger.error(f"Unexpected error: {str(e)}")
+    return jsonify({"error": "Internal server error"}), 500
 ```
 
 ### Logging
@@ -1003,32 +1124,46 @@ except Exception as e:
 from flask import current_app
 
 # Use Flask's logger
-current_app.logger.info('User login successful')
-current_app.logger.error(f'Failed login attempt: {email}')
-current_app.logger.debug(f'Processing request: {request.url}')
+current_app.logger.info("User login successful")
+current_app.logger.error(f"Failed login attempt: {email}")
+current_app.logger.debug(f"Processing request: {request.url}")
 ```
 
 ## Configuration Management
 
-### Environment-Based Config
+### Single Config Class
 
-Configuration in `enferno/settings.py`:
+Configuration in `enferno/settings.py` — there is only one `Config` class (no subclasses):
 
 ```python
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
-    DEBUG = False
-    TESTING = False
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+    if not SECRET_KEY:
+        raise ValueError("SECRET_KEY environment variable is required")
 
-class DevelopmentConfig(Config):
-    DEBUG = True
-    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        "SQLALCHEMY_DATABASE_URI", "postgresql:///enferno"
+    )
 
-class ProductionConfig(Config):
-    DEBUG = False
+    SECURITY_PASSWORD_SALT = os.environ.get("SECURITY_PASSWORD_SALT")
+    if not SECURITY_PASSWORD_SALT:
+        raise ValueError("SECURITY_PASSWORD_SALT environment variable is required")
+
+    SECURITY_PASSWORD_HASH = "argon2"
+    SECURITY_PASSWORD_LENGTH_MIN = 12
+
+    # Billing Provider: 'stripe' or 'chargebee'
+    BILLING_PROVIDER = os.environ.get("BILLING_PROVIDER", "stripe")
+
+    # Mail (SSL on port 465)
+    MAIL_SERVER = os.environ.get("MAIL_SERVER")
+    MAIL_PORT = 465
+    MAIL_USE_SSL = True
 ```
 
 ### Environment Variables
@@ -1037,24 +1172,51 @@ Use `.env` file for local development (never commit):
 
 ```bash
 SECRET_KEY=your-secret-key-here
-SQLALCHEMY_DATABASE_URI=sqlite:///enferno.sqlite3
+SQLALCHEMY_DATABASE_URI=sqlite:///enferno.sqlite3  # Dev override (default is postgresql)
 FLASK_ENV=development
 
-# Mail settings
+# Mail settings (SSL on port 465)
 MAIL_SERVER=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USE_TLS=True
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-app-password
 
 # Security
 SECURITY_PASSWORD_SALT=your-salt-here
-SECURITY_TOTP_SECRETS=secret1,secret2
+SECURITY_TOTP_SECRETS=secret1
 
 # Optional: OAuth
-GOOGLE_AUTH_ENABLED=True
+GOOGLE_AUTH_ENABLED=true
 GOOGLE_OAUTH_CLIENT_ID=your-client-id
 GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret
+
+GITHUB_AUTH_ENABLED=true
+GITHUB_OAUTH_CLIENT_ID=your-client-id
+GITHUB_OAUTH_CLIENT_SECRET=your-client-secret
+
+# Billing Provider: 'stripe' or 'chargebee'
+BILLING_PROVIDER=stripe
+
+# Stripe (if BILLING_PROVIDER=stripe)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_PRO_PRICE_ID=price_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Chargebee (if BILLING_PROVIDER=chargebee)
+CHARGEBEE_SITE=your-site
+CHARGEBEE_API_KEY=your-api-key
+CHARGEBEE_PRO_ITEM_PRICE_ID=your-item-price-id
+CHARGEBEE_WEBHOOK_USERNAME=webhook-user
+CHARGEBEE_WEBHOOK_PASSWORD=webhook-pass
+
+# Display values
+PRO_PRICE_DISPLAY=$29
+PRO_PRICE_INTERVAL=month
+
+# Redis (required for production sessions)
+REDIS_SESSION=redis://localhost:6379/1
+CELERY_BROKER_URL=redis://localhost:6379/2
+CELERY_RESULT_BACKEND=redis://localhost:6379/3
 ```
 
 ## Code Style Standards
@@ -1123,5 +1285,7 @@ Before committing:
 6. **Consistent API** - RESTful patterns with standard JSON responses
 7. **Environment Config** - Use `.env` files, never hardcode secrets
 8. **Modern Tooling** - Use `uv` for package management, Ruff for linting
+9. **Multi-Tenant** - All business data scoped to workspaces
+10. **Provider Agnostic Billing** - Stripe or Chargebee via `BILLING_PROVIDER` config
 
 This architecture ensures clean separation of concerns, maintainable code, and rapid development velocity.

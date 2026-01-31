@@ -1,6 +1,6 @@
 [project]
 name = "readykit"
-version = "1.4.0"
+version = "1.1.0"
 description = "Production-ready Flask SaaS template with multi-tenant workspaces, Stripe billing, and OAuth"
 authors = [
     {name = "Level09", email = "hello@level09.com"}
