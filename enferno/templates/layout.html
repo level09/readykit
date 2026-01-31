@@ -21,7 +21,7 @@
 <body class="{% block body_class %} {% endblock %}">
 <v-app id="app" v-cloak>
     <v-layout class="rounded rounded-md">
-        <v-app-bar color="surface" density="comfortable" elevation="1">
+        <v-app-bar color="white" density="comfortable" elevation="0" border="b">
             <v-app-bar-nav-icon @click="drawer = !drawer" class="d-md-none"></v-app-bar-nav-icon>
 
             <v-app-bar-title>
@@ -30,8 +30,6 @@
                 </a>
             </v-app-bar-title>
             <v-spacer></v-spacer>
-
-            <theme-switcher></theme-switcher>
 
             {% if not current_user.is_authenticated %}
             <v-btn href="/login" variant="text" class="ml-2">Sign in</v-btn>
@@ -73,7 +71,7 @@
                             <v-list-subheader class="d-flex align-center justify-space-between">
                                 <span>{{ current_workspace.name }}</span>
                                 {% if current_workspace.is_pro %}
-                                <v-chip size="x-small" color="success" variant="flat" class="ml-2">Pro</v-chip>
+                                <v-chip size="x-small" variant="outlined" class="ml-2">Pro</v-chip>
                                 {% endif %}
                             </v-list-subheader>
                             <v-list-item
@@ -132,7 +130,7 @@
                             <v-list-subheader class="d-flex align-center justify-space-between">
                                 <span>{{ current_workspace.name }}</span>
                                 {% if current_workspace.is_pro %}
-                                <v-chip size="x-small" color="success" variant="flat" class="ml-2">Pro</v-chip>
+                                <v-chip size="x-small" variant="outlined" class="ml-2">Pro</v-chip>
                                 {% endif %}
                             </v-list-subheader>
                             <v-list-item
@@ -249,8 +247,8 @@
                 <!-- User Info Card -->
                 <div class="pa-3">
                     <v-card variant="flat" color="transparent" class="d-flex align-center">
-                        <v-avatar size="36" color="primary" class="mr-3">
-                            <span class="text-white font-weight-bold text-body-2">{{ current_user.name[:1].upper() if current_user.name else 'U' }}</span>
+                        <v-avatar size="36" color="#E4E4E7" class="mr-3">
+                            <span class="font-weight-bold text-body-2" style="color: #52525B;">{{ current_user.name[:1].upper() if current_user.name else 'U' }}</span>
                         </v-avatar>
                         
                         <div class="flex-grow-1 mr-2">
@@ -259,8 +257,7 @@
                             </div>
                             <div class="text-caption text-medium-emphasis">
                                 {% if current_user.is_superadmin %}
-                                    <v-chip size="x-small" color="primary" variant="tonal" class="px-2">
-                                        <i class="ti ti-shield-check mr-1" style="font-size: 12px;"></i>
+                                    <v-chip size="x-small" variant="outlined" class="px-2">
                                         Admin
                                     </v-chip>
                                 {% else %}

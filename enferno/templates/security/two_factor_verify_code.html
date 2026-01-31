@@ -52,10 +52,10 @@
 <script>
     const { createApp } = Vue;
     const { createVuetify } = Vuetify;
-    const vuetify = createVuetify(vuetifyConfig);
+    const vuetify = createVuetify(config.vuetifyConfig);
 
     const app = createApp({
-        delimiters: delimiters,
+        delimiters: config.delimiters,
         data() {
             return { code: '' };
         },

@@ -21,91 +21,41 @@
     </div>
 
     <!-- Status Banner -->
-    <v-card class="status-banner mb-6" variant="flat">
-        <v-card-text class="py-4">
-            <v-row align="center">
-                <!-- Workspace Info -->
-                <v-col cols="12" md="4">
-                    <div class="d-flex align-center">
-                        <v-avatar color="primary" size="48" class="mr-3">
-                            <span class="text-h6 text-white">${ workspaceData.name ? workspaceData.name.charAt(0).toUpperCase() : 'W' }</span>
-                        </v-avatar>
-                        <div>
-                            <div class="text-subtitle-1 font-weight-semibold">${ workspaceData.name }</div>
-                            <div class="d-flex align-center gap-2 mt-1">
-                                <v-chip
-                                    size="x-small"
-                                    :class="workspaceData.is_pro ? 'plan-badge-pro' : 'plan-badge-free'"
-                                    variant="flat"
-                                >
-                                    <i :class="workspaceData.is_pro ? 'ti ti-crown mr-1' : 'ti ti-sparkles mr-1'" style="font-size: 12px;"></i>
-                                    ${ workspaceData.is_pro ? 'Pro' : 'Free' }
-                                </v-chip>
-                                <v-chip size="x-small" variant="outlined" color="default">
-                                    {{ user_role.title() }}
-                                </v-chip>
-                            </div>
-                        </div>
-                    </div>
-                </v-col>
-
-                <!-- Usage Stats -->
-                <v-col cols="12" md="4">
-                    <div v-if="!workspaceData.is_pro" class="usage-section">
-                        <div class="d-flex justify-space-between align-center mb-2">
-                            <span class="text-body-2 text-medium-emphasis">Team Members</span>
-                            <span class="text-body-2 font-weight-medium">${ memberCount } / 3</span>
-                        </div>
-                        <v-progress-linear
-                            :model-value="(memberCount / 3) * 100"
-                            :color="memberCount >= 3 ? 'error' : 'primary'"
-                            rounded
-                            height="6"
-                        ></v-progress-linear>
-                        <div class="text-caption text-medium-emphasis mt-1" v-if="memberCount >= 3">
-                            <i class="ti ti-alert-circle" style="font-size: 12px;"></i>
-                            Limit reached
-                        </div>
-                    </div>
-                    <div v-else class="d-flex align-center">
-                        <i class="ti ti-users text-success mr-2" style="font-size: 20px;"></i>
-                        <div>
-                            <div class="text-body-2 font-weight-medium">${ memberCount } members</div>
-                            <div class="text-caption text-medium-emphasis">Unlimited on Pro</div>
-                        </div>
-                    </div>
-                </v-col>
-
-                <!-- Upgrade CTA -->
-                <v-col cols="12" md="4" class="text-md-right">
-                    {% if user_role == 'admin' %}
-                    <v-btn
-                        v-if="!workspaceData.is_pro"
-                        color="primary"
-                        href="/workspace/{{ workspace.id }}/upgrade"
-                        class="text-none"
-                    >
-                        <i class="ti ti-rocket mr-2"></i>
-                        Upgrade to Pro
-                    </v-btn>
-                    <v-btn
-                        v-else
-                        variant="outlined"
-                        href="/workspace/{{ workspace.id }}/billing"
-                        class="text-none"
-                    >
-                        <i class="ti ti-credit-card mr-2"></i>
-                        Manage Billing
-                    </v-btn>
-                    {% endif %}
-                </v-col>
-            </v-row>
-        </v-card-text>
-    </v-card>
+    <div class="d-flex align-center justify-space-between mb-6 pa-4" style="border: 1px solid #E4E4E7; border-radius: 8px;">
+        <div class="d-flex align-center">
+            <div>
+                <div class="text-subtitle-1 font-weight-semibold">${ workspaceData.name }</div>
+                <div class="d-flex align-center gap-2 mt-1">
+                    <v-chip size="x-small" variant="outlined">
+                        ${ workspaceData.is_pro ? 'Pro' : 'Free' }
+                    </v-chip>
+                    <span class="text-caption text-medium-emphasis">${ memberCount } member${ memberCount !== 1 ? 's' : '' }</span>
+                </div>
+            </div>
+        </div>
+        {% if user_role == 'admin' %}
+        <v-btn
+            v-if="!workspaceData.is_pro"
+            color="accent"
+            href="/workspace/{{ workspace.id }}/upgrade"
+            class="text-none"
+        >
+            Upgrade to Pro
+        </v-btn>
+        <v-btn
+            v-else
+            variant="outlined"
+            href="/workspace/{{ workspace.id }}/billing"
+            class="text-none"
+        >
+            Manage Billing
+        </v-btn>
+        {% endif %}
+    </div>
 
     <!-- Tabs -->
     <v-card>
-        <v-tabs v-model="activeTab" class="settings-tabs" color="primary">
+        <v-tabs v-model="activeTab" class="settings-tabs">
             <v-tab value="general">
                 <i class="ti ti-user mr-2"></i>
                 General
@@ -130,7 +80,7 @@
                         <!-- Workspace Settings -->
                         <v-col cols="12" md="6">
                             <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                                <i class="ti ti-briefcase mr-2 text-primary"></i>
+                                <i class="ti ti-briefcase mr-2 text-medium-emphasis"></i>
                                 Workspace
                             </h3>
                             <v-form @submit.prevent="updateWorkspaceName">
@@ -145,7 +95,7 @@
                                 {% if user_role == 'admin' %}
                                 <v-btn
                                     color="primary"
-                                    variant="tonal"
+                                    variant="flat"
                                     @click="updateWorkspaceName"
                                     :loading="savingWorkspace"
                                     class="text-none"
@@ -164,7 +114,7 @@
                         <!-- Profile Settings -->
                         <v-col cols="12" md="6">
                             <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                                <i class="ti ti-user mr-2 text-primary"></i>
+                                <i class="ti ti-user mr-2 text-medium-emphasis"></i>
                                 My Profile
                             </h3>
                             <v-form @submit.prevent="updateProfile">
@@ -194,7 +144,7 @@
                                 </v-text-field>
                                 <v-btn
                                     color="primary"
-                                    variant="tonal"
+                                    variant="flat"
                                     @click="updateProfile"
                                     :loading="savingProfile"
                                     class="text-none"
@@ -208,27 +158,19 @@
                     <!-- Workspace Info -->
                     <v-divider class="my-6"></v-divider>
                     <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                        <i class="ti ti-info-circle mr-2 text-primary"></i>
+                        <i class="ti ti-info-circle mr-2 text-medium-emphasis"></i>
                         Workspace Details
                     </h3>
                     <v-row>
                         <v-col cols="6" sm="3">
                             <div class="text-caption text-medium-emphasis mb-1">Your Role</div>
-                            <v-chip
-                                :color="'{{ user_role }}' === 'admin' ? 'primary' : 'default'"
-                                size="small"
-                                variant="tonal"
-                            >
+                            <v-chip size="small" variant="outlined">
                                 {{ user_role.title() }}
                             </v-chip>
                         </v-col>
                         <v-col cols="6" sm="3">
                             <div class="text-caption text-medium-emphasis mb-1">Plan</div>
-                            <v-chip
-                                :color="workspaceData.is_pro ? 'success' : 'warning'"
-                                size="small"
-                                variant="tonal"
-                            >
+                            <v-chip size="small" variant="outlined">
                                 ${ workspaceData.is_pro ? 'Pro' : 'Free' }
                             </v-chip>
                         </v-col>
@@ -252,99 +194,46 @@
                     <!-- Free Plan -->
                     <div v-if="!workspaceData.is_pro">
                         <v-row>
-                            <!-- Current Plan -->
                             <v-col cols="12" md="6">
-                                <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                                    <i class="ti ti-package mr-2 text-primary"></i>
-                                    Current Plan
-                                </h3>
+                                <h3 class="text-subtitle-1 font-weight-semibold mb-4">Current Plan</h3>
                                 <v-card variant="outlined" class="pa-4">
                                     <div class="d-flex align-center justify-space-between mb-3">
-                                        <v-chip class="plan-badge-free" variant="flat">Free</v-chip>
+                                        <v-chip size="small" variant="outlined">Free</v-chip>
                                         <span class="text-h5 font-weight-bold">$0<span class="text-body-2 font-weight-regular text-medium-emphasis">/month</span></span>
                                     </div>
                                     <ul class="feature-list text-body-2">
-                                        <li>
-                                            <i class="ti ti-check text-success"></i>
-                                            Up to 3 team members
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check text-success"></i>
-                                            Basic features
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-x text-medium-emphasis"></i>
-                                            <span class="text-medium-emphasis">Advanced analytics</span>
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-x text-medium-emphasis"></i>
-                                            <span class="text-medium-emphasis">Priority support</span>
-                                        </li>
+                                        <li><i class="ti ti-check" style="opacity: 0.4;"></i> Up to 3 team members</li>
+                                        <li><i class="ti ti-check" style="opacity: 0.4;"></i> Basic features</li>
+                                        <li><i class="ti ti-x" style="opacity: 0.2;"></i> <span class="text-medium-emphasis">Advanced analytics</span></li>
+                                        <li><i class="ti ti-x" style="opacity: 0.2;"></i> <span class="text-medium-emphasis">Priority support</span></li>
                                     </ul>
-
-                                    <!-- Usage -->
                                     <v-divider class="my-4"></v-divider>
-                                    <div class="d-flex justify-space-between align-center mb-2">
-                                        <span class="text-body-2">Team Members</span>
-                                        <span class="text-body-2 font-weight-semibold">${ memberCount } of 3</span>
+                                    <div class="d-flex justify-space-between align-center">
+                                        <span class="text-body-2 text-medium-emphasis">Team members</span>
+                                        <span class="text-body-2 font-weight-semibold">${ memberCount } / 3</span>
                                     </div>
-                                    <v-progress-linear
-                                        :model-value="(memberCount / 3) * 100"
-                                        :color="memberCount >= 3 ? 'error' : 'primary'"
-                                        rounded
-                                        height="8"
-                                    ></v-progress-linear>
-                                    <p class="text-caption text-medium-emphasis mt-2 mb-0" v-if="memberCount >= 3">
-                                        <i class="ti ti-alert-circle text-error"></i>
-                                        You've reached the member limit
-                                    </p>
-                                    <p class="text-caption text-medium-emphasis mt-2 mb-0" v-else>
-                                        ${ 3 - memberCount } slots remaining
-                                    </p>
                                 </v-card>
                             </v-col>
 
-                            <!-- Upgrade Card -->
                             <v-col cols="12" md="6">
-                                <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                                    <i class="ti ti-rocket mr-2 text-primary"></i>
-                                    Upgrade
-                                </h3>
-                                <v-card class="upgrade-card pa-4 text-white">
+                                <h3 class="text-subtitle-1 font-weight-semibold mb-4">Upgrade</h3>
+                                <v-card variant="outlined" class="pa-4">
                                     <div class="d-flex align-center justify-space-between mb-3">
-                                        <v-chip color="white" variant="flat" size="small">
-                                            <i class="ti ti-crown mr-1"></i>
-                                            Pro
-                                        </v-chip>
-                                        <span class="text-h5 font-weight-bold">{{ pro_price }}<span class="text-body-2 font-weight-regular" style="opacity: 0.8;">/{{ pro_interval }}</span></span>
+                                        <v-chip size="small" variant="outlined">Pro</v-chip>
+                                        <span class="text-h5 font-weight-bold">{{ pro_price }}<span class="text-body-2 font-weight-regular text-medium-emphasis">/{{ pro_interval }}</span></span>
                                     </div>
                                     <ul class="feature-list text-body-2 mb-4">
-                                        <li>
-                                            <i class="ti ti-check"></i>
-                                            Unlimited team members
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check"></i>
-                                            Advanced analytics & reporting
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check"></i>
-                                            Data export capabilities
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check"></i>
-                                            Priority support
-                                        </li>
+                                        <li><i class="ti ti-check" style="opacity: 0.4;"></i> Unlimited team members</li>
+                                        <li><i class="ti ti-check" style="opacity: 0.4;"></i> Advanced analytics & reporting</li>
+                                        <li><i class="ti ti-check" style="opacity: 0.4;"></i> Data export capabilities</li>
+                                        <li><i class="ti ti-check" style="opacity: 0.4;"></i> Priority support</li>
                                     </ul>
                                     <v-btn
                                         block
-                                        color="white"
-                                        variant="flat"
-                                        size="large"
+                                        color="accent"
                                         href="/workspace/{{ workspace.id }}/upgrade"
-                                        class="text-none text-primary font-weight-semibold"
+                                        class="text-none"
                                     >
-                                        <i class="ti ti-rocket mr-2"></i>
                                         Upgrade Now
                                     </v-btn>
                                 </v-card>
@@ -354,86 +243,36 @@
 
                     <!-- Pro Plan Active -->
                     <div v-else>
-                        <v-row>
-                            <v-col cols="12" md="6">
-                                <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                                    <i class="ti ti-package mr-2 text-primary"></i>
-                                    Current Plan
-                                </h3>
-                                <v-card variant="outlined" class="pa-4">
-                                    <div class="d-flex align-center justify-space-between mb-3">
-                                        <v-chip class="plan-badge-pro" variant="flat">
-                                            <i class="ti ti-crown mr-1"></i>
-                                            Pro
-                                        </v-chip>
-                                        <span class="text-h5 font-weight-bold">{{ pro_price }}<span class="text-body-2 font-weight-regular text-medium-emphasis">/{{ pro_interval }}</span></span>
-                                    </div>
-                                    <ul class="feature-list text-body-2 mb-4">
-                                        <li>
-                                            <i class="ti ti-check text-success"></i>
-                                            Unlimited team members
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check text-success"></i>
-                                            Advanced analytics & reporting
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check text-success"></i>
-                                            Data export capabilities
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check text-success"></i>
-                                            Priority support
-                                        </li>
-                                    </ul>
-                                    <v-btn
-                                        block
-                                        variant="outlined"
-                                        href="/workspace/{{ workspace.id }}/billing"
-                                        class="text-none"
-                                    >
-                                        <i class="ti ti-settings mr-2"></i>
-                                        Manage Subscription
-                                    </v-btn>
-                                </v-card>
-                            </v-col>
-
-                            <v-col cols="12" md="6">
-                                <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                                    <i class="ti ti-info-circle mr-2 text-primary"></i>
-                                    Subscription Info
-                                </h3>
-                                <v-card variant="tonal" color="success" class="pa-4">
-                                    <div class="d-flex align-center mb-3">
-                                        <i class="ti ti-circle-check text-success mr-2" style="font-size: 24px;"></i>
-                                        <div>
-                                            <div class="text-subtitle-2 font-weight-semibold">Pro Plan Active</div>
-                                            <div class="text-caption text-medium-emphasis">You have access to all features</div>
-                                        </div>
-                                    </div>
-                                    <v-divider class="mb-3"></v-divider>
-                                    <div class="d-flex align-center mb-2">
-                                        <i class="ti ti-users mr-2 text-medium-emphasis"></i>
-                                        <span class="text-body-2">${ memberCount } team members</span>
-                                    </div>
-                                    <div class="d-flex align-center" v-if="workspaceData.upgraded_at">
-                                        <i class="ti ti-calendar mr-2 text-medium-emphasis"></i>
-                                        <span class="text-body-2">Upgraded ${ new Date(workspaceData.upgraded_at).toLocaleDateString() }</span>
-                                    </div>
-                                </v-card>
-                            </v-col>
-                        </v-row>
+                        <v-card variant="outlined" class="pa-4" style="max-width: 480px;">
+                            <div class="d-flex align-center justify-space-between mb-3">
+                                <v-chip size="small" variant="outlined">Pro</v-chip>
+                                <span class="text-h5 font-weight-bold">{{ pro_price }}<span class="text-body-2 font-weight-regular text-medium-emphasis">/{{ pro_interval }}</span></span>
+                            </div>
+                            <ul class="feature-list text-body-2 mb-4">
+                                <li><i class="ti ti-check" style="opacity: 0.4;"></i> Unlimited team members</li>
+                                <li><i class="ti ti-check" style="opacity: 0.4;"></i> Advanced analytics & reporting</li>
+                                <li><i class="ti ti-check" style="opacity: 0.4;"></i> Data export capabilities</li>
+                                <li><i class="ti ti-check" style="opacity: 0.4;"></i> Priority support</li>
+                            </ul>
+                            <div class="text-body-2 text-medium-emphasis mb-3">
+                                ${ memberCount } team members
+                                <span v-if="workspaceData.upgraded_at"> &middot; Upgraded ${ new Date(workspaceData.upgraded_at).toLocaleDateString() }</span>
+                            </div>
+                            <v-btn
+                                block
+                                variant="outlined"
+                                href="/workspace/{{ workspace.id }}/billing"
+                                class="text-none"
+                            >
+                                Manage Subscription
+                            </v-btn>
+                        </v-card>
                     </div>
 
                     {% else %}
-                    <!-- Non-admin view -->
-                    <v-alert type="info" variant="tonal" class="mb-0">
-                        <template v-slot:prepend>
-                            <i class="ti ti-info-circle"></i>
-                        </template>
-                        <div class="text-subtitle-2">Billing Managed by Admin</div>
-                        <div class="text-body-2">Contact your workspace admin to manage billing and subscription.</div>
-                    </v-alert>
+                    <p class="text-body-2 text-medium-emphasis mb-0">
+                        Billing is managed by the workspace admin.
+                    </p>
                     {% endif %}
                 </v-card-text>
             </v-tabs-window-item>
@@ -441,16 +280,10 @@
             <!-- Danger Zone Tab -->
             <v-tabs-window-item value="danger">
                 <v-card-text class="pa-6">
-                    <v-alert type="warning" variant="tonal" class="mb-6">
-                        <template v-slot:prepend>
-                            <i class="ti ti-alert-triangle"></i>
-                        </template>
-                        <div class="text-subtitle-2">Careful!</div>
-                        <div class="text-body-2">Actions in this section are destructive and cannot be undone.</div>
-                    </v-alert>
+                    <p class="text-body-2 text-medium-emphasis mb-6">Actions here are destructive and cannot be undone.</p>
 
                     {% if user_role == 'admin' %}
-                    <v-card variant="outlined" color="error" class="pa-4">
+                    <v-card variant="outlined" class="pa-4">
                         <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between">
                             <div class="mb-3 mb-sm-0">
                                 <div class="text-subtitle-2 font-weight-semibold">Delete Workspace</div>
@@ -462,25 +295,22 @@
                                 @click="confirmDeleteWorkspace"
                                 class="text-none"
                             >
-                                <i class="ti ti-trash mr-2"></i>
                                 Delete Workspace
                             </v-btn>
                         </div>
                     </v-card>
                     {% else %}
-                    <v-card variant="outlined" color="warning" class="pa-4">
+                    <v-card variant="outlined" class="pa-4">
                         <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between">
                             <div class="mb-3 mb-sm-0">
                                 <div class="text-subtitle-2 font-weight-semibold">Leave Workspace</div>
                                 <div class="text-body-2 text-medium-emphasis">Remove yourself from this workspace. You'll lose access immediately.</div>
                             </div>
                             <v-btn
-                                color="warning"
                                 variant="outlined"
                                 @click="confirmLeaveWorkspace"
                                 class="text-none"
                             >
-                                <i class="ti ti-logout mr-2"></i>
                                 Leave Workspace
                             </v-btn>
                         </div>

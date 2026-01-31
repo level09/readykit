@@ -60,21 +60,18 @@
         const {createApp} = Vue;
         const {createVuetify} = Vuetify;
 
-        const vuetify = createVuetify(config);
+        const vuetify = createVuetify(config.vuetifyConfig);
 
         window.app = createApp({
             data() {
                 return {
-                    config: config,
-                    menu: config.menu,
-                    rail: config.rail,
                     snackBar: false,
                     snackMessage: "",
                     items: [],
                     itemsLength: 0,
                     options: {
                         page: 1,
-                        itemsPerPage: config.itemsPerPage || 25
+                        itemsPerPage: 25
                     },
                     drawer: true,
                     dataDialog: false,

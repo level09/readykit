@@ -58,10 +58,10 @@
 <script>
     const { createApp } = Vue;
     const { createVuetify } = Vuetify;
-    const vuetify = createVuetify(vuetifyConfig);
+    const vuetify = createVuetify(config.vuetifyConfig);
 
     const app = createApp({
-        delimiters: delimiters,
+        delimiters: config.delimiters,
         data() {
             return { selected: '{{ two_factor_select_form.which.data or "" }}' };
         },
