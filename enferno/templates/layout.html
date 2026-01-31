@@ -39,7 +39,7 @@
         <v-navigation-drawer v-model="drawer" width="240">
             {% if current_user.is_authenticated %}
             <!-- User Identity -->
-            <div class="pa-4 pb-2">
+            <a href="/settings/profile" class="d-block pa-4 pb-2 text-decoration-none" style="color: inherit;">
                 <div class="d-flex align-center mb-1">
                     <v-avatar size="32" color="#E4E4E7" class="mr-2">
                         <span class="font-weight-bold text-caption" style="color: #52525B;">{{ current_user.name[:1].upper() if current_user.name else 'U' }}</span>
@@ -49,7 +49,7 @@
                         <div class="text-caption text-medium-emphasis text-truncate">{{ current_user.email }}</div>
                     </div>
                 </div>
-            </div>
+            </a>
 
             <v-divider></v-divider>
 
@@ -86,14 +86,25 @@
                 {% endif %}
 
                 <v-divider class="my-1"></v-divider>
+                <div class="px-4 py-2 text-caption text-medium-emphasis">Account</div>
 
                 <v-list-item href="/settings/profile" title="Profile" prepend-icon="mdi-account-outline"></v-list-item>
-                <v-list-item href="/change" title="Password" prepend-icon="mdi-key-outline"></v-list-item>
-                <v-list-item href="/tf-setup" title="Two-Factor Auth" prepend-icon="mdi-shield-lock-outline"></v-list-item>
+                <v-list-item href="/settings/security" title="Security" prepend-icon="mdi-shield-lock-outline"></v-list-item>
             </v-list>
 
             <!-- Sign Out at bottom -->
             <template v-slot:append>
+                {% if current_workspace and not current_workspace.is_pro and current_user.get_workspace_role(current_workspace.id) == 'admin' %}
+                <div class="pa-3 pt-0">
+                    <div class="pa-3" style="border: 1px solid #E4E4E7; border-radius: 8px;">
+                        <div class="text-caption font-weight-medium mb-1">Free Plan</div>
+                        <div class="text-caption text-medium-emphasis mb-2">Upgrade for full access</div>
+                        <v-btn href="/workspace/upgrade" color="primary" size="small" block class="text-none">
+                            Upgrade to Pro
+                        </v-btn>
+                    </div>
+                </div>
+                {% endif %}
                 <div class="pa-3">
                     <v-btn href="/logout" variant="text" block class="text-none justify-start text-medium-emphasis" prepend-icon="mdi-logout" size="small">
                         Sign Out

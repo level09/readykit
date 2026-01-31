@@ -94,6 +94,14 @@ def profile():
     return render_template("profile.html")
 
 
+@portal.get("/settings/security")
+def security_settings():
+    """Combined security settings: password + 2FA"""
+    from flask_wtf.csrf import generate_csrf
+
+    return render_template("security_settings.html", csrf_token=generate_csrf())
+
+
 @portal.get("/workspace/keys/")
 @require_workspace_access("member")
 def workspace_api_keys():

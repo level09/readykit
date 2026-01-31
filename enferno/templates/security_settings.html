@@ -1,0 +1,131 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="pa-4 w-100" style="max-width: 700px;">
+    <h1 class="text-h5 font-weight-bold mb-6">Security</h1>
+
+    <!-- Password Section -->
+    <div class="mb-8">
+        <div class="text-subtitle-1 font-weight-medium mb-1">Password</div>
+        <div class="text-body-2 text-medium-emphasis mb-4">
+            {% if current_user.has_usable_password %}
+            Update your account password.
+            {% else %}
+            Set a password to enable email login.
+            {% endif %}
+        </div>
+
+        <v-form
+            id="changePasswordForm"
+            action="/change"
+            method="POST"
+        >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            {% if current_user.has_usable_password %}
+            <v-text-field
+                name="password"
+                label="Current Password"
+                type="password"
+                required
+                density="comfortable"
+                class="mb-2"
+                style="max-width: 400px;"
+            ></v-text-field>
+            {% endif %}
+
+            <v-text-field
+                name="new_password"
+                label="New Password"
+                type="password"
+                required
+                density="comfortable"
+                class="mb-2"
+                style="max-width: 400px;"
+            ></v-text-field>
+
+            <v-text-field
+                name="new_password_confirm"
+                label="Confirm New Password"
+                type="password"
+                required
+                density="comfortable"
+                class="mb-4"
+                style="max-width: 400px;"
+            ></v-text-field>
+
+            <v-btn
+                color="primary"
+                @click="submitPassword"
+                class="text-none"
+            >
+                {% if current_user.has_usable_password %}
+                Change Password
+                {% else %}
+                Set Password
+                {% endif %}
+            </v-btn>
+        </v-form>
+    </div>
+
+    <v-divider class="mb-8"></v-divider>
+
+    <!-- Two-Factor Authentication Section -->
+    <div>
+        <div class="text-subtitle-1 font-weight-medium mb-1">Two-Factor Authentication</div>
+        <div class="text-body-2 text-medium-emphasis mb-4">Add an extra layer of security to your account.</div>
+
+        {% if current_user.tf_primary_method %}
+        <v-card color="primary" variant="tonal" class="mb-4" style="max-width: 500px;">
+            <v-card-text class="d-flex align-center">
+                <v-avatar color="primary" class="mr-4" size="40">
+                    <i class="ti ti-check" style="font-size: 20px;"></i>
+                </v-avatar>
+                <div class="flex-grow-1">
+                    <div class="font-weight-medium text-uppercase">{{ current_user.tf_primary_method }}</div>
+                    <div class="text-caption text-medium-emphasis">Currently enabled</div>
+                </div>
+                <v-btn variant="outlined" size="small" href="/tf-setup" class="text-none">
+                    Manage
+                </v-btn>
+            </v-card-text>
+        </v-card>
+        {% else %}
+        <v-card variant="outlined" class="mb-4" style="max-width: 500px;">
+            <v-card-text class="d-flex align-center">
+                <v-avatar color="warning" variant="tonal" class="mr-4" size="40">
+                    <i class="ti ti-shield-off" style="font-size: 20px;"></i>
+                </v-avatar>
+                <div class="flex-grow-1">
+                    <div class="font-weight-medium">Not enabled</div>
+                    <div class="text-caption text-medium-emphasis">Protect your account with 2FA</div>
+                </div>
+                <v-btn variant="outlined" color="primary" size="small" href="/tf-setup" class="text-none">
+                    Setup
+                </v-btn>
+            </v-card-text>
+        </v-card>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+const { createApp } = Vue;
+const { createVuetify } = Vuetify;
+const vuetify = createVuetify(config.vuetifyConfig);
+
+const app = createApp({
+    mixins: [layoutMixin],
+    delimiters: config.delimiters,
+    methods: {
+        submitPassword() {
+            document.getElementById('changePasswordForm').submit();
+        }
+    }
+}).use(vuetify).mount('#app');
+</script>
+{% endblock %}
