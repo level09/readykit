@@ -31,7 +31,32 @@
             </v-app-bar-title>
             <v-spacer></v-spacer>
 
-            {% if not current_user.is_authenticated %}
+            {% if current_user.is_authenticated %}
+            <v-menu location="bottom end" offset="4">
+                <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props" icon variant="text" size="small" class="mr-2">
+                        <v-avatar size="30" color="#E4E4E7">
+                            <span class="font-weight-bold text-caption" style="color: #52525B;">{{ current_user.name[:1].upper() if current_user.name else 'U' }}</span>
+                        </v-avatar>
+                    </v-btn>
+                </template>
+                <v-card min-width="200" rounded="lg" elevation="2">
+                    <div class="px-4 py-3 border-b">
+                        <div class="text-body-2 font-weight-medium">{{ current_user.name or 'User' }}</div>
+                        <div class="text-caption text-medium-emphasis">{{ current_user.email }}</div>
+                    </div>
+                    <v-divider></v-divider>
+                    <v-list density="compact" nav class="py-1">
+                        <v-list-item href="/settings/profile" title="Profile" prepend-icon="mdi-account-outline"></v-list-item>
+                        <v-list-item href="/settings/security" title="Security" prepend-icon="mdi-shield-lock-outline"></v-list-item>
+                    </v-list>
+                    <v-divider></v-divider>
+                    <v-list density="compact" nav class="py-1">
+                        <v-list-item href="/logout" title="Sign out" prepend-icon="mdi-logout"></v-list-item>
+                    </v-list>
+                </v-card>
+            </v-menu>
+            {% else %}
             <v-btn href="/login" variant="text" class="ml-2">Sign in</v-btn>
             {% endif %}
         </v-app-bar>
