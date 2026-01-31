@@ -1,0 +1,171 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="pa-4 w-100" style="max-width: 700px;">
+    <div class="d-flex align-center justify-space-between mb-6">
+        <div>
+            <h1 class="text-h5 font-weight-bold">API Keys</h1>
+            <p class="text-body-2 text-medium-emphasis mb-0">Manage API keys for this workspace</p>
+        </div>
+        {% if user_role == 'admin' %}
+        <v-btn color="primary" @click="showCreate = true" class="text-none" prepend-icon="mdi-plus">
+            Create Key
+        </v-btn>
+        {% endif %}
+    </div>
+
+    <!-- New key revealed once -->
+    <v-alert v-if="newKey" variant="outlined" class="mb-6" closable @click:close="newKey = ''">
+        <div class="text-subtitle-2 font-weight-medium mb-2">Your new API key</div>
+        <div class="text-body-2 text-medium-emphasis mb-3">Copy it now — you won't be able to see it again.</div>
+        <div class="d-flex align-center pa-3" style="background: #F4F4F5; border-radius: 4px; font-family: monospace;">
+            <span class="flex-grow-1 text-body-2">${ newKey }</span>
+            <v-btn icon size="small" variant="text" @click="copyKey">
+                <i class="ti ti-copy"></i>
+            </v-btn>
+        </div>
+    </v-alert>
+
+    <!-- Keys list -->
+    <div v-if="keys.length">
+        <div v-for="key in keys" :key="key.id" class="d-flex align-center justify-space-between py-3" style="border-bottom: 1px solid #E4E4E7;">
+            <div>
+                <div class="text-body-2 font-weight-medium">${ key.name }</div>
+                <div class="text-caption text-medium-emphasis">
+                    <code>${ key.prefix }...</code>
+                    · Created ${ formatDate(key.created_at) }
+                    <span v-if="key.last_used_at"> · Last used ${ formatDate(key.last_used_at) }</span>
+                </div>
+            </div>
+            {% if user_role == 'admin' %}
+            <v-btn variant="text" size="small" @click="revokeKey(key)" class="text-none">
+                Revoke
+            </v-btn>
+            {% endif %}
+        </div>
+    </div>
+
+    <div v-else class="text-center py-12">
+        <i class="ti ti-key mb-3" style="font-size: 40px; opacity: 0.15;"></i>
+        <div class="text-body-2 text-medium-emphasis">No API keys yet</div>
+    </div>
+</div>
+
+<!-- Create dialog -->
+<v-dialog v-model="showCreate" max-width="400">
+    <v-card>
+        <v-card-title>Create API Key</v-card-title>
+        <v-card-text>
+            <v-text-field
+                v-model="keyName"
+                label="Key name"
+                placeholder="e.g. Production, CI/CD"
+                autofocus
+            ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn @click="showCreate = false" variant="text">Cancel</v-btn>
+            <v-btn color="primary" @click="createKey" :loading="creating">Create</v-btn>
+        </v-card-actions>
+    </v-card>
+</v-dialog>
+
+<!-- Snackbar -->
+<v-snackbar v-model="snackbar" timeout="4000" location="bottom right">
+    ${ snackMessage }
+</v-snackbar>
+
+{% endblock %}
+
+{% block js %}
+
+<script type="application/json" id="workspace-data">
+{{ workspace.to_dict()|tojson|safe }}
+</script>
+
+<script>
+const { createApp } = Vue;
+const { createVuetify } = Vuetify;
+const vuetify = createVuetify(config.vuetifyConfig);
+
+const app = createApp({
+    mixins: [layoutMixin],
+    data() {
+        return {
+            workspaceData: {},
+            keys: [],
+            showCreate: false,
+            keyName: '',
+            creating: false,
+            newKey: '',
+            snackbar: false,
+            snackMessage: ''
+        };
+    },
+    delimiters: config.delimiters,
+
+    methods: {
+        async loadKeys() {
+            try {
+                const res = await axios.get(`/api/workspace/${this.workspaceData.id}/keys`);
+                this.keys = res.data.keys || [];
+            } catch (e) {
+                this.keys = [];
+            }
+        },
+
+        async createKey() {
+            if (!this.keyName.trim()) return;
+            this.creating = true;
+            try {
+                const res = await axios.post(`/api/workspace/${this.workspaceData.id}/keys`, {
+                    name: this.keyName.trim()
+                });
+                this.newKey = res.data.key;
+                this.showCreate = false;
+                this.keyName = '';
+                await this.loadKeys();
+            } catch (e) {
+                this.snackMessage = e.response?.data?.error || 'Failed to create key';
+                this.snackbar = true;
+            } finally {
+                this.creating = false;
+            }
+        },
+
+        async revokeKey(key) {
+            if (!confirm(`Revoke "${key.name}"? This cannot be undone.`)) return;
+            try {
+                await axios.delete(`/api/workspace/${this.workspaceData.id}/keys/${key.id}`);
+                await this.loadKeys();
+                this.snackMessage = 'Key revoked';
+                this.snackbar = true;
+            } catch (e) {
+                this.snackMessage = 'Failed to revoke key';
+                this.snackbar = true;
+            }
+        },
+
+        copyKey() {
+            navigator.clipboard.writeText(this.newKey);
+            this.snackMessage = 'Copied to clipboard';
+            this.snackbar = true;
+        },
+
+        formatDate(dateString) {
+            if (!dateString) return '';
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+        }
+    },
+
+    async mounted() {
+        this.workspaceData = JSON.parse(document.querySelector('#workspace-data').textContent);
+        await this.loadKeys();
+    }
+}).use(vuetify).mount('#app');
+</script>
+{% endblock %}

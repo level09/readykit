@@ -18,7 +18,7 @@ from enferno.extensions import db
 from enferno.services.auth import require_superadmin_api
 from enferno.services.billing import HostedBilling
 from enferno.services.workspace import WorkspaceService, require_workspace_access
-from enferno.user.models import Membership, User, Workspace
+from enferno.user.models import APIKey, Membership, User, Workspace
 
 portal = Blueprint("portal", __name__, static_folder="../static")
 
@@ -86,6 +86,70 @@ def workspace_settings():
         pro_price=current_app.config.get("PRO_PRICE_DISPLAY", "$29"),
         pro_interval=current_app.config.get("PRO_PRICE_INTERVAL", "month"),
     )
+
+
+@portal.get("/workspace/keys/")
+@require_workspace_access("member")
+def workspace_api_keys():
+    """API key management page"""
+    return render_template(
+        "workspace_keys.html",
+        workspace=g.current_workspace,
+        user_role=g.user_workspace_role,
+    )
+
+
+@portal.get("/api/workspace/<int:workspace_id>/keys")
+@require_workspace_access("member")
+def list_api_keys(workspace_id):
+    """List API keys for workspace"""
+    keys = db.session.execute(
+        db.select(APIKey)
+        .where(APIKey.workspace_id == workspace_id, APIKey.is_active.is_(True))
+        .order_by(APIKey.created_at.desc())
+    ).scalars().all()
+    return jsonify({"keys": [k.to_dict() for k in keys]})
+
+
+@portal.post("/api/workspace/<int:workspace_id>/keys")
+@require_workspace_access("admin")
+def create_api_key(workspace_id):
+    """Create a new API key"""
+    data = request.get_json() or {}
+    name = data.get("name", "").strip()
+    if not name:
+        return jsonify({"error": "Key name is required"}), 400
+
+    full_key, prefix, key_hash = APIKey.generate_key()
+    api_key = APIKey(
+        workspace_id=workspace_id,
+        user_id=current_user.id,
+        name=name,
+        prefix=prefix,
+        key_hash=key_hash,
+    )
+    db.session.add(api_key)
+    db.session.commit()
+
+    return jsonify({"key": full_key, "id": api_key.id, "name": name, "prefix": prefix})
+
+
+@portal.delete("/api/workspace/<int:workspace_id>/keys/<int:key_id>")
+@require_workspace_access("admin")
+def revoke_api_key(workspace_id, key_id):
+    """Revoke an API key"""
+    api_key = db.session.execute(
+        db.select(APIKey).where(
+            APIKey.id == key_id, APIKey.workspace_id == workspace_id
+        )
+    ).scalar_one_or_none()
+
+    if not api_key:
+        return jsonify({"error": "Key not found"}), 404
+
+    api_key.is_active = False
+    db.session.commit()
+    return jsonify({"message": "Key revoked"})
 
 
 @portal.get("/workspace/<int:workspace_id>/switch/")
