@@ -120,7 +120,7 @@
         const {createApp} = Vue;
         const {createVuetify} = Vuetify;
 
-        const vuetify = createVuetify();
+        const vuetify = createVuetify(config.vuetifyConfig);
 
         window.app = createApp({
             data() {

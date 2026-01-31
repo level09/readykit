@@ -7,15 +7,6 @@ html, body {
     height: 100%;
 }
 
-/* ===== Card Hover Effect ===== */
-.v-card {
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.v-card:hover {
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08) !important;
-}
-
 /* ===== Global Scrollbars ===== */
 ::-webkit-scrollbar {
     width: 6px;
@@ -35,14 +26,6 @@ html, body {
     background-color: rgba(0, 0, 0, 0.25);
 }
 
-.v-theme--dark ::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.15);
-}
-
-.v-theme--dark ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 255, 255, 0.25);
-}
-
 /* ===== Input Focus States ===== */
 .v-field--focused .v-field__outline {
     --v-field-border-opacity: 1;
@@ -50,15 +33,11 @@ html, body {
 
 /* ===== Data Table Enhancements ===== */
 .v-data-table tbody tr:hover {
-    background-color: rgba(var(--v-theme-primary), 0.04) !important;
+    background-color: rgba(0, 0, 0, 0.02) !important;
 }
 
 .v-data-table tbody tr:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.02);
-}
-
-.v-theme--dark .v-data-table tbody tr:nth-child(even) {
-    background-color: rgba(255, 255, 255, 0.02);
+    background-color: rgba(0, 0, 0, 0.01);
 }
 
 .v-data-table th {
@@ -70,46 +49,15 @@ html, body {
 
 /* ===== Links ===== */
 a {
-    color: rgb(var(--v-theme-primary));
+    color: #18181B;
     transition: opacity 0.2s;
 }
 
 a:hover {
-    opacity: 0.8;
+    opacity: 0.7;
 }
 
-/* ===== Settings Page ===== */
-.status-banner {
-    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.08) 0%, rgba(var(--v-theme-primary), 0.02) 100%);
-    border: 1px solid rgba(var(--v-theme-primary), 0.12);
-    border-radius: 12px;
-}
-
-.plan-badge-free {
-    background: rgba(var(--v-theme-warning), 0.16) !important;
-    color: rgb(var(--v-theme-warning)) !important;
-}
-
-.plan-badge-pro {
-    background: rgba(var(--v-theme-success), 0.16) !important;
-    color: rgb(var(--v-theme-success)) !important;
-}
-
-.upgrade-card {
-    background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgba(var(--v-theme-primary), 0.85) 100%);
-    border-radius: 12px;
-}
-
-.usage-section {
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 8px;
-    padding: 16px;
-}
-
-.v-theme--dark .usage-section {
-    background: rgba(255, 255, 255, 0.04);
-}
-
+/* ===== Feature List (billing) ===== */
 .feature-list {
     list-style: none;
     padding: 0;
@@ -123,6 +71,7 @@ a:hover {
     gap: 8px;
 }
 
+/* ===== Settings Tabs ===== */
 .settings-tabs .v-tab {
     text-transform: none;
     font-weight: 500;

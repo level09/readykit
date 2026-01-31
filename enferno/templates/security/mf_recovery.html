@@ -59,9 +59,9 @@
 <script>
     const { createApp } = Vue;
     const { createVuetify } = Vuetify;
-    const vuetify = createVuetify(vuetifyConfig);
+    const vuetify = createVuetify(config.vuetifyConfig);
 
-    const app = createApp({ delimiters: delimiters });
+    const app = createApp({ delimiters: config.delimiters });
     app.use(vuetify).mount('#app');
 </script>
 {% endblock %}

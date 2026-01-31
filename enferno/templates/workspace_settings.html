@@ -2,507 +2,143 @@
 
 {% block content %}
 
-<div class="pa-4 w-100">
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-4">
-        <div class="d-flex align-center">
+<div class="pa-4 w-100" style="max-width: 700px;">
+    <h1 class="text-h5 font-weight-bold mb-6">Workspace Settings</h1>
+
+    <!-- Workspace Name -->
+    {% if user_role == 'admin' %}
+    <div class="mb-6">
+        <div class="text-subtitle-2 font-weight-medium mb-3">Name</div>
+        <v-form @submit.prevent="updateWorkspaceName">
+            <v-text-field
+                v-model="workspaceData.name"
+                density="comfortable"
+                class="mb-2"
+                style="max-width: 400px;"
+            ></v-text-field>
             <v-btn
-                href="/workspace/{{ workspace.id }}"
-                icon="mdi-arrow-left"
-                variant="text"
-                size="small"
-                class="mr-2"
-            ></v-btn>
+                color="primary"
+                @click="updateWorkspaceName"
+                :loading="savingWorkspace"
+                class="text-none"
+            >
+                Save
+            </v-btn>
+        </v-form>
+    </div>
+    {% else %}
+    <div class="mb-6">
+        <div class="text-subtitle-2 font-weight-medium mb-1">Name</div>
+        <div class="text-body-2">${ workspaceData.name }</div>
+    </div>
+    {% endif %}
+
+    <v-divider class="mb-6"></v-divider>
+
+    <!-- Details -->
+    <div class="mb-6">
+        <div class="text-subtitle-2 font-weight-medium mb-3">Details</div>
+        <div class="d-flex flex-wrap ga-6">
             <div>
-                <h1 class="text-h5 font-weight-bold">Settings</h1>
-                <p class="text-body-2 text-medium-emphasis mb-0">${ workspaceData.name }</p>
+                <div class="text-caption text-medium-emphasis mb-1">Your Role</div>
+                <div class="text-body-2">{{ user_role.title() }}</div>
+            </div>
+            <div>
+                <div class="text-caption text-medium-emphasis mb-1">Plan</div>
+                <div class="text-body-2">${ workspaceData.is_pro ? 'Pro' : 'Free' }</div>
+            </div>
+            <div>
+                <div class="text-caption text-medium-emphasis mb-1">Members</div>
+                <div class="text-body-2">${ memberCount }</div>
+            </div>
+            <div>
+                <div class="text-caption text-medium-emphasis mb-1">Created</div>
+                <div class="text-body-2">${ workspaceData.created_at ? new Date(workspaceData.created_at).toLocaleDateString() : '—' }</div>
             </div>
         </div>
     </div>
 
-    <!-- Status Banner -->
-    <v-card class="status-banner mb-6" variant="flat">
-        <v-card-text class="py-4">
-            <v-row align="center">
-                <!-- Workspace Info -->
-                <v-col cols="12" md="4">
-                    <div class="d-flex align-center">
-                        <v-avatar color="primary" size="48" class="mr-3">
-                            <span class="text-h6 text-white">${ workspaceData.name ? workspaceData.name.charAt(0).toUpperCase() : 'W' }</span>
-                        </v-avatar>
-                        <div>
-                            <div class="text-subtitle-1 font-weight-semibold">${ workspaceData.name }</div>
-                            <div class="d-flex align-center gap-2 mt-1">
-                                <v-chip
-                                    size="x-small"
-                                    :class="workspaceData.is_pro ? 'plan-badge-pro' : 'plan-badge-free'"
-                                    variant="flat"
-                                >
-                                    <i :class="workspaceData.is_pro ? 'ti ti-crown mr-1' : 'ti ti-sparkles mr-1'" style="font-size: 12px;"></i>
-                                    ${ workspaceData.is_pro ? 'Pro' : 'Free' }
-                                </v-chip>
-                                <v-chip size="x-small" variant="outlined" color="default">
-                                    {{ user_role.title() }}
-                                </v-chip>
-                            </div>
-                        </div>
-                    </div>
-                </v-col>
+    {% if user_role == 'admin' %}
+    <v-divider class="mb-6"></v-divider>
 
-                <!-- Usage Stats -->
-                <v-col cols="12" md="4">
-                    <div v-if="!workspaceData.is_pro" class="usage-section">
-                        <div class="d-flex justify-space-between align-center mb-2">
-                            <span class="text-body-2 text-medium-emphasis">Team Members</span>
-                            <span class="text-body-2 font-weight-medium">${ memberCount } / 3</span>
-                        </div>
-                        <v-progress-linear
-                            :model-value="(memberCount / 3) * 100"
-                            :color="memberCount >= 3 ? 'error' : 'primary'"
-                            rounded
-                            height="6"
-                        ></v-progress-linear>
-                        <div class="text-caption text-medium-emphasis mt-1" v-if="memberCount >= 3">
-                            <i class="ti ti-alert-circle" style="font-size: 12px;"></i>
-                            Limit reached
-                        </div>
-                    </div>
-                    <div v-else class="d-flex align-center">
-                        <i class="ti ti-users text-success mr-2" style="font-size: 20px;"></i>
-                        <div>
-                            <div class="text-body-2 font-weight-medium">${ memberCount } members</div>
-                            <div class="text-caption text-medium-emphasis">Unlimited on Pro</div>
-                        </div>
-                    </div>
-                </v-col>
+    <!-- Plan & Billing -->
+    <div class="mb-6">
+        <div class="text-subtitle-2 font-weight-medium mb-3">Plan & Billing</div>
 
-                <!-- Upgrade CTA -->
-                <v-col cols="12" md="4" class="text-md-right">
-                    {% if user_role == 'admin' %}
-                    <v-btn
-                        v-if="!workspaceData.is_pro"
-                        color="primary"
-                        href="/workspace/{{ workspace.id }}/upgrade"
-                        class="text-none"
-                    >
-                        <i class="ti ti-rocket mr-2"></i>
-                        Upgrade to Pro
-                    </v-btn>
-                    <v-btn
-                        v-else
-                        variant="outlined"
-                        href="/workspace/{{ workspace.id }}/billing"
-                        class="text-none"
-                    >
-                        <i class="ti ti-credit-card mr-2"></i>
-                        Manage Billing
-                    </v-btn>
-                    {% endif %}
-                </v-col>
-            </v-row>
-        </v-card-text>
-    </v-card>
+        <div v-if="!workspaceData.is_pro">
+            <div class="text-body-2 text-medium-emphasis mb-3">
+                You're on the <strong>Free</strong> plan.
+            </div>
+            <v-btn
+                color="primary"
+                href="/workspace/upgrade"
+                class="text-none"
+            >
+                Upgrade to Pro — {{ pro_price }}/{{ pro_interval }}
+            </v-btn>
+        </div>
 
-    <!-- Tabs -->
-    <v-card>
-        <v-tabs v-model="activeTab" class="settings-tabs" color="primary">
-            <v-tab value="general">
-                <i class="ti ti-user mr-2"></i>
-                General
-            </v-tab>
-            <v-tab value="billing">
-                <i class="ti ti-credit-card mr-2"></i>
-                Plan & Billing
-            </v-tab>
-            <v-tab value="danger">
-                <i class="ti ti-alert-triangle mr-2"></i>
-                Danger Zone
-            </v-tab>
-        </v-tabs>
+        <div v-else>
+            <div class="text-body-2 text-medium-emphasis mb-3">
+                You're on the <strong>Pro</strong> plan — {{ pro_price }}/{{ pro_interval }}.
+                <span v-if="workspaceData.upgraded_at">Upgraded ${ new Date(workspaceData.upgraded_at).toLocaleDateString() }.</span>
+            </div>
+            <v-btn
+                variant="outlined"
+                href="/workspace/billing"
+                class="text-none"
+            >
+                Manage Subscription
+            </v-btn>
+        </div>
+    </div>
 
-        <v-divider></v-divider>
+    <v-divider class="mb-6"></v-divider>
 
-        <v-tabs-window v-model="activeTab">
-            <!-- General Tab -->
-            <v-tabs-window-item value="general">
-                <v-card-text class="pa-6">
-                    <v-row>
-                        <!-- Workspace Settings -->
-                        <v-col cols="12" md="6">
-                            <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                                <i class="ti ti-briefcase mr-2 text-primary"></i>
-                                Workspace
-                            </h3>
-                            <v-form @submit.prevent="updateWorkspaceName">
-                                <v-text-field
-                                    label="Workspace Name"
-                                    v-model="workspaceData.name"
-                                    variant="outlined"
-                                    density="comfortable"
-                                    :readonly="'{{ user_role }}' !== 'admin'"
-                                    class="mb-2"
-                                ></v-text-field>
-                                {% if user_role == 'admin' %}
-                                <v-btn
-                                    color="primary"
-                                    variant="tonal"
-                                    @click="updateWorkspaceName"
-                                    :loading="savingWorkspace"
-                                    class="text-none"
-                                >
-                                    Save Changes
-                                </v-btn>
-                                {% else %}
-                                <p class="text-body-2 text-medium-emphasis">
-                                    <i class="ti ti-lock mr-1"></i>
-                                    Only admins can modify workspace settings
-                                </p>
-                                {% endif %}
-                            </v-form>
-                        </v-col>
+    <!-- Danger Zone -->
+    <div class="mb-6">
+        <div class="text-subtitle-2 font-weight-medium mb-3" style="color: #DC2626;">Danger Zone</div>
+        <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between pa-4" style="border: 1px solid #FECACA; border-radius: 8px;">
+            <div class="mb-3 mb-sm-0">
+                <div class="text-body-2 font-weight-medium">Delete Workspace</div>
+                <div class="text-caption text-medium-emphasis">Permanently delete this workspace and all its data.</div>
+            </div>
+            <v-btn
+                color="error"
+                variant="outlined"
+                @click="confirmDeleteWorkspace"
+                class="text-none"
+            >
+                Delete
+            </v-btn>
+        </div>
+    </div>
 
-                        <!-- Profile Settings -->
-                        <v-col cols="12" md="6">
-                            <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                                <i class="ti ti-user mr-2 text-primary"></i>
-                                My Profile
-                            </h3>
-                            <v-form @submit.prevent="updateProfile">
-                                <v-text-field
-                                    label="Name"
-                                    v-model="userData.name"
-                                    variant="outlined"
-                                    density="comfortable"
-                                    class="mb-3"
-                                ></v-text-field>
-                                <v-text-field
-                                    label="Email"
-                                    v-model="userData.email"
-                                    variant="outlined"
-                                    density="comfortable"
-                                    type="email"
-                                    readonly
-                                    class="mb-2"
-                                >
-                                    <template v-slot:append-inner>
-                                        <v-tooltip text="Email cannot be changed for security">
-                                            <template v-slot:activator="{ props }">
-                                                <i class="ti ti-lock text-medium-emphasis" v-bind="props"></i>
-                                            </template>
-                                        </v-tooltip>
-                                    </template>
-                                </v-text-field>
-                                <v-btn
-                                    color="primary"
-                                    variant="tonal"
-                                    @click="updateProfile"
-                                    :loading="savingProfile"
-                                    class="text-none"
-                                >
-                                    Update Profile
-                                </v-btn>
-                            </v-form>
-                        </v-col>
-                    </v-row>
+    {% else %}
+    <v-divider class="mb-6"></v-divider>
 
-                    <!-- Workspace Info -->
-                    <v-divider class="my-6"></v-divider>
-                    <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                        <i class="ti ti-info-circle mr-2 text-primary"></i>
-                        Workspace Details
-                    </h3>
-                    <v-row>
-                        <v-col cols="6" sm="3">
-                            <div class="text-caption text-medium-emphasis mb-1">Your Role</div>
-                            <v-chip
-                                :color="'{{ user_role }}' === 'admin' ? 'primary' : 'default'"
-                                size="small"
-                                variant="tonal"
-                            >
-                                {{ user_role.title() }}
-                            </v-chip>
-                        </v-col>
-                        <v-col cols="6" sm="3">
-                            <div class="text-caption text-medium-emphasis mb-1">Plan</div>
-                            <v-chip
-                                :color="workspaceData.is_pro ? 'success' : 'warning'"
-                                size="small"
-                                variant="tonal"
-                            >
-                                ${ workspaceData.is_pro ? 'Pro' : 'Free' }
-                            </v-chip>
-                        </v-col>
-                        <v-col cols="6" sm="3">
-                            <div class="text-caption text-medium-emphasis mb-1">Members</div>
-                            <div class="text-body-2 font-weight-medium">${ memberCount }</div>
-                        </v-col>
-                        <v-col cols="6" sm="3">
-                            <div class="text-caption text-medium-emphasis mb-1">Created</div>
-                            <div class="text-body-2">${ workspaceData.created_at ? new Date(workspaceData.created_at).toLocaleDateString() : '—' }</div>
-                        </v-col>
-                    </v-row>
-                </v-card-text>
-            </v-tabs-window-item>
-
-            <!-- Billing Tab -->
-            <v-tabs-window-item value="billing">
-                <v-card-text class="pa-6">
-                    {% if user_role == 'admin' %}
-
-                    <!-- Free Plan -->
-                    <div v-if="!workspaceData.is_pro">
-                        <v-row>
-                            <!-- Current Plan -->
-                            <v-col cols="12" md="6">
-                                <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                                    <i class="ti ti-package mr-2 text-primary"></i>
-                                    Current Plan
-                                </h3>
-                                <v-card variant="outlined" class="pa-4">
-                                    <div class="d-flex align-center justify-space-between mb-3">
-                                        <v-chip class="plan-badge-free" variant="flat">Free</v-chip>
-                                        <span class="text-h5 font-weight-bold">$0<span class="text-body-2 font-weight-regular text-medium-emphasis">/month</span></span>
-                                    </div>
-                                    <ul class="feature-list text-body-2">
-                                        <li>
-                                            <i class="ti ti-check text-success"></i>
-                                            Up to 3 team members
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check text-success"></i>
-                                            Basic features
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-x text-medium-emphasis"></i>
-                                            <span class="text-medium-emphasis">Advanced analytics</span>
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-x text-medium-emphasis"></i>
-                                            <span class="text-medium-emphasis">Priority support</span>
-                                        </li>
-                                    </ul>
-
-                                    <!-- Usage -->
-                                    <v-divider class="my-4"></v-divider>
-                                    <div class="d-flex justify-space-between align-center mb-2">
-                                        <span class="text-body-2">Team Members</span>
-                                        <span class="text-body-2 font-weight-semibold">${ memberCount } of 3</span>
-                                    </div>
-                                    <v-progress-linear
-                                        :model-value="(memberCount / 3) * 100"
-                                        :color="memberCount >= 3 ? 'error' : 'primary'"
-                                        rounded
-                                        height="8"
-                                    ></v-progress-linear>
-                                    <p class="text-caption text-medium-emphasis mt-2 mb-0" v-if="memberCount >= 3">
-                                        <i class="ti ti-alert-circle text-error"></i>
-                                        You've reached the member limit
-                                    </p>
-                                    <p class="text-caption text-medium-emphasis mt-2 mb-0" v-else>
-                                        ${ 3 - memberCount } slots remaining
-                                    </p>
-                                </v-card>
-                            </v-col>
-
-                            <!-- Upgrade Card -->
-                            <v-col cols="12" md="6">
-                                <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                                    <i class="ti ti-rocket mr-2 text-primary"></i>
-                                    Upgrade
-                                </h3>
-                                <v-card class="upgrade-card pa-4 text-white">
-                                    <div class="d-flex align-center justify-space-between mb-3">
-                                        <v-chip color="white" variant="flat" size="small">
-                                            <i class="ti ti-crown mr-1"></i>
-                                            Pro
-                                        </v-chip>
-                                        <span class="text-h5 font-weight-bold">{{ pro_price }}<span class="text-body-2 font-weight-regular" style="opacity: 0.8;">/{{ pro_interval }}</span></span>
-                                    </div>
-                                    <ul class="feature-list text-body-2 mb-4">
-                                        <li>
-                                            <i class="ti ti-check"></i>
-                                            Unlimited team members
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check"></i>
-                                            Advanced analytics & reporting
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check"></i>
-                                            Data export capabilities
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check"></i>
-                                            Priority support
-                                        </li>
-                                    </ul>
-                                    <v-btn
-                                        block
-                                        color="white"
-                                        variant="flat"
-                                        size="large"
-                                        href="/workspace/{{ workspace.id }}/upgrade"
-                                        class="text-none text-primary font-weight-semibold"
-                                    >
-                                        <i class="ti ti-rocket mr-2"></i>
-                                        Upgrade Now
-                                    </v-btn>
-                                </v-card>
-                            </v-col>
-                        </v-row>
-                    </div>
-
-                    <!-- Pro Plan Active -->
-                    <div v-else>
-                        <v-row>
-                            <v-col cols="12" md="6">
-                                <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                                    <i class="ti ti-package mr-2 text-primary"></i>
-                                    Current Plan
-                                </h3>
-                                <v-card variant="outlined" class="pa-4">
-                                    <div class="d-flex align-center justify-space-between mb-3">
-                                        <v-chip class="plan-badge-pro" variant="flat">
-                                            <i class="ti ti-crown mr-1"></i>
-                                            Pro
-                                        </v-chip>
-                                        <span class="text-h5 font-weight-bold">{{ pro_price }}<span class="text-body-2 font-weight-regular text-medium-emphasis">/{{ pro_interval }}</span></span>
-                                    </div>
-                                    <ul class="feature-list text-body-2 mb-4">
-                                        <li>
-                                            <i class="ti ti-check text-success"></i>
-                                            Unlimited team members
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check text-success"></i>
-                                            Advanced analytics & reporting
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check text-success"></i>
-                                            Data export capabilities
-                                        </li>
-                                        <li>
-                                            <i class="ti ti-check text-success"></i>
-                                            Priority support
-                                        </li>
-                                    </ul>
-                                    <v-btn
-                                        block
-                                        variant="outlined"
-                                        href="/workspace/{{ workspace.id }}/billing"
-                                        class="text-none"
-                                    >
-                                        <i class="ti ti-settings mr-2"></i>
-                                        Manage Subscription
-                                    </v-btn>
-                                </v-card>
-                            </v-col>
-
-                            <v-col cols="12" md="6">
-                                <h3 class="text-subtitle-1 font-weight-semibold mb-4">
-                                    <i class="ti ti-info-circle mr-2 text-primary"></i>
-                                    Subscription Info
-                                </h3>
-                                <v-card variant="tonal" color="success" class="pa-4">
-                                    <div class="d-flex align-center mb-3">
-                                        <i class="ti ti-circle-check text-success mr-2" style="font-size: 24px;"></i>
-                                        <div>
-                                            <div class="text-subtitle-2 font-weight-semibold">Pro Plan Active</div>
-                                            <div class="text-caption text-medium-emphasis">You have access to all features</div>
-                                        </div>
-                                    </div>
-                                    <v-divider class="mb-3"></v-divider>
-                                    <div class="d-flex align-center mb-2">
-                                        <i class="ti ti-users mr-2 text-medium-emphasis"></i>
-                                        <span class="text-body-2">${ memberCount } team members</span>
-                                    </div>
-                                    <div class="d-flex align-center" v-if="workspaceData.upgraded_at">
-                                        <i class="ti ti-calendar mr-2 text-medium-emphasis"></i>
-                                        <span class="text-body-2">Upgraded ${ new Date(workspaceData.upgraded_at).toLocaleDateString() }</span>
-                                    </div>
-                                </v-card>
-                            </v-col>
-                        </v-row>
-                    </div>
-
-                    {% else %}
-                    <!-- Non-admin view -->
-                    <v-alert type="info" variant="tonal" class="mb-0">
-                        <template v-slot:prepend>
-                            <i class="ti ti-info-circle"></i>
-                        </template>
-                        <div class="text-subtitle-2">Billing Managed by Admin</div>
-                        <div class="text-body-2">Contact your workspace admin to manage billing and subscription.</div>
-                    </v-alert>
-                    {% endif %}
-                </v-card-text>
-            </v-tabs-window-item>
-
-            <!-- Danger Zone Tab -->
-            <v-tabs-window-item value="danger">
-                <v-card-text class="pa-6">
-                    <v-alert type="warning" variant="tonal" class="mb-6">
-                        <template v-slot:prepend>
-                            <i class="ti ti-alert-triangle"></i>
-                        </template>
-                        <div class="text-subtitle-2">Careful!</div>
-                        <div class="text-body-2">Actions in this section are destructive and cannot be undone.</div>
-                    </v-alert>
-
-                    {% if user_role == 'admin' %}
-                    <v-card variant="outlined" color="error" class="pa-4">
-                        <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between">
-                            <div class="mb-3 mb-sm-0">
-                                <div class="text-subtitle-2 font-weight-semibold">Delete Workspace</div>
-                                <div class="text-body-2 text-medium-emphasis">Permanently delete this workspace and all its data.</div>
-                            </div>
-                            <v-btn
-                                color="error"
-                                variant="outlined"
-                                @click="confirmDeleteWorkspace"
-                                class="text-none"
-                            >
-                                <i class="ti ti-trash mr-2"></i>
-                                Delete Workspace
-                            </v-btn>
-                        </div>
-                    </v-card>
-                    {% else %}
-                    <v-card variant="outlined" color="warning" class="pa-4">
-                        <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between">
-                            <div class="mb-3 mb-sm-0">
-                                <div class="text-subtitle-2 font-weight-semibold">Leave Workspace</div>
-                                <div class="text-body-2 text-medium-emphasis">Remove yourself from this workspace. You'll lose access immediately.</div>
-                            </div>
-                            <v-btn
-                                color="warning"
-                                variant="outlined"
-                                @click="confirmLeaveWorkspace"
-                                class="text-none"
-                            >
-                                <i class="ti ti-logout mr-2"></i>
-                                Leave Workspace
-                            </v-btn>
-                        </div>
-                    </v-card>
-                    {% endif %}
-                </v-card-text>
-            </v-tabs-window-item>
-        </v-tabs-window>
-    </v-card>
+    <!-- Leave Workspace (non-admin) -->
+    <div class="mb-6">
+        <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between pa-4" style="border: 1px solid #E4E4E7; border-radius: 8px;">
+            <div class="mb-3 mb-sm-0">
+                <div class="text-body-2 font-weight-medium">Leave Workspace</div>
+                <div class="text-caption text-medium-emphasis">Remove yourself from this workspace.</div>
+            </div>
+            <v-btn
+                variant="outlined"
+                @click="confirmLeaveWorkspace"
+                class="text-none"
+            >
+                Leave
+            </v-btn>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
-<!-- Success/Error Messages -->
-<v-snackbar
-    v-model="snackbar"
-    :color="snackColor"
-    timeout="4000"
-    location="bottom right"
->
+<!-- Snackbar -->
+<v-snackbar v-model="snackbar" timeout="4000" location="bottom right">
     ${ snackMessage }
-    <template v-slot:actions>
-        <v-btn variant="text" @click="snackbar = false">Close</v-btn>
-    </template>
 </v-snackbar>
 
 {% endblock %}
@@ -513,20 +149,15 @@
 {{ workspace.to_dict()|tojson|safe }}
 </script>
 
-<script type="application/json" id="user-data">
-{{ {"name": current_user.name, "email": current_user.email}|tojson|safe }}
-</script>
-
 <script>
 const { createApp } = Vue;
 const { createVuetify } = Vuetify;
 const vuetify = createVuetify(config.vuetifyConfig);
 
 const app = createApp({
+    mixins: [layoutMixin],
     data() {
         return {
-            drawer: true,
-            activeTab: 'general',
             memberCount: 0,
             workspaceData: {
                 id: null,
@@ -535,15 +166,9 @@ const app = createApp({
                 is_pro: false,
                 upgraded_at: null
             },
-            userData: {
-                name: '',
-                email: ''
-            },
             savingWorkspace: false,
-            savingProfile: false,
             snackbar: false,
-            snackMessage: '',
-            snackColor: 'success'
+            snackMessage: ''
         };
     },
     delimiters: config.delimiters,
@@ -552,37 +177,17 @@ const app = createApp({
         async updateWorkspaceName() {
             this.savingWorkspace = true;
             try {
-                const response = await axios.put(`/api/workspace/${this.workspaceData.id}`, {
+                await axios.put(`/api/workspace/${this.workspaceData.id}`, {
                     name: this.workspaceData.name
                 });
-                this.showMessage('Workspace name updated successfully!', 'success');
-            } catch (error) {
-                this.showMessage('Failed to update workspace name', 'error');
-                console.error('Error updating workspace:', error);
+                this.snackMessage = 'Workspace name updated';
+                this.snackbar = true;
+            } catch (e) {
+                this.snackMessage = 'Failed to update workspace name';
+                this.snackbar = true;
             } finally {
                 this.savingWorkspace = false;
             }
-        },
-
-        async updateProfile() {
-            this.savingProfile = true;
-            try {
-                const response = await axios.put('/api/profile', {
-                    name: this.userData.name
-                });
-                this.showMessage('Profile updated successfully!', 'success');
-            } catch (error) {
-                this.showMessage('Failed to update profile', 'error');
-                console.error('Error updating profile:', error);
-            } finally {
-                this.savingProfile = false;
-            }
-        },
-
-        showMessage(message, color = 'success') {
-            this.snackMessage = message;
-            this.snackColor = color;
-            this.snackbar = true;
         },
 
         confirmDeleteWorkspace() {
@@ -601,8 +206,7 @@ const app = createApp({
             try {
                 const response = await axios.get(`/api/workspace/${this.workspaceData.id}/stats`);
                 this.memberCount = response.data.member_count || 0;
-            } catch (error) {
-                console.error('Failed to load stats:', error);
+            } catch (e) {
                 this.memberCount = 0;
             }
         }
@@ -610,7 +214,6 @@ const app = createApp({
 
     async mounted() {
         this.workspaceData = JSON.parse(document.querySelector('#workspace-data').textContent);
-        this.userData = JSON.parse(document.querySelector('#user-data').textContent);
         await this.loadStats();
     }
 }).use(vuetify).mount('#app');

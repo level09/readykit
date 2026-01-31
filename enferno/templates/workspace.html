@@ -4,13 +4,12 @@
 {% block content %}
 
 
-    <v-card class="ma-2  w-100">
-        <v-toolbar>
-            <v-toolbar-title>${workspaceData.name} - Workspace</v-toolbar-title>
-            <v-spacer></v-spacer>
+    <div class="pa-6 w-100" style="max-width: 960px;">
+        <div class="d-flex align-center justify-space-between mb-6">
+            <h1 class="text-h5 font-weight-bold">${workspaceData.name}</h1>
             {% if user_role == 'admin' %}
-            <v-btn 
-                href="/workspace/{{ workspace.id }}/team" 
+            <v-btn
+                href="/workspace/team/"
                 prepend-icon="mdi-account-group"
                 variant="outlined"
                 size="small"
@@ -18,48 +17,18 @@
                 Manage Team
             </v-btn>
             {% endif %}
-        </v-toolbar>
+        </div>
 
-        <v-card-text>
-            <!-- Welcome Message -->
-            <v-alert 
-                type="info" 
-                variant="tonal" 
-                class="mb-6"
-                closable
-            >
-                <v-alert-title>Welcome to ${workspaceData.name}!</v-alert-title>
-                This is your workspace. Start building your amazing product here.
-                {% if user_role == 'admin' %}
-                You can manage your team from the navigation sidebar.
-                {% endif %}
-            </v-alert>
-            
-            <!-- Main Content Area - Your Product Goes Here -->
-            <v-card class="mb-6" elevation="2">
-                <v-card-title class="d-flex align-center">
-                    <v-icon class="mr-3" color="primary">mdi-rocket-launch</v-icon>
-                    Your Product
-                </v-card-title>
-                <v-card-text class="pa-8 text-center">
-                    <v-icon size="80" color="grey-lighten-2" class="mb-4">mdi-application-outline</v-icon>
-                    <h3 class="text-h5 mb-4">Build Your SaaS Product Here</h3>
-                    <p class="text-body-1 mb-4">
-                        This is your main workspace. Replace this content with your actual product features.
-                        Focus 80% of your development time here, not on auth complexity.
-                    </p>
-                    <v-btn 
-                        color="primary" 
-                        size="large" 
-                        variant="elevated"
-                        prepend-icon="mdi-plus"
-                    >
-                        Get Started
-                    </v-btn>
-                </v-card-text>
-            </v-card>
-        </v-card-text>
-    </v-card>
+        <!-- Main Content Area -->
+        <v-card variant="outlined" class="mb-6">
+            <v-card-text class="pa-8 text-center">
+                <i class="ti ti-app-window mb-4" style="font-size: 48px; opacity: 0.15;"></i>
+                <p class="text-body-2 text-medium-emphasis">
+                    Your workspace is ready. Start building here.
+                </p>
+            </v-card-text>
+        </v-card>
+    </div>
 
 
 {% endblock %}

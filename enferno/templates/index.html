@@ -3,190 +3,68 @@
 {% block content %}
 
 <v-container fluid class="pa-0">
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <v-container class="py-16">
-            <v-row align="center" justify="center">
+    <!-- Hero -->
+    <section style="padding: 80px 0 60px;">
+        <v-container>
+            <v-row justify="center">
                 <v-col cols="12" md="8" lg="6" class="text-center">
-                    <v-avatar size="120" color="primary" variant="tonal" class="mb-6">
-                        <v-icon size="90">mdi-rocket-launch</v-icon>
-                    </v-avatar>
-                    
-                    <h1 class="text-h2 font-weight-bold mb-4">
-                        ReadyKit<br>
-                        <span class="text-primary">Production-Ready SaaS Template</span>
+                    <h1 class="mb-5" style="font-size: 3rem; font-weight: 800; line-height: 1.1; letter-spacing: -1px;">
+                        Ship your SaaS<br>in days, not months
                     </h1>
 
-                    <p class="text-h6 text-medium-emphasis mb-8">
-                        Skip months of setup. Build your multi-tenant SaaS with Flask, Vue 3, and modern authentication—ready in minutes.
+                    <p class="text-body-1 text-medium-emphasis mb-8" style="max-width: 440px; margin: 0 auto; line-height: 1.7;">
+                        Auth, billing, workspaces, and teams — wired up and ready to go. Clone it, build on it, launch.
                     </p>
-                    
-                    <div class="d-flex flex-column flex-sm-row justify-center align-center ga-4 mb-8">
+
+                    <div class="d-flex justify-center ga-3 mb-10">
                         {% if not current_user.is_authenticated %}
-                        <v-btn size="large" color="primary" variant="elevated" href="/register" prepend-icon="mdi-account-plus">
-                            Try Demo
+                        <v-btn size="large" color="primary" href="/login" class="text-none px-6">
+                            Get Started
                         </v-btn>
-                        <v-btn size="large" variant="outlined" href="/login" prepend-icon="mdi-login">
-                            Login
+                        <v-btn size="large" variant="outlined" href="https://github.com/level09/readykit" target="_blank" class="text-none px-6">
+                            GitHub
                         </v-btn>
                         {% else %}
-                        <v-btn size="large" color="primary" variant="elevated" href="/dashboard" prepend-icon="mdi-view-dashboard">
-                            Go to Dashboard
+                        <v-btn size="large" color="primary" href="/dashboard" class="text-none px-6">
+                            Dashboard
+                        </v-btn>
+                        <v-btn size="large" variant="outlined" href="https://github.com/level09/readykit" target="_blank" class="text-none px-6">
+                            GitHub
                         </v-btn>
                         {% endif %}
                     </div>
-                    
-                    <v-alert type="info" variant="tonal" class="text-start">
-                        <template v-slot:prepend>
-                            <v-icon>mdi-information</v-icon>
-                        </template>
-                        <div class="text-body-2">
-                            <strong>ReadyKit is a production-ready starter template.</strong> Clone it, customize it, and launch your SaaS product.<br>
-                            Built on the <a href="https://github.com/level09/enferno" target="_blank" class="text-decoration-none">Enferno Framework</a>
+
+                    <div class="text-start pa-5" style="border: 1px solid #E4E4E7; border-radius: 8px; font-family: monospace; font-size: 13px; line-height: 2.2; background: #FAFAFA;">
+                        <div><span style="opacity:.4;">$</span> git clone https://github.com/level09/readykit</div>
+                        <div><span style="opacity:.4;">$</span> cd readykit && ./setup.sh</div>
+                        <div><span style="opacity:.4;">$</span> uv run flask create-db && uv run flask install -n</div>
+                        <div><span style="opacity:.4;">$</span> uv run flask run</div>
+                        <div style="border-top: 1px solid #E4E4E7; margin-top: 8px; padding-top: 8px;">
+                            <span style="opacity:.4;">→</span> Running on http://localhost:5000
                         </div>
-                    </v-alert>
+                    </div>
                 </v-col>
             </v-row>
         </v-container>
     </section>
-    
-    <!-- Features Section -->
-    <section class="py-16 bg-grey-lighten-5">
-        <v-container>
-            <div class="text-center mb-12">
-                <h2 class="text-h3 font-weight-bold mb-4">Everything You Need</h2>
-                <p class="text-h6 text-medium-emphasis">Focus on your product, not the plumbing</p>
-            </div>
-            
-            <v-row>
-                <v-col cols="12" md="4" class="mb-4">
-                    <v-card class="h-100 pa-6 text-center">
-                        <v-avatar size="120" color="primary" variant="tonal" class="mb-4">
-                            <v-icon size="90">mdi-office-building</v-icon>
-                        </v-avatar>
-                        <h3 class="text-h5 mb-3">Multi-Tenant Architecture</h3>
-                        <p class="text-body-1">
-                            Workspace-based isolation with admin controls. Each client gets their own space with team management.
-                        </p>
-                    </v-card>
-                </v-col>
-                
-                <v-col cols="12" md="4" class="mb-4">
-                    <v-card class="h-100 pa-6 text-center">
-                        <v-avatar size="120" color="success" variant="tonal" class="mb-4">
-                            <v-icon size="90">mdi-shield-check</v-icon>
-                        </v-avatar>
-                        <h3 class="text-h5 mb-3">Enterprise Security</h3>
-                        <p class="text-body-1">
-                            Flask-Security with 2FA, OAuth, WebAuthn, and Argon2 password hashing. Production-ready from day one.
-                        </p>
-                    </v-card>
-                </v-col>
-                
-                <v-col cols="12" md="4" class="mb-4">
-                    <v-card class="h-100 pa-6 text-center">
-                        <v-avatar size="120" color="info" variant="tonal" class="mb-4">
-                            <v-icon size="90">mdi-palette</v-icon>
-                        </v-avatar>
-                        <h3 class="text-h5 mb-3">Modern UI</h3>
-                        <p class="text-body-1">
-                            Vue 3 + Vuetify with no build step required. Clean, responsive, and customizable Material Design.
-                        </p>
-                    </v-card>
-                </v-col>
-            </v-row>
-        </v-container>
-    </section>
-    
-    <!-- Tech Stack Section -->
-    <section class="py-16">
-        <v-container>
-            <div class="text-center mb-12">
-                <h2 class="text-h3 font-weight-bold mb-4">Built With Modern Tech</h2>
-                <p class="text-h6 text-medium-emphasis">Proven technologies that scale</p>
-            </div>
-            
-            <v-row justify="center">
-                <v-col cols="6" sm="4" md="2" class="text-center mb-4">
-                    <v-avatar size="120" color="primary" variant="tonal" class="mb-2">
-                        <v-icon size="90">mdi-language-python</v-icon>
-                    </v-avatar>
-                    <div class="text-caption font-weight-medium">Flask 3.1</div>
-                </v-col>
-                <v-col cols="6" sm="4" md="2" class="text-center mb-4">
-                    <v-avatar size="120" color="success" variant="tonal" class="mb-2">
-                        <v-icon size="90">mdi-vuejs</v-icon>
-                    </v-avatar>
-                    <div class="text-caption font-weight-medium">Vue 3</div>
-                </v-col>
-                <v-col cols="6" sm="4" md="2" class="text-center mb-4">
-                    <v-avatar size="120" color="info" variant="tonal" class="mb-2">
-                        <v-icon size="90">mdi-material-design</v-icon>
-                    </v-avatar>
-                    <div class="text-caption font-weight-medium">Vuetify</div>
-                </v-col>
-                <v-col cols="6" sm="4" md="2" class="text-center mb-4">
-                    <v-avatar size="120" color="warning" variant="tonal" class="mb-2">
-                        <v-icon size="90">mdi-database</v-icon>
-                    </v-avatar>
-                    <div class="text-caption font-weight-medium">SQLAlchemy 2.x</div>
-                </v-col>
-                <v-col cols="6" sm="4" md="2" class="text-center mb-4">
-                    <v-avatar size="120" color="error" variant="tonal" class="mb-2">
-                        <v-icon size="90">mdi-shield-key</v-icon>
-                    </v-avatar>
-                    <div class="text-caption font-weight-medium">Flask-Security</div>
-                </v-col>
-            </v-row>
-        </v-container>
-    </section>
-    
-    <!-- Quick Start Section -->
-    <section class="py-16 bg-grey-lighten-5">
+
+    <!-- What's included -->
+    <section class="py-12" style="border-top: 1px solid #E4E4E7;">
         <v-container>
             <v-row justify="center">
-                <v-col cols="12" md="8">
-                    <v-card class="pa-8">
-                        <h2 class="text-h4 font-weight-bold text-center mb-6">Ready to Start Building?</h2>
-                        
-                        <v-tabs v-model="activeTab" class="mb-4" centered>
-                            <v-tab value="setup">Quick Setup</v-tab>
-                            <v-tab value="demo">Demo Login</v-tab>
-                        </v-tabs>
-                        
-                        <v-window v-model="activeTab">
-                            <v-window-item value="setup">
-                                <v-code class="mb-4">
-git clone https://github.com/your-username/readykit<br>
-cd readykit<br>
-./setup.sh<br>
-uv run flask create-db<br>
-uv run flask install -n<br>
-uv run flask run
-                                </v-code>
-                                <v-alert type="success" variant="tonal" class="mb-4">
-                                    <v-icon start>mdi-check-circle</v-icon>
-                                    Your SaaS template is now running at http://localhost:5000
-                                </v-alert>
-                            </v-window-item>
-                            
-                            <v-window-item value="demo">
-                                <p class="text-body-1 mb-4">Use these credentials to explore the platform:</p>
-                                <v-card variant="tonal" class="pa-4 mb-4">
-                                    <div class="d-flex justify-space-between align-center mb-2">
-                                        <strong>Super Admin:</strong>
-                                        <v-btn size="small" variant="outlined" href="/login">Login Now</v-btn>
-                                    </div>
-                                    <p class="text-body-2 mb-1">Email: <code>admin@example.com</code></p>
-                                    <p class="text-body-2">Password: Generated during install</p>
-                                </v-card>
-                                <v-alert type="info" variant="tonal">
-                                    <v-icon start>mdi-information</v-icon>
-                                    Run <code>uv run flask install -n</code> to see the generated admin password
-                                </v-alert>
-                            </v-window-item>
-                        </v-window>
-                    </v-card>
+                <v-col cols="12" md="10" lg="8">
+                    <h2 class="text-h5 font-weight-bold text-center mb-8">What's included</h2>
+
+                    <v-row>
+                        <v-col cols="12" sm="6" md="4" class="mb-6" v-for="f in features" :key="f.title">
+                            <div class="text-subtitle-2 font-weight-bold mb-1">${ f.title }</div>
+                            <div class="text-body-2 text-medium-emphasis" style="line-height: 1.7;">${ f.desc }</div>
+                        </v-col>
+                    </v-row>
+
+                    <div class="text-center mt-4 text-caption text-medium-emphasis">
+                        Flask 3.1 · Vue 3 · Vuetify · SQLAlchemy 2 · PostgreSQL · Redis · Celery · Docker
+                    </div>
                 </v-col>
             </v-row>
         </v-container>
@@ -204,15 +82,17 @@ const app = createApp({
     data() {
         return {
             drawer: false,
-            activeTab: 'setup',
-            config: config
+            features: [
+                { title: 'Workspaces', desc: 'Multi-tenant isolation with roles, team invites, and invisible solo-user mode.' },
+                { title: 'Authentication', desc: 'Email, Google & GitHub OAuth, TOTP, WebAuthn passkeys, recovery codes.' },
+                { title: 'Billing', desc: 'Stripe checkout and portal. Free/Pro plans with webhook-driven upgrades.' },
+                { title: 'API Keys', desc: 'Workspace-scoped, SHA-256 hashed, copy-once reveal. Ready for your API.' },
+                { title: 'Admin Panel', desc: 'Platform overview, user management, activity logs across all workspaces.' },
+                { title: 'Production Stack', desc: 'Docker Compose with PostgreSQL, Redis, Celery, Nginx, uWSGI.' }
+            ]
         };
     },
-    delimiters: config.delimiters,
-    
-    methods: {
-        // Add any methods if needed
-    }
+    delimiters: config.delimiters
 });
 
 app.use(vuetify).mount('#app');

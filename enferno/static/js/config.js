@@ -1,6 +1,6 @@
 /**
  * ReadyKit - Central Configuration
- * Purple gradient color palette
+ * Minimal monochrome palette with single accent color
  */
 
 const config = {
@@ -11,19 +11,19 @@ const config = {
     vuetifyConfig: {
         defaults: {
             VTextField: {
-                variant: 'outlined'
+                variant: 'underlined'
             },
             VSelect: {
-                variant: 'outlined'
+                variant: 'underlined'
             },
             VTextarea: {
-                variant: 'outlined'
+                variant: 'underlined'
             },
             VCombobox: {
-                variant: 'outlined'
+                variant: 'underlined'
             },
             VAutocomplete: {
-                variant: 'outlined'
+                variant: 'underlined'
             },
             VChip: {
                 size: 'small'
@@ -32,8 +32,7 @@ const config = {
                 elevation: 0
             },
             VBtn: {
-                variant: 'elevated',
-                size: 'small'
+                variant: 'flat'
             },
             VDataTableServer: {
                 itemsPerPage: 25,
@@ -41,46 +40,26 @@ const config = {
             }
         },
         theme: {
-            defaultTheme: localStorage.getItem('enferno-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
+            defaultTheme: 'light',
             themes: {
                 light: {
                     dark: false,
                     colors: {
-                        // Purple gradient theme
-                        primary: '#667eea',      // Purple-blue
-                        secondary: '#764ba2',    // Purple
-                        accent: '#06B6D4',       // Cyan
+                        primary: '#18181B',      // Zinc-900 — near-black
+                        secondary: '#71717A',    // Zinc-500 — muted gray
+                        accent: '#F97316',       // Orange-500 — warm CTA accent
                         error: '#EF4444',        // Red
                         info: '#3B82F6',         // Blue
                         success: '#10B981',      // Emerald
                         warning: '#F59E0B',      // Amber
                         background: '#FFFFFF',   // White
-                        surface: '#F9FBFD',      // Light Gray
-                    }
-                },
-                dark: {
-                    dark: true,
-                    colors: {
-                        // Dark purple palette
-                        primary: '#818CF8',      // Lighter purple for dark mode
-                        secondary: '#8B5CF6',    // Purple
-                        accent: '#06B6D4',       // Cyan
-                        error: '#EF4444',        // Red
-                        info: '#3B82F6',         // Blue
-                        success: '#10B981',      // Emerald
-                        warning: '#F59E0B',      // Amber
-                        background: '#0F172A',   // Slate 900
-                        surface: '#1E293B',      // Slate 800
-                        'surface-variant': '#334155',  // Slate 700
-                        'on-background': '#F8FAFC',
-                        'on-surface': '#E2E8F0',
-                        'on-primary': '#FFFFFF',
+                        surface: '#FFFFFF',      // White (no tinted surface)
                     }
                 }
             }
         },
         icons: {
-            defaultSet: 'mdi'  // Keep MDI as default, Tabler via ti- prefix
+            defaultSet: 'mdi'
         }
     }
 };

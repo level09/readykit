@@ -322,6 +322,46 @@ class Membership(db.Model, BaseMixin):
         }
 
 
+class APIKey(db.Model, BaseMixin):
+    """API keys scoped to a workspace."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    workspace_id = db.Column(
+        db.Integer, db.ForeignKey("workspace.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False
+    )
+    name = db.Column(db.String(100), nullable=False)
+    prefix = db.Column(db.String(8), nullable=False)
+    key_hash = db.Column(db.String(255), nullable=False)
+    last_used_at = db.Column(db.DateTime, nullable=True)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+
+    workspace = relationship("Workspace", backref=db.backref("api_keys", cascade="all, delete-orphan"))
+    user = relationship("User", backref=db.backref("api_keys", cascade="all, delete-orphan"))
+
+    @staticmethod
+    def generate_key():
+        """Generate a new API key. Returns (full_key, prefix, key_hash)."""
+        import hashlib
+
+        full_key = f"rk_{secrets.token_hex(24)}"
+        prefix = full_key[:7]
+        key_hash = hashlib.sha256(full_key.encode()).hexdigest()
+        return full_key, prefix, key_hash
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "prefix": self.prefix,
+            "is_active": self.is_active,
+            "last_used_at": self.last_used_at.isoformat() if self.last_used_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 class Session(db.Model, BaseMixin):
     """Track active user sessions for session management."""
 

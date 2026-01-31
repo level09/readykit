@@ -16,7 +16,10 @@ def get_current_workspace():
 
 
 def require_workspace_access(required_role="member"):
-    """Decorator to require workspace access with specific role"""
+    """Decorator to require workspace access with specific role.
+
+    Gets workspace_id from URL parameter first, then falls back to session.
+    """
 
     def decorator(f):
         @wraps(f)
@@ -24,8 +27,10 @@ def require_workspace_access(required_role="member"):
             if not current_user.is_authenticated:
                 abort(401)
 
-            # Get workspace_id from URL parameter
-            workspace_id = kwargs.get("workspace_id")
+            # Get workspace_id from URL parameter, fall back to session
+            workspace_id = kwargs.get("workspace_id") or session.get(
+                "current_workspace_id"
+            )
             if not workspace_id:
                 abort(400, "No workspace specified")
 

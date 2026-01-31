@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="pa-4 w-100" style="max-width: 700px;">
+    <h1 class="text-h5 font-weight-bold mb-6">Profile</h1>
+
+    <v-form @submit.prevent="updateProfile">
+        <div class="text-subtitle-2 font-weight-medium mb-3">Name</div>
+        <v-text-field
+            v-model="userData.name"
+            density="comfortable"
+            class="mb-4"
+            style="max-width: 400px;"
+        ></v-text-field>
+
+        <div class="text-subtitle-2 font-weight-medium mb-3">Email</div>
+        <v-text-field
+            v-model="userData.email"
+            density="comfortable"
+            type="email"
+            readonly
+            style="max-width: 400px;"
+            class="mb-4"
+        >
+            <template v-slot:append-inner>
+                <v-tooltip text="Email cannot be changed for security">
+                    <template v-slot:activator="{ props }">
+                        <i class="ti ti-lock text-medium-emphasis" v-bind="props"></i>
+                    </template>
+                </v-tooltip>
+            </template>
+        </v-text-field>
+
+        <v-btn
+            color="primary"
+            @click="updateProfile"
+            :loading="saving"
+            class="text-none"
+        >
+            Save
+        </v-btn>
+    </v-form>
+</div>
+
+<!-- Snackbar -->
+<v-snackbar v-model="snackbar" timeout="4000" location="bottom right">
+    ${ snackMessage }
+</v-snackbar>
+
+{% endblock %}
+
+{% block js %}
+
+<script type="application/json" id="user-data">
+{{ {"name": current_user.name, "email": current_user.email}|tojson|safe }}
+</script>
+
+<script>
+const { createApp } = Vue;
+const { createVuetify } = Vuetify;
+const vuetify = createVuetify(config.vuetifyConfig);
+
+const app = createApp({
+    mixins: [layoutMixin],
+    data() {
+        return {
+            userData: { name: '', email: '' },
+            saving: false,
+            snackbar: false,
+            snackMessage: ''
+        };
+    },
+    delimiters: config.delimiters,
+
+    methods: {
+        async updateProfile() {
+            this.saving = true;
+            try {
+                await axios.put('/api/profile', { name: this.userData.name });
+                this.snackMessage = 'Profile updated';
+                this.snackbar = true;
+            } catch (e) {
+                this.snackMessage = 'Failed to update profile';
+                this.snackbar = true;
+            } finally {
+                this.saving = false;
+            }
+        }
+    },
+
+    mounted() {
+        this.userData = JSON.parse(document.querySelector('#user-data').textContent);
+    }
+}).use(vuetify).mount('#app');
+</script>
+{% endblock %}

@@ -18,7 +18,7 @@ from enferno.extensions import db
 from enferno.services.auth import require_superadmin_api
 from enferno.services.billing import HostedBilling
 from enferno.services.workspace import WorkspaceService, require_workspace_access
-from enferno.user.models import Membership, User, Workspace
+from enferno.user.models import APIKey, Membership, User, Workspace
 
 portal = Blueprint("portal", __name__, static_folder="../static")
 
@@ -50,9 +50,12 @@ def dashboard():
     return render_template("dashboard.html", workspaces=workspace_data)
 
 
-@portal.get("/workspace/<int:workspace_id>/")
+# Page Routes (use session for workspace context)
+
+
+@portal.get("/workspace/")
 @require_workspace_access("member")
-def workspace_view(workspace_id):
+def workspace_view():
     """Main workspace interface"""
     return render_template(
         "workspace.html",
@@ -61,9 +64,9 @@ def workspace_view(workspace_id):
     )
 
 
-@portal.get("/workspace/<int:workspace_id>/team/")
+@portal.get("/workspace/team/")
 @require_workspace_access("admin")
-def workspace_team(workspace_id):
+def workspace_team():
     """Team management (admin only)"""
     return render_template(
         "workspace_team.html",
@@ -72,9 +75,9 @@ def workspace_team(workspace_id):
     )
 
 
-@portal.get("/workspace/<int:workspace_id>/settings/")
+@portal.get("/workspace/settings/")
 @require_workspace_access("member")
-def workspace_settings(workspace_id):
+def workspace_settings():
     """Workspace settings"""
     return render_template(
         "workspace_settings.html",
@@ -85,19 +88,96 @@ def workspace_settings(workspace_id):
     )
 
 
+@portal.get("/settings/profile")
+def profile():
+    """User profile settings"""
+    return render_template("profile.html")
+
+
+@portal.get("/settings/security")
+def security_settings():
+    """Combined security settings: password + 2FA"""
+    from flask_wtf.csrf import generate_csrf
+
+    return render_template("security_settings.html", csrf_token=generate_csrf())
+
+
+@portal.get("/workspace/keys/")
+@require_workspace_access("member")
+def workspace_api_keys():
+    """API key management page"""
+    return render_template(
+        "workspace_keys.html",
+        workspace=g.current_workspace,
+        user_role=g.user_workspace_role,
+    )
+
+
+@portal.get("/api/workspace/<int:workspace_id>/keys")
+@require_workspace_access("member")
+def list_api_keys(workspace_id):
+    """List API keys for workspace"""
+    keys = db.session.execute(
+        db.select(APIKey)
+        .where(APIKey.workspace_id == workspace_id, APIKey.is_active.is_(True))
+        .order_by(APIKey.created_at.desc())
+    ).scalars().all()
+    return jsonify({"keys": [k.to_dict() for k in keys]})
+
+
+@portal.post("/api/workspace/<int:workspace_id>/keys")
+@require_workspace_access("admin")
+def create_api_key(workspace_id):
+    """Create a new API key"""
+    data = request.get_json() or {}
+    name = data.get("name", "").strip()
+    if not name:
+        return jsonify({"error": "Key name is required"}), 400
+
+    full_key, prefix, key_hash = APIKey.generate_key()
+    api_key = APIKey(
+        workspace_id=workspace_id,
+        user_id=current_user.id,
+        name=name,
+        prefix=prefix,
+        key_hash=key_hash,
+    )
+    db.session.add(api_key)
+    db.session.commit()
+
+    return jsonify({"key": full_key, "id": api_key.id, "name": name, "prefix": prefix})
+
+
+@portal.delete("/api/workspace/<int:workspace_id>/keys/<int:key_id>")
+@require_workspace_access("admin")
+def revoke_api_key(workspace_id, key_id):
+    """Revoke an API key"""
+    api_key = db.session.execute(
+        db.select(APIKey).where(
+            APIKey.id == key_id, APIKey.workspace_id == workspace_id
+        )
+    ).scalar_one_or_none()
+
+    if not api_key:
+        return jsonify({"error": "Key not found"}), 404
+
+    api_key.is_active = False
+    db.session.commit()
+    return jsonify({"message": "Key revoked"})
+
+
 @portal.get("/workspace/<int:workspace_id>/switch/")
 @auth_required("session")
 def switch_workspace(workspace_id):
     """Switch to a workspace"""
-    # Verify user has access
     if current_user.get_workspace_role(workspace_id):
         session["current_workspace_id"] = workspace_id
-        return redirect(url_for("portal.workspace_view", workspace_id=workspace_id))
+        return redirect(url_for("portal.workspace_view"))
     else:
         return redirect(url_for("portal.dashboard"))
 
 
-# API Endpoints
+# API Endpoints (keep workspace_id in URL for REST correctness)
 @portal.post("/api/workspaces")
 @require_superadmin_api()
 def create_workspace():
@@ -421,28 +501,25 @@ def admin_users():
     return jsonify({"users": user_data})
 
 
-# Billing Routes
-@portal.get("/workspace/<int:workspace_id>/upgrade")
+# Billing Routes (use session for workspace context)
+@portal.get("/workspace/upgrade")
 @require_workspace_access("admin")
-def upgrade_workspace(workspace_id):
+def upgrade_workspace():
     """Redirect to hosted checkout for workspace upgrade"""
     workspace = g.current_workspace
 
     # Prevent duplicate subscriptions - redirect to billing portal if already Pro
     if workspace.is_pro:
         if workspace.billing_customer_id:
-            return redirect(url_for("portal.billing_portal", workspace_id=workspace_id))
+            return redirect(url_for("portal.billing_portal"))
         else:
-            # Pro workspace without billing customer (manual upgrade, legacy)
-            return redirect(
-                url_for("portal.workspace_settings", workspace_id=workspace_id)
-            )
+            return redirect(url_for("portal.workspace_settings"))
 
     try:
-        session = HostedBilling.create_upgrade_session(
-            workspace_id, current_user.email, request.url_root
+        checkout_session = HostedBilling.create_upgrade_session(
+            workspace.id, current_user.email, request.url_root
         )
-        return redirect(session.url)
+        return redirect(checkout_session.url)
     except Exception as e:
         current_app.logger.error(f"Checkout session error: {e}")
         return jsonify(
@@ -450,17 +527,17 @@ def upgrade_workspace(workspace_id):
         ), 500
 
 
-@portal.get("/workspace/<int:workspace_id>/billing")
+@portal.get("/workspace/billing")
 @require_workspace_access("admin")
-def billing_portal(workspace_id):
+def billing_portal():
     """Redirect to billing provider's customer portal"""
     workspace = g.current_workspace
     if workspace.billing_customer_id:
         try:
-            session = HostedBilling.create_portal_session(
-                workspace.billing_customer_id, workspace_id, request.url_root
+            portal_session = HostedBilling.create_portal_session(
+                workspace.billing_customer_id, workspace.id, request.url_root
             )
-            return redirect(session.url)
+            return redirect(portal_session.url)
         except Exception as e:
             error_msg = str(e)
             current_app.logger.error(f"Billing portal error: {error_msg}")
@@ -470,12 +547,11 @@ def billing_portal(workspace_id):
                 title="Billing Portal Error",
                 message="Unable to access billing portal at this time.",
                 action_text="Try Again Later",
-                action_url=f"/workspace/{workspace_id}/settings",
+                action_url="/workspace/settings/",
                 details=error_msg,
             )
     else:
-        # No customer ID, redirect to upgrade
-        return redirect(url_for("portal.upgrade_workspace", workspace_id=workspace_id))
+        return redirect(url_for("portal.upgrade_workspace"))
 
 
 @portal.get("/billing/success")

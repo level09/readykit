@@ -23,12 +23,10 @@
                     </p>
                 </div>
                 {% if current_user.is_superadmin %}
-                <v-btn 
-                    color="primary" 
-                    variant="elevated"
+                <v-btn
+                    color="primary"
                     prepend-icon="mdi-plus"
                     @click="createDialog = true"
-                    size="default"
                 >
                     Create Workspace
                 </v-btn>
@@ -41,7 +39,7 @@
     <!-- Workspaces Section -->
     <div v-if="workspaces.length > 0">
         <div class="d-flex align-center mb-4">
-            <h2 class="text-h5 font-weight-medium">
+            <h2 class="text-h6 font-weight-medium">
                 {% if current_user.is_superadmin %}
                     All Workspaces
                 {% else %}
@@ -49,62 +47,38 @@
                 {% endif %}
             </h2>
             <v-spacer></v-spacer>
-            <v-chip size="small" variant="outlined">${workspaces.length} workspace${workspaces.length !== 1 ? 's' : ''}</v-chip>
+            <span class="text-body-2 text-medium-emphasis">${workspaces.length} workspace${workspaces.length !== 1 ? 's' : ''}</span>
         </div>
-        
+
         <v-row>
-            <v-col 
-                v-for="workspace in workspaces" 
+            <v-col
+                v-for="workspace in workspaces"
                 :key="workspace.id"
-                cols="12" 
-                sm="6" 
+                cols="12"
+                sm="6"
                 lg="4"
             >
-                <v-card 
+                <v-card
                     :href="`/workspace/${workspace.id}/switch/`"
-                    variant="elevated"
-                    hover
+                    variant="outlined"
                     class="h-100"
                 >
                     <v-card-text class="pa-4">
                         <div class="d-flex align-center mb-3">
-                            <v-avatar size="40" :color="workspace.is_pro ? 'success' : 'primary'" variant="tonal">
-                                <v-icon>${workspace.is_pro ? 'mdi-briefcase-check' : 'mdi-briefcase-outline'}</v-icon>
-                            </v-avatar>
-                            <div class="ml-3 flex-grow-1">
+                            <div class="flex-grow-1">
                                 <div class="d-flex align-center">
-                                    <div class="text-h6 font-weight-medium mr-2">${workspace.name}</div>
-                                    <v-chip v-if="workspace.is_pro" size="x-small" color="success" variant="flat">Pro</v-chip>
+                                    <div class="text-subtitle-1 font-weight-medium mr-2">${workspace.name}</div>
+                                    <v-chip v-if="workspace.is_pro" size="x-small" variant="outlined">Pro</v-chip>
                                 </div>
                                 <div class="text-body-2 text-medium-emphasis">
                                     {% if current_user.is_superadmin %}
                                         Client workspace
                                     {% else %}
-                                        Your role: ${workspace.user_role}
+                                        ${workspace.user_role}
                                     {% endif %}
                                 </div>
                             </div>
-                            {% if current_user.is_superadmin %}
-                            <v-chip size="small" color="warning" variant="tonal">
-                                <v-icon start size="16">mdi-crown</v-icon>
-                                Super Admin
-                            </v-chip>
-                            {% else %}
-                            <v-chip 
-                                size="small" 
-                                :color="workspace.user_role === 'admin' ? 'primary' : 'default'"
-                                variant="tonal"
-                            >
-                                ${workspace.user_role}
-                            </v-chip>
-                            {% endif %}
-                        </div>
-                        
-                        <v-divider class="mb-3"></v-divider>
-                        
-                        <div class="d-flex justify-space-between text-body-2 text-medium-emphasis">
-                            <span>Last accessed</span>
-                            <span>Recently</span>
+                            <i class="ti ti-chevron-right" style="opacity: 0.3;"></i>
                         </div>
                     </v-card-text>
                 </v-card>
@@ -114,26 +88,22 @@
 
     <!-- Empty State -->
     <div v-else class="text-center py-16">
-        <v-avatar size="120" color="grey-lighten-4" class="mb-6">
-            <v-icon size="60" color="grey-lighten-1">mdi-briefcase-plus-outline</v-icon>
-        </v-avatar>
-        <h2 class="text-h4 font-weight-medium mb-3">No workspaces yet</h2>
-        <p class="text-body-1 text-medium-emphasis mb-8">
+        <i class="ti ti-briefcase-2 mb-4" style="font-size: 48px; opacity: 0.15;"></i>
+        <h2 class="text-h6 font-weight-medium mb-3">No workspaces yet</h2>
+        <p class="text-body-2 text-medium-emphasis mb-6">
             {% if current_user.is_superadmin %}
-                Create your first workspace to get started with the platform.
+                Create your first workspace to get started.
             {% else %}
                 Contact your administrator to join a workspace.
             {% endif %}
         </p>
         {% if current_user.is_superadmin %}
-        <v-btn 
-            color="primary" 
-            size="large"
-            variant="elevated"
+        <v-btn
+            color="primary"
             @click="createDialog = true"
             prepend-icon="mdi-plus"
         >
-            Create Your First Workspace
+            Create Workspace
         </v-btn>
         {% endif %}
     </div>
@@ -141,13 +111,10 @@
 </v-container>
 
 <!-- Create Workspace Dialog -->
-<v-dialog v-model="createDialog" max-width="500" persistent>
+<v-dialog v-model="createDialog" max-width="440" persistent>
     <v-card>
         <v-card-title class="d-flex align-center justify-space-between">
-            <div class="d-flex align-center">
-                <v-icon color="primary" class="mr-3">mdi-briefcase-plus</v-icon>
-                <span>Create New Workspace</span>
-            </div>
+            <span>New Workspace</span>
             <v-btn @click="createDialog=false" icon="mdi-close" variant="text" size="small"></v-btn>
         </v-card-title>
 
@@ -157,53 +124,35 @@
                 v-model="newWorkspaceName"
                 :rules="[rules.required]"
                 placeholder="e.g. Acme Corporation"
-                variant="outlined"
-                prepend-inner-icon="mdi-domain"
                 hide-details="auto"
-                class="mb-4"
+                class="mb-2"
             ></v-text-field>
-            <v-alert type="info" variant="tonal" class="mb-4">
-                <template v-slot:prepend>
-                    <v-icon>mdi-information</v-icon>
-                </template>
-                You'll be the admin of this workspace and can invite team members later.
-            </v-alert>
+            <p class="text-caption text-medium-emphasis">You'll be the admin and can invite team members later.</p>
         </v-card-text>
 
         <v-card-actions class="px-6 pb-6">
             <v-spacer></v-spacer>
-            <v-btn @click="createDialog=false" variant="text" :disabled="creating">
-                Cancel
-            </v-btn>
-            <v-btn 
-                color="primary" 
-                @click="createWorkspace" 
+            <v-btn @click="createDialog=false" variant="text" :disabled="creating">Cancel</v-btn>
+            <v-btn
+                color="primary"
+                @click="createWorkspace"
                 :loading="creating"
-                variant="elevated"
-                prepend-icon="mdi-plus"
             >
-                Create Workspace
+                Create
             </v-btn>
         </v-card-actions>
     </v-card>
 </v-dialog>
 
-<v-snackbar 
-    v-model="snackBar" 
+<v-snackbar
+    v-model="snackBar"
     :color="snackColor"
-    location="top right"
+    location="bottom right"
     timeout="4000"
-    variant="elevated"
 >
-    <div class="d-flex align-center">
-        <v-icon 
-            :icon="snackColor === 'success' ? 'mdi-check-circle' : 'mdi-alert-circle'" 
-            class="mr-2"
-        ></v-icon>
-        ${snackMessage}
-    </div>
+    ${snackMessage}
     <template v-slot:actions>
-        <v-btn icon="mdi-close" @click="snackBar=false" variant="text" size="small"></v-btn>
+        <v-btn @click="snackBar=false" variant="text" size="small">Close</v-btn>
     </template>
 </v-snackbar>
 
