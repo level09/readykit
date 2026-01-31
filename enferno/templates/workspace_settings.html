@@ -3,25 +3,12 @@
 {% block content %}
 
 <div class="pa-4 w-100" style="max-width: 700px;">
-    <!-- Header -->
-    <div class="d-flex align-center mb-6">
-        <v-btn
-            href="/workspace/"
-            icon="mdi-arrow-left"
-            variant="text"
-            size="small"
-            class="mr-2"
-        ></v-btn>
-        <div>
-            <h1 class="text-h5 font-weight-bold">Settings</h1>
-            <p class="text-body-2 text-medium-emphasis mb-0">${ workspaceData.name }</p>
-        </div>
-    </div>
+    <h1 class="text-h5 font-weight-bold mb-6">Workspace Settings</h1>
 
     <!-- Workspace Name -->
     {% if user_role == 'admin' %}
     <div class="mb-6">
-        <div class="text-subtitle-2 font-weight-medium mb-3">Workspace Name</div>
+        <div class="text-subtitle-2 font-weight-medium mb-3">Name</div>
         <v-form @submit.prevent="updateWorkspaceName">
             <v-text-field
                 v-model="workspaceData.name"
@@ -41,60 +28,19 @@
     </div>
     {% else %}
     <div class="mb-6">
-        <div class="text-subtitle-2 font-weight-medium mb-1">Workspace Name</div>
+        <div class="text-subtitle-2 font-weight-medium mb-1">Name</div>
         <div class="text-body-2">${ workspaceData.name }</div>
     </div>
     {% endif %}
 
     <v-divider class="mb-6"></v-divider>
 
-    <!-- Profile -->
-    <div class="mb-6">
-        <div class="text-subtitle-2 font-weight-medium mb-3">Profile</div>
-        <v-form @submit.prevent="updateProfile">
-            <v-text-field
-                label="Name"
-                v-model="userData.name"
-                density="comfortable"
-                class="mb-2"
-                style="max-width: 400px;"
-            ></v-text-field>
-            <v-text-field
-                label="Email"
-                v-model="userData.email"
-                density="comfortable"
-                type="email"
-                readonly
-                style="max-width: 400px;"
-                class="mb-2"
-            >
-                <template v-slot:append-inner>
-                    <v-tooltip text="Email cannot be changed for security">
-                        <template v-slot:activator="{ props }">
-                            <i class="ti ti-lock text-medium-emphasis" v-bind="props"></i>
-                        </template>
-                    </v-tooltip>
-                </template>
-            </v-text-field>
-            <v-btn
-                color="primary"
-                @click="updateProfile"
-                :loading="savingProfile"
-                class="text-none"
-            >
-                Update Profile
-            </v-btn>
-        </v-form>
-    </div>
-
-    <v-divider class="mb-6"></v-divider>
-
-    <!-- Workspace Details -->
+    <!-- Details -->
     <div class="mb-6">
         <div class="text-subtitle-2 font-weight-medium mb-3">Details</div>
         <div class="d-flex flex-wrap ga-6">
             <div>
-                <div class="text-caption text-medium-emphasis mb-1">Role</div>
+                <div class="text-caption text-medium-emphasis mb-1">Your Role</div>
                 <div class="text-body-2">{{ user_role.title() }}</div>
             </div>
             <div>
@@ -191,16 +137,8 @@
 </div>
 
 <!-- Snackbar -->
-<v-snackbar
-    v-model="snackbar"
-    :color="snackColor"
-    timeout="4000"
-    location="bottom right"
->
+<v-snackbar v-model="snackbar" timeout="4000" location="bottom right">
     ${ snackMessage }
-    <template v-slot:actions>
-        <v-btn variant="text" @click="snackbar = false">Close</v-btn>
-    </template>
 </v-snackbar>
 
 {% endblock %}
@@ -209,10 +147,6 @@
 
 <script type="application/json" id="workspace-data">
 {{ workspace.to_dict()|tojson|safe }}
-</script>
-
-<script type="application/json" id="user-data">
-{{ {"name": current_user.name, "email": current_user.email}|tojson|safe }}
 </script>
 
 <script>
@@ -232,15 +166,9 @@ const app = createApp({
                 is_pro: false,
                 upgraded_at: null
             },
-            userData: {
-                name: '',
-                email: ''
-            },
             savingWorkspace: false,
-            savingProfile: false,
             snackbar: false,
-            snackMessage: '',
-            snackColor: 'success'
+            snackMessage: ''
         };
     },
     delimiters: config.delimiters,
@@ -252,32 +180,14 @@ const app = createApp({
                 await axios.put(`/api/workspace/${this.workspaceData.id}`, {
                     name: this.workspaceData.name
                 });
-                this.showMessage('Workspace name updated', 'success');
-            } catch (error) {
-                this.showMessage('Failed to update workspace name', 'error');
+                this.snackMessage = 'Workspace name updated';
+                this.snackbar = true;
+            } catch (e) {
+                this.snackMessage = 'Failed to update workspace name';
+                this.snackbar = true;
             } finally {
                 this.savingWorkspace = false;
             }
-        },
-
-        async updateProfile() {
-            this.savingProfile = true;
-            try {
-                await axios.put('/api/profile', {
-                    name: this.userData.name
-                });
-                this.showMessage('Profile updated', 'success');
-            } catch (error) {
-                this.showMessage('Failed to update profile', 'error');
-            } finally {
-                this.savingProfile = false;
-            }
-        },
-
-        showMessage(message, color = 'success') {
-            this.snackMessage = message;
-            this.snackColor = color;
-            this.snackbar = true;
         },
 
         confirmDeleteWorkspace() {
@@ -296,7 +206,7 @@ const app = createApp({
             try {
                 const response = await axios.get(`/api/workspace/${this.workspaceData.id}/stats`);
                 this.memberCount = response.data.member_count || 0;
-            } catch (error) {
+            } catch (e) {
                 this.memberCount = 0;
             }
         }
@@ -304,7 +214,6 @@ const app = createApp({
 
     async mounted() {
         this.workspaceData = JSON.parse(document.querySelector('#workspace-data').textContent);
-        this.userData = JSON.parse(document.querySelector('#user-data').textContent);
         await this.loadStats();
     }
 }).use(vuetify).mount('#app');

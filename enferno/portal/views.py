@@ -88,6 +88,12 @@ def workspace_settings():
     )
 
 
+@portal.get("/settings/profile")
+def profile():
+    """User profile settings"""
+    return render_template("profile.html")
+
+
 @portal.get("/workspace/keys/")
 @require_workspace_access("member")
 def workspace_api_keys():
