@@ -27,7 +27,7 @@ if PROVIDER == "stripe":
 
         try:
             event = stripe.Webhook.construct_event(payload, sig_header, secret)
-        except (ValueError, stripe.error.SignatureVerificationError) as e:
+        except (ValueError, stripe.SignatureVerificationError) as e:
             current_app.logger.error(f"Webhook error: {e}")
             return "Invalid request", 400
 
