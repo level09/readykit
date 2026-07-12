@@ -1,6 +1,6 @@
 [project]
 name = "readykit"
-version = "1.4.1"
+version = "1.5.0"
 description = "Production-ready Flask SaaS template with multi-tenant workspaces, Stripe billing, and OAuth"
 authors = [
     {name = "Level09", email = "hello@level09.com"}
@@ -25,6 +25,7 @@ dependencies = [
     "flask-session>=0.8.0",
     "flask-caching>=2.3.1",
     "flask-mail>=0.10.0",
+    "flask-migrate>=4.1.0",
     "flask-wtf>=1.2.2",
     "flask-babel>=4.0.0",
     "flask-login>=0.6.3",

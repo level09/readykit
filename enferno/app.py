@@ -14,7 +14,7 @@ from flask_security import Security, SQLAlchemyUserDatastore, current_user, sign
 # Local application imports
 import enferno.commands as commands
 from enferno.api.webhooks import webhooks_bp
-from enferno.extensions import babel, cache, db, debug_toolbar, mail, session
+from enferno.extensions import babel, cache, db, debug_toolbar, mail, migrate, session
 from enferno.portal.views import portal
 from enferno.public.views import public
 from enferno.services.workspace import get_current_workspace
@@ -48,6 +48,7 @@ def locale_selector():
 def register_extensions(app):
     cache.init_app(app)
     db.init_app(app)
+    migrate.init_app(app, db)
     user_datastore = SQLAlchemyUserDatastore(db, User, Role, webauthn_model=WebAuthn)
     Security(
         app,

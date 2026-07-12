@@ -7,6 +7,20 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "alembic"
+version = "1.18.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "mako" },
+    { name = "sqlalchemy" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1a/cc/ac0bed8e562e7407fe55c3ba85a4dce86e6dbd8730887bd1e406a6c5c18a/alembic-1.18.5.tar.gz", hash = "sha256:1554982221dd17e9a749b53902407578eb305e453f71999e8c7f0a48389fff8e", size = 2060480, upload-time = "2026-06-25T15:20:54.888Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/96/78/5fe6dc3a3a5b2f5a2a4faef8bfe336d5fa049a38884ab3172e0098160c01/alembic-1.18.5-py3-none-any.whl", hash = "sha256:06d8ba9d04558022f5395e9317de03d270f3dced49cee01f89fe7a13c26f14bc", size = 264664, upload-time = "2026-06-25T15:20:56.673Z" },
+]
+
+[[package]]
 name = "amqp"
 version = "5.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -750,6 +764,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ba/29/e92dc84c675d1e8d260d5768eb3fb65c70cbd33addecf424187587bee862/flask_mail-0.10.0.tar.gz", hash = "sha256:44083e7b02bbcce792209c06252f8569dd5a325a7aaa76afe7330422bd97881d", size = 8152, upload-time = "2024-05-23T22:30:12.612Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e4/c0/a81083da779f482494d49195d8b6c9fde21072558253e4a9fb2ec969c3c1/flask_mail-0.10.0-py3-none-any.whl", hash = "sha256:a451e490931bb3441d9b11ebab6812a16bfa81855792ae1bf9c1e1e22c4e51e7", size = 8529, upload-time = "2024-05-23T22:30:10.962Z" },
+]
+
+[[package]]
+name = "flask-migrate"
+version = "4.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "alembic" },
+    { name = "flask" },
+    { name = "flask-sqlalchemy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5a/8e/47c7b3c93855ceffc2eabfa271782332942443321a07de193e4198f920cf/flask_migrate-4.1.0.tar.gz", hash = "sha256:1a336b06eb2c3ace005f5f2ded8641d534c18798d64061f6ff11f79e1434126d", size = 21965, upload-time = "2025-01-10T18:51:11.848Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d2/c4/3f329b23d769fe7628a5fc57ad36956f1fb7132cf8837be6da762b197327/Flask_Migrate-4.1.0-py3-none-any.whl", hash = "sha256:24d8051af161782e0743af1b04a152d007bad9772b2bca67b7ec1e8ceeb3910d", size = 21237, upload-time = "2025-01-10T18:51:09.527Z" },
 ]
 
 [[package]]
@@ -1757,7 +1785,7 @@ wheels = [
 
 [[package]]
 name = "readykit"
-version = "1.4.1"
+version = "1.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "argon2-cffi" },
@@ -1776,6 +1804,7 @@ dependencies = [
     { name = "flask-dance" },
     { name = "flask-login" },
     { name = "flask-mail" },
+    { name = "flask-migrate" },
     { name = "flask-script" },
     { name = "flask-security-too" },
     { name = "flask-session" },
@@ -1853,6 +1882,7 @@ requires-dist = [
     { name = "flask-debugtoolbar", marker = "extra == 'dev'", specifier = ">=0.16.0" },
     { name = "flask-login", specifier = ">=0.6.3" },
     { name = "flask-mail", specifier = ">=0.10.0" },
+    { name = "flask-migrate", specifier = ">=4.1.0" },
     { name = "flask-script", specifier = ">=2.0.6" },
     { name = "flask-security-too", specifier = ">=5.6.2,<5.8" },
     { name = "flask-session", specifier = ">=0.8.0" },

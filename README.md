@@ -112,6 +112,20 @@ def invoices(workspace_id):
 
 All queries are automatically scoped to the current workspace.
 
+### Database Migrations
+
+Schema changes are managed with Alembic. Autogenerate drafts the migration;
+review and edit it before applying:
+
+```bash
+uv run flask db migrate -m "add invoice table"   # Draft from model changes
+# Review migrations/versions/<revision>.py
+uv run flask db upgrade                          # Apply
+```
+
+`create-db` stamps fresh databases automatically. Databases created before
+migrations existed need `uv run flask db stamp head` once.
+
 ---
 
 ## AI-Assisted Development

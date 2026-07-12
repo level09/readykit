@@ -20,7 +20,10 @@ console = Console()
 @with_appcontext
 def create_db():
     """creates db tables - import your models within commands.py to create the models."""
+    from flask_migrate import stamp
+
     db.create_all()
+    stamp()
     print("Database structure created successfully")
 
 

@@ -15,13 +15,31 @@ Context for AI agents working with ReadyKit, a Flask SaaS template with multi-te
 
 ```bash
 ./setup.sh                    # First-time setup
-uv run flask create-db        # Initialize database
+uv run flask create-db        # Initialize database (stamps migrations head)
 uv run flask install          # Create admin user
 uv run flask run              # Dev server on :5000
+uv run flask db migrate -m "" # Draft migration from model changes
+uv run flask db upgrade       # Apply pending migrations
 uv run ruff check --fix .     # Lint
 uv run ruff format .          # Format
 docker compose up --build     # Production stack
 ```
+
+## Database Migrations
+
+Schema changes use Alembic (Flask-Migrate). Autogenerate is a draft generator,
+not a source of truth: always review and hand-edit the generated revision
+before applying it. Complex changes (data backfills, column renames) should be
+written by hand in the revision file.
+
+```bash
+uv run flask db migrate -m "add status to workspace"  # Draft
+# Review migrations/versions/<revision>.py, adjust
+uv run flask db upgrade                               # Apply
+```
+
+Fresh databases: `create-db` builds the schema and stamps head automatically.
+Databases that predate migrations: run `uv run flask db stamp head` once.
 
 ## Project Structure
 
