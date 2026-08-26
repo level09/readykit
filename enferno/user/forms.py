@@ -1,11 +1,11 @@
 from flask_security import current_user
-from flask_security.forms import ChangePasswordForm, RegisterForm, get_message
+from flask_security.forms import ChangePasswordForm, RegisterFormV2, get_message
 from flask_security.proxies import _security
 from flask_security.utils import verify_password
 from wtforms import StringField
 
 
-class ExtendedRegisterForm(RegisterForm):
+class ExtendedRegisterForm(RegisterFormV2):
     name = StringField("Full Name")
 
 

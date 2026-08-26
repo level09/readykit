@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install dependencies
 COPY pyproject.toml uv.lock ./
-RUN uv sync --extra wsgi --frozen --no-install-project
+RUN uv sync --extra full --extra wsgi --frozen --no-install-project
 
 # Runtime
 FROM python:3.12-slim

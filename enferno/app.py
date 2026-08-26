@@ -1,6 +1,5 @@
 # Standard library imports
 import inspect
-import warnings
 
 # Third-party imports
 import click
@@ -22,11 +21,6 @@ from enferno.settings import Config
 from enferno.user.forms import ExtendedRegisterForm, OAuthAwareChangePasswordForm
 from enferno.user.models import OAuth, Role, User, WebAuthn
 from enferno.user.views import bp_user
-
-# Suppress passlib pkg_resources deprecation warning at import time
-warnings.filterwarnings(
-    "ignore", message="pkg_resources is deprecated", category=UserWarning
-)
 
 
 def create_app(config_object=Config):

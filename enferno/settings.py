@@ -36,7 +36,7 @@ class Config:
     PROJECT_ROOT = os.path.abspath(os.path.join(APP_DIR, os.pardir))
     DEBUG_TB_ENABLED = os.environ.get("DEBUG_TB_ENABLED")
     DEBUG_TB_INTERCEPT_REDIRECTS = False
-    CACHE_TYPE = "simple"  # Can be "memcached", "redis", etc.
+    CACHE_TYPE = "flask_caching.backends.SimpleCache"
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "SQLALCHEMY_DATABASE_URI", "postgresql:///enferno"
     )
@@ -104,7 +104,6 @@ class Config:
     SESSION_REDIS = _SESSION_REDIS
     SESSION_SQLALCHEMY_TABLE = "sessions"
     SESSION_KEY_PREFIX = "session:"
-    SESSION_USE_SIGNER = True
     PERMANENT_SESSION_LIFETIME = 3600
     SESSION_COOKIE_SECURE = (
         os.environ.get("SESSION_COOKIE_SECURE", "False").lower() == "true"
