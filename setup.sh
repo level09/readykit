@@ -7,17 +7,18 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m'
 
-# Find latest Python 3 version
+# Find a supported Python version
 PYTHON_CMD=""
-for cmd in python3.13 python3.12 python3.11 python3.10 python3.9 python3.8 python3.7 python3; do
-    if command -v $cmd &> /dev/null; then
-        PYTHON_CMD=$cmd
+for cmd in python3.14 python3.13 python3.12 python3.11 python3; do
+    if command -v "$cmd" &> /dev/null && \
+       "$cmd" -c 'import sys; raise SystemExit(sys.version_info < (3, 11))'; then
+        PYTHON_CMD=$(command -v "$cmd")
         break
     fi
 done
 
 if [ -z "$PYTHON_CMD" ]; then
-    echo -e "${RED}Error: No Python 3.x installation found${NC}"
+    echo -e "${RED}Error: Python 3.11 or newer is required${NC}"
     exit 1
 fi
 
@@ -42,9 +43,9 @@ else
 fi
 echo -e "${GREEN}Virtual environment will be available at .venv${NC}"
 
-# Install dependencies using modern uv sync  
+# Install dependencies using modern uv sync
 echo -e "${GREEN}Installing dependencies from pyproject.toml...${NC}"
-uv sync --extra dev
+uv sync --python "$PYTHON_CMD" --extra dev --extra full
 
 # Check for required commands
 for cmd in tr openssl awk; do
@@ -136,6 +137,9 @@ if ! awk -v sk="$SECRET_KEY" -v ts1="$TOTP_SECRET1" -v ts2="$TOTP_SECRET2" -v ps
         print "# PostgreSQL alternative:"
         print "# SQLALCHEMY_DATABASE_URI=postgresql://postgres:pass@localhost/dbname"
     }
+    else if (docker != "true" && $0 ~ /^SESSION_COOKIE_SECURE=/) {
+        print "SESSION_COOKIE_SECURE=False"
+    }
     else if (docker == "true" && $0 ~ /^#REDIS_PASSWORD=/) {
         print "REDIS_PASSWORD=" rpass
     }
@@ -202,4 +206,4 @@ if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
 fi
 if [ "$DOCKER_CONFIG" = true ]; then
     echo -e "4. For Docker: ${GREEN}docker compose up -d${NC}"
-fi 
+fi
