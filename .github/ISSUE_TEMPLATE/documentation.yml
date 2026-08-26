@@ -1,0 +1,17 @@
+name: Documentation
+description: Report missing, incorrect, or confusing documentation
+title: "docs: "
+labels: ["documentation"]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page or section
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What needs to change?
+    validations:
+      required: true

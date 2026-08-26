@@ -5,6 +5,9 @@
 Multi-tenant workspaces, subscription billing (Stripe or Chargebee), OAuth, and team collaboration out of the box. Build your product, not infrastructure.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Checks](https://github.com/level09/readykit/actions/workflows/checks.yml/badge.svg)](https://github.com/level09/readykit/actions/workflows/checks.yml)
+[![Documentation](https://github.com/level09/readykit/actions/workflows/docs.yml/badge.svg)](https://github.com/level09/readykit/actions/workflows/docs.yml)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
 
 **[Documentation](https://level09.github.io/readykit/)** · **[Live Demo](https://try.readykit.dev)**
 
@@ -73,7 +76,7 @@ Visit http://localhost:5000 and sign in with Google.
 | [Fly.io](https://fly.io) | ~$5/month | [Setup Guide](docs/deployment/fly.md) |
 | [Railway](https://railway.app) | ~$5/month | [Setup Guide](docs/deployment/railway.md) |
 
-All platforms include PostgreSQL, Redis, and CI/CD (push to deploy).
+The platform guides cover managed PostgreSQL, Redis, and deployment workflows.
 
 **Docker Compose** - Self-hosted:
 ```bash
@@ -134,10 +137,14 @@ Using Cursor, Claude Code, or GitHub Copilot? See [docs/agents.md](docs/agents.m
 
 ---
 
-## License
+## Community
 
-MIT - Build and sell products freely.
+Questions and showcases belong in [GitHub Discussions](https://github.com/level09/readykit/discussions).
+Reproducible bugs and scoped work belong in [GitHub Issues](https://github.com/level09/readykit/issues).
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the [roadmap](docs/roadmap.md) before opening a pull request.
 
 ---
 
-Built for indie makers who ship. 🚀
+## License
+
+MIT - Build and sell products freely.

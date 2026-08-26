@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/level09/readykit/discussions
+    about: Use Discussions for support questions and early ideas.
+  - name: Security report
+    url: https://github.com/level09/readykit/security/policy
+    about: Follow the private reporting instructions for vulnerabilities.

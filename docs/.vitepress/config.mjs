@@ -14,6 +14,7 @@ export default defineConfig({
 
     nav: [
       { text: 'Guide', link: '/introduction' },
+      { text: 'Community', link: '/community' },
       { text: 'GitHub', link: 'https://github.com/level09/readykit' }
     ],
 
@@ -47,6 +48,13 @@ export default defineConfig({
           { text: 'Overview', link: '/deployment' },
           { text: 'Fly.io', link: '/deployment/fly' },
           { text: 'Railway', link: '/deployment/railway' }
+        ]
+      },
+      {
+        text: 'Project',
+        items: [
+          { text: 'Community', link: '/community' },
+          { text: 'Roadmap', link: '/roadmap' }
         ]
       }
     ],

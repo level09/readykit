@@ -29,7 +29,6 @@ Stripe or Chargebee - your choice. Hosted pages, no custom checkout UI to mainta
 Invite team members to your workspace with role-based access control.
 
 - Admin and Member roles
-- Email invitations
 - Member management UI
 - Owner protection (can't be removed or demoted)
 
@@ -41,7 +40,6 @@ Comprehensive auth system with modern security features.
 - OAuth (Google, GitHub)
 - Two-factor authentication (TOTP)
 - WebAuthn/Passkeys support
-- Password recovery
 
 ### Modern Stack
 
