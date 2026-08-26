@@ -22,6 +22,8 @@ All notable ReadyKit changes are documented here.
 
 ### Changed
 
+- Removed `enferno.__version__`; `pyproject.toml` is the single source of truth.
+- Applied `ruff format` to the four files that had drifted from it.
 - Test Python 3.11, 3.12, and 3.13 in CI.
 - Run Ruff, pytest, smoke checks, and a production container build in CI.
 - Added contributor, security, issue, pull request, community, and roadmap guidance.
