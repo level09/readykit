@@ -144,7 +144,9 @@ elif PROVIDER == "chargebee":
                     "customer": {"email": user_email},
                     "redirect_url": f"{base_url}billing/success",
                     "cancel_url": f"{base_url}dashboard",
-                    "pass_thru_content": json.dumps({"workspace_id": str(workspace_id)}),
+                    "pass_thru_content": json.dumps(
+                        {"workspace_id": str(workspace_id)}
+                    ),
                 }
             )
             hosted_page = result.hosted_page

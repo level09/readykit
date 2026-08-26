@@ -117,11 +117,15 @@ def workspace_api_keys():
 @require_workspace_access("member")
 def list_api_keys(workspace_id):
     """List API keys for workspace"""
-    keys = db.session.execute(
-        db.select(APIKey)
-        .where(APIKey.workspace_id == workspace_id, APIKey.is_active.is_(True))
-        .order_by(APIKey.created_at.desc())
-    ).scalars().all()
+    keys = (
+        db.session.execute(
+            db.select(APIKey)
+            .where(APIKey.workspace_id == workspace_id, APIKey.is_active.is_(True))
+            .order_by(APIKey.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return jsonify({"keys": [k.to_dict() for k in keys]})
 
 

@@ -184,9 +184,13 @@ def api_user_delete(id):
 
     try:
         # Explicitly clean up owned workspaces and their memberships
-        owned_workspaces = db.session.execute(
-            db.select(Workspace).where(Workspace.owner_id == user.id)
-        ).scalars().all()
+        owned_workspaces = (
+            db.session.execute(
+                db.select(Workspace).where(Workspace.owner_id == user.id)
+            )
+            .scalars()
+            .all()
+        )
 
         for ws in owned_workspaces:
             # Delete all memberships for this workspace
@@ -196,9 +200,7 @@ def api_user_delete(id):
             db.session.delete(ws)
 
         # Delete user's memberships in other workspaces
-        db.session.execute(
-            db.delete(Membership).where(Membership.user_id == user.id)
-        )
+        db.session.execute(db.delete(Membership).where(Membership.user_id == user.id))
 
         db.session.delete(user)
         db.session.commit()
@@ -226,7 +228,9 @@ def api_activities():
     items = [
         {
             "id": activity.id,
-            "user": activity.user.display_name if activity.user else f"User ID: {activity.user_id}",
+            "user": activity.user.display_name
+            if activity.user
+            else f"User ID: {activity.user_id}",
             "action": activity.action,
             "data": activity.data,
             "created_at": activity.created_at.strftime("%Y-%m-%d %H:%M:%S"),

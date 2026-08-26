@@ -338,8 +338,12 @@ class APIKey(db.Model, BaseMixin):
     last_used_at = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
 
-    workspace = relationship("Workspace", backref=db.backref("api_keys", cascade="all, delete-orphan"))
-    user = relationship("User", backref=db.backref("api_keys", cascade="all, delete-orphan"))
+    workspace = relationship(
+        "Workspace", backref=db.backref("api_keys", cascade="all, delete-orphan")
+    )
+    user = relationship(
+        "User", backref=db.backref("api_keys", cascade="all, delete-orphan")
+    )
 
     @staticmethod
     def generate_key():
@@ -357,7 +361,9 @@ class APIKey(db.Model, BaseMixin):
             "name": self.name,
             "prefix": self.prefix,
             "is_active": self.is_active,
-            "last_used_at": self.last_used_at.isoformat() if self.last_used_at else None,
+            "last_used_at": self.last_used_at.isoformat()
+            if self.last_used_at
+            else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
@@ -438,7 +444,5 @@ class Session(db.Model, BaseMixin):
         conditions = [cls.user_id == user_id, cls.is_active.is_(True)]
         if exclude_token:
             conditions.append(cls.session_token != exclude_token)
-        db.session.execute(
-            update(cls).where(*conditions).values(is_active=False)
-        )
+        db.session.execute(update(cls).where(*conditions).values(is_active=False))
         db.session.commit()
