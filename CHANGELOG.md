@@ -13,6 +13,9 @@ All notable ReadyKit changes are documented here.
 - Removed obsolete Passlib, Flask-Script, and Setuptools compatibility packages.
 - Updated Cryptography and the documentation dependency tree to patched versions.
 
+Thanks to Ali Tanveer ([@alivirgo](https://github.com/alivirgo)) for privately
+reporting the Docker Compose port and default password issues.
+
 ### Fixed
 
 - Install Redis and Celery dependencies in the production Docker image.
