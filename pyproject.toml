@@ -21,7 +21,7 @@ dependencies = [
     # Flask extensions (production)
     "flask-sqlalchemy>=3.1.1",
     # 5.8.0-5.8.1: unpatched WebAuthn reauth freshness bypass (GHSA-f66q-9rf6-8795)
-    "flask-security-too>=5.6.2,<5.8",
+    "flask-security-too>=5.6.2,<5.9",
     "flask-session>=0.8.0",
     "flask-caching>=2.3.1",
     "flask-mail>=0.10.0",
