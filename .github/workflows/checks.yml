@@ -12,6 +12,10 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
+        billing-provider: [stripe, chargebee]
+
+    env:
+      BILLING_PROVIDER: ${{ matrix.billing-provider }}
 
     services:
       postgres:
@@ -43,6 +47,8 @@ jobs:
         run: uv run ruff check .
 
       - name: Run tests
+        env:
+          TEST_DATABASE_URI: postgresql://test:test@localhost:5432/test
         run: uv run pytest
 
       - name: Create database tables

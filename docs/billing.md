@@ -61,8 +61,14 @@ In Stripe Dashboard → Webhooks → Add endpoint:
 - **URL**: `https://yourdomain.com/stripe/webhook`
 - **Events to listen for**:
   - `checkout.session.completed`
+  - `checkout.session.async_payment_succeeded`
+  - `customer.subscription.created`
+  - `customer.subscription.updated`
   - `customer.subscription.deleted`
+  - `customer.subscription.paused`
+  - `customer.subscription.resumed`
   - `invoice.payment_failed`
+  - `invoice.paid`
 
 Copy the signing secret to `STRIPE_WEBHOOK_SECRET`.
 
@@ -103,7 +109,18 @@ In Chargebee Dashboard → Settings → Webhooks → Add webhook:
 - **Authentication**: Basic Auth with your configured username/password
 - **Events to listen for**:
   - `subscription_cancelled`
+  - `subscription_created`
+  - `subscription_started`
+  - `subscription_activated`
+  - `subscription_changed`
+  - `subscription_reactivated`
+  - `subscription_paused`
+  - `subscription_resumed`
+  - `subscription_renewed`
+  - `subscription_cancellation_scheduled`
+  - `subscription_scheduled_cancellation_removed`
   - `payment_failed`
+  - `payment_succeeded`
 
 ::: info Chargebee Webhook Security
 Chargebee uses HTTP Basic Auth for webhook verification (not HMAC signatures like Stripe). Always configure `CHARGEBEE_WEBHOOK_USERNAME` and `CHARGEBEE_WEBHOOK_PASSWORD` in production. Unauthenticated webhooks are only allowed in debug mode for local testing.
@@ -120,7 +137,8 @@ User clicks "Upgrade"
     → User completes payment
     → Provider redirects to success URL
     → Validate session
-    → Upgrade workspace to Pro
+    → Save the billing customer and read current subscriptions
+    → Grant Pro if the configured price has an eligible subscription
 ```
 
 ```python
@@ -183,44 +201,69 @@ def manage_billing(workspace_id):
 
 ## Webhook Handlers
 
-Webhooks update workspace status automatically when billing changes:
+Webhooks read current subscriptions from the provider before changing a workspace's
+plan. Event payloads can be old or arrive out of order. Access is based on the
+current subscription state for the configured Pro price, not the event's old state.
 
 ### Stripe Events
 
 | Event | Action |
 |-------|--------|
-| `checkout.session.completed` | Upgrade workspace to Pro, save customer_id |
-| `customer.subscription.deleted` | Downgrade workspace to Free |
-| `invoice.payment_failed` | Downgrade workspace to Free |
+| `checkout.session.completed`, `checkout.session.async_payment_succeeded` | Validate checkout, save customer ID, reconcile access |
+| Subscription created, updated, deleted, paused, resumed | Reconcile access |
+| `invoice.payment_failed`, `invoice.paid` | Reconcile access, including payment recovery |
+
+Stripe subscriptions with status `active` or `trialing` grant Pro. Other states,
+including `past_due`, `unpaid`, `paused`, and `canceled`, grant Free. Cancellation
+scheduled for the end of a term keeps access while the subscription is active.
 
 ### Chargebee Events
 
 | Event | Action |
 |-------|--------|
-| `subscription_cancelled` | Downgrade workspace to Free |
-| `payment_failed` | Downgrade workspace to Free |
+| Subscription lifecycle events listed above | Reconcile access |
+| `payment_failed`, `payment_succeeded` | Reconcile access, including payment recovery |
+
+Chargebee subscriptions with status `active`, `in_trial`, or `non_renewing` grant
+Pro. Other states grant Free. An active subscription keeps access during payment
+retries until Chargebee changes its status. Configure Chargebee's dunning policy
+to cancel or pause subscriptions when access should end.
 
 ::: tip Chargebee Upgrades
-Chargebee upgrades are handled via the redirect flow only (not webhooks). This is intentional - the webhook would arrive after the redirect in most cases anyway.
+The first Chargebee checkout still requires the success redirect to link the
+customer to the workspace. Once linked, webhooks handle recovery and later plan
+changes. Initial checkout without a browser return is not covered by this flow.
 :::
 
 ### Idempotency
 
-Webhooks are idempotent - duplicate events are safely ignored using the `BillingEvent` model:
+The `BillingEvent` receipt and the plan update commit in one transaction. Provider
+or database failures return HTTP 500 and roll back the receipt, so the provider can
+retry the same event. Only events already committed are acknowledged as duplicates.
+Handled events whose customer is not linked yet also return HTTP 500. This keeps
+early events retryable until checkout commits the customer link, even if the
+subscription changes price before that commit. Events for unrelated or deleted
+customers also retry; use a provider account dedicated to this application, and
+investigate persistent unlinked-customer errors. Linked customers without an
+eligible subscription for the configured Pro price receive Free access.
 
-```python
-# Duplicate events are caught by unique constraint
-try:
-    db.session.add(BillingEvent(
-        event_id=event_id,
-        event_type=event_type,
-        provider="stripe"  # or "chargebee"
-    ))
-    db.session.commit()
-except IntegrityError:
-    db.session.rollback()
-    return "OK", 200  # Already processed
-```
+PostgreSQL row locks serialize subscription reads and plan writes for each
+workspace. SQLite remains suitable for local development, but does not provide
+this row-lock behavior. Checkout redirects use the same reconciliation path, so
+revisiting an old checkout cannot restore a cancelled subscription.
+
+Existing customer IDs are reused for new checkouts. A checkout from a different
+customer cannot replace the workspace's current customer mapping.
+
+### Upgrading an Existing Installation
+
+There is no database migration. Enable the additional events listed above in your
+provider's webhook settings. Keep the Pro price configuration aligned with the
+subscriptions that should grant access.
+
+Receipts committed by the old handler cannot establish whether processing
+succeeded. This fix does not repair those old events automatically; reconcile
+affected workspaces against the provider before changing existing receipts.
 
 ## Gating Features
 

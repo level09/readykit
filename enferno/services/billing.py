@@ -5,7 +5,7 @@ Uses hosted pages - no custom checkout UI.
 
 import json
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from functools import wraps
 from typing import Any
 
@@ -16,6 +16,52 @@ from enferno.services.workspace import get_current_workspace
 from enferno.user.models import Workspace
 
 PROVIDER = os.environ.get("BILLING_PROVIDER", "stripe")
+
+
+def _set_plan(workspace, is_pro):
+    if is_pro and not workspace.is_pro:
+        workspace.upgraded_at = datetime.now(UTC).replace(tzinfo=None)
+    workspace.plan = "pro" if is_pro else "free"
+
+
+def _customer_workspace(customer_id):
+    if not customer_id:
+        raise ValueError("Missing billing customer")
+    # Serialize provider reads as well as writes for concurrent events.
+    workspace = db.session.execute(
+        db.select(Workspace)
+        .where(Workspace.billing_customer_id == customer_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    ).scalar_one_or_none()
+    if not workspace:
+        # Checkout may not have committed the customer link yet.
+        raise ValueError("Billing customer is not linked to a workspace")
+    return workspace
+
+
+def _complete_checkout(workspace_id, customer_id, commit):
+    workspace = db.session.scalar(
+        db.select(Workspace)
+        .where(Workspace.id == int(workspace_id))
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if not workspace:
+        return None
+    if workspace.billing_customer_id not in {None, customer_id}:
+        raise ValueError("Checkout customer does not match workspace")
+    try:
+        workspace.billing_customer_id = customer_id
+        HostedBilling.sync_customer(customer_id)
+        if commit:
+            db.session.commit()
+    except Exception:
+        if commit:
+            db.session.rollback()
+        raise
+    return workspace.id if workspace.is_pro else None
+
 
 if PROVIDER == "stripe":
     import stripe
@@ -40,8 +86,14 @@ if PROVIDER == "stripe":
             if not price_id:
                 raise RuntimeError("Stripe price not configured")
 
+            workspace = db.session.get(Workspace, workspace_id)
+            customer = (
+                {"customer": workspace.billing_customer_id}
+                if workspace.billing_customer_id
+                else {"customer_email": user_email}
+            )
             session = stripe.checkout.Session.create(
-                customer_email=user_email,
+                **customer,
                 line_items=[{"price": price_id, "quantity": 1}],
                 mode="subscription",
                 success_url=f"{base_url}billing/success?session_id={{CHECKOUT_SESSION_ID}}",
@@ -65,7 +117,29 @@ if PROVIDER == "stripe":
             return session
 
         @staticmethod
-        def handle_successful_payment(session_id: str) -> int:
+        def sync_customer(customer_id: str):
+            """Apply current provider state; the caller owns the transaction."""
+            workspace = _customer_workspace(customer_id)
+            _init_stripe()
+            price_id = current_app.config.get("STRIPE_PRO_PRICE_ID")
+            if not price_id:
+                raise RuntimeError("Stripe price not configured")
+            subscriptions = stripe.Subscription.list(
+                customer=customer_id,
+                price=price_id,
+                status="all",
+                limit=100,
+            )
+            _set_plan(
+                workspace,
+                any(
+                    subscription.status in {"active", "trialing"}
+                    for subscription in subscriptions.auto_paging_iter()
+                ),
+            )
+
+        @staticmethod
+        def handle_successful_payment(session_id: str, *, commit=True) -> int | None:
             """Handle successful Stripe payment by upgrading the workspace."""
             _init_stripe()
             session = stripe.checkout.Session.retrieve(session_id)
@@ -85,29 +159,11 @@ if PROVIDER == "stripe":
                 )
                 return None
 
-            workspace_id = session.metadata.get("workspace_id")
+            workspace_id = session.metadata.to_dict().get("workspace_id")
             if not workspace_id:
                 return None
 
-            workspace = db.session.get(Workspace, int(workspace_id))
-            if not workspace:
-                return None
-
-            if workspace.is_pro:
-                return workspace.id
-
-            try:
-                workspace.plan = "pro"
-                workspace.billing_customer_id = session.customer
-                workspace.upgraded_at = datetime.utcnow()
-                db.session.commit()
-                return workspace.id
-            except Exception as e:
-                db.session.rollback()
-                current_app.logger.error(
-                    f"Failed to upgrade workspace {workspace_id}: {e}"
-                )
-                return None
+            return _complete_checkout(workspace_id, session.customer, commit)
 
 elif PROVIDER == "chargebee":
     from chargebee import Chargebee
@@ -138,10 +194,16 @@ elif PROVIDER == "chargebee":
             if not item_price_id:
                 raise RuntimeError("Chargebee item price not configured")
 
+            workspace = db.session.get(Workspace, workspace_id)
+            customer = (
+                {"id": workspace.billing_customer_id}
+                if workspace.billing_customer_id
+                else {"email": user_email}
+            )
             result = cb.HostedPage.checkout_new_for_items(
                 {
                     "subscription_items": [{"item_price_id": item_price_id}],
-                    "customer": {"email": user_email},
+                    "customer": customer,
                     "redirect_url": f"{base_url}billing/success",
                     "cancel_url": f"{base_url}dashboard",
                     "pass_thru_content": json.dumps(
@@ -179,7 +241,35 @@ elif PROVIDER == "chargebee":
             return PortalSessionWrapper(portal_session)
 
         @staticmethod
-        def handle_successful_payment(hosted_page_id: str) -> int:
+        def sync_customer(customer_id: str):
+            """Apply current provider state; the caller owns the transaction."""
+            workspace = _customer_workspace(customer_id)
+            cb = _init_chargebee()
+            price_id = current_app.config.get("CHARGEBEE_PRO_ITEM_PRICE_ID")
+            if not price_id:
+                raise RuntimeError("Chargebee price not configured")
+            params = {
+                "customer_id": {"is": customer_id},
+                "item_price_id": {"is": price_id},
+                "limit": 100,
+            }
+            while True:
+                result = cb.Subscription.list(params)
+                if any(
+                    entry.subscription.status in {"active", "in_trial", "non_renewing"}
+                    for entry in result.list
+                ):
+                    _set_plan(workspace, True)
+                    return
+                if not result.next_offset:
+                    _set_plan(workspace, False)
+                    return
+                params["offset"] = result.next_offset
+
+        @staticmethod
+        def handle_successful_payment(
+            hosted_page_id: str, *, commit=True
+        ) -> int | None:
             """Handle successful Chargebee payment by upgrading the workspace."""
             cb = _init_chargebee()
             result = cb.HostedPage.retrieve(hosted_page_id)
@@ -199,26 +289,9 @@ elif PROVIDER == "chargebee":
             if not workspace_id:
                 return None
 
-            workspace = db.session.get(Workspace, int(workspace_id))
-            if not workspace:
-                return None
-
-            if workspace.is_pro:
-                return workspace.id
-
-            try:
-                workspace.plan = "pro"
-                # Chargebee content is dict-like: content["customer"]["id"]
-                workspace.billing_customer_id = hosted_page.content["customer"]["id"]
-                workspace.upgraded_at = datetime.utcnow()
-                db.session.commit()
-                return workspace.id
-            except Exception as e:
-                db.session.rollback()
-                current_app.logger.error(
-                    f"Failed to upgrade workspace {workspace_id}: {e}"
-                )
-                return None
+            return _complete_checkout(
+                workspace_id, hosted_page.content["customer"]["id"], commit
+            )
 
 else:
     raise RuntimeError(f"Unknown BILLING_PROVIDER: {PROVIDER}")

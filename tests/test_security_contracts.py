@@ -5,6 +5,7 @@ from flask_security.utils import hash_password, verify_password
 from werkzeug.exceptions import Forbidden
 
 from enferno.extensions import db
+from enferno.services.billing import PROVIDER
 from enferno.services.workspace import require_workspace_access
 from enferno.user.models import Membership, User, Workspace
 
@@ -89,6 +90,7 @@ def test_member_cannot_use_admin_route(app):
                 endpoint(workspace_id=workspace.id)
 
 
+@pytest.mark.skipif(PROVIDER != "stripe", reason="Stripe provider only")
 def test_stripe_webhook_rejects_invalid_signature(app):
     response = app.test_client().post(
         "/stripe/webhook",

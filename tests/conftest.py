@@ -13,7 +13,7 @@ from enferno.settings import Config
 
 class TestConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite://"
+    SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URI", "sqlite://")
     SESSION_TYPE = "sqlalchemy"
     SESSION_REDIS = None
     STRIPE_WEBHOOK_SECRET = "whsec_test"

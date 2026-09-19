@@ -4,16 +4,47 @@ from flask import Blueprint, current_app, request
 from sqlalchemy.exc import IntegrityError
 
 from enferno.extensions import db
-from enferno.user.models import BillingEvent, Workspace
+from enferno.services.billing import HostedBilling
+from enferno.user.models import BillingEvent
 
 webhooks_bp = Blueprint("webhooks", __name__)
 
 PROVIDER = os.environ.get("BILLING_PROVIDER", "stripe")
 
+
+def _process_event(event_id, event_type, process):
+    if not isinstance(event_id, str) or not event_id or not isinstance(event_type, str):
+        return "Invalid event", 400
+
+    try:
+        db.session.add(
+            BillingEvent(event_id=event_id, event_type=event_type, provider=PROVIDER)
+        )
+        db.session.flush()
+    except IntegrityError:
+        db.session.rollback()
+        if db.session.scalar(
+            db.select(BillingEvent.id).where(
+                BillingEvent.event_id == event_id, BillingEvent.provider == PROVIDER
+            )
+        ):
+            return "OK", 200
+        current_app.logger.exception("Failed to record billing event %s", event_id)
+        return "Processing failed", 500
+
+    try:
+        process()
+        # A receipt must not survive a failed plan update.
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Failed to process billing event %s", event_id)
+        return "Processing failed", 500
+    return "OK", 200
+
+
 if PROVIDER == "stripe":
     import stripe
-
-    from enferno.services.billing import HostedBilling
 
     @webhooks_bp.route("/stripe/webhook", methods=["POST"])
     def stripe_webhook():
@@ -26,65 +57,33 @@ if PROVIDER == "stripe":
             return "Webhook secret not configured", 500
 
         try:
-            event = stripe.Webhook.construct_event(payload, sig_header, secret)
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, secret
+            ).to_dict()
         except (ValueError, stripe.SignatureVerificationError) as e:
             current_app.logger.error(f"Webhook error: {e}")
             return "Invalid request", 400
 
-        # Skip duplicate events
-        event_id = event.get("id")
-        try:
-            db.session.add(
-                BillingEvent(
-                    event_id=event_id, event_type=event.get("type"), provider="stripe"
+        def process():
+            if event["type"] in {
+                "checkout.session.completed",
+                "checkout.session.async_payment_succeeded",
+            }:
+                HostedBilling.handle_successful_payment(
+                    event["data"]["object"]["id"], commit=False
                 )
-            )
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            return "OK", 200
+            elif event["type"] in {
+                "customer.subscription.created",
+                "customer.subscription.updated",
+                "customer.subscription.deleted",
+                "customer.subscription.paused",
+                "customer.subscription.resumed",
+                "invoice.payment_failed",
+                "invoice.paid",
+            }:
+                HostedBilling.sync_customer(event["data"]["object"]["customer"])
 
-        # Handle checkout completion
-        if event["type"] == "checkout.session.completed":
-            session = event["data"]["object"]
-            session_id = session.get("id")
-
-            HostedBilling.handle_successful_payment(session_id)
-            current_app.logger.info(f"Processed checkout: {session_id}")
-
-        # Handle subscription cancellation (downgrade to free)
-        elif event["type"] == "customer.subscription.deleted":
-            subscription = event["data"]["object"]
-            customer_id = subscription.get("customer")
-
-            workspace = db.session.execute(
-                db.select(Workspace).where(Workspace.billing_customer_id == customer_id)
-            ).scalar_one_or_none()
-
-            if workspace:
-                workspace.plan = "free"
-                db.session.commit()
-                current_app.logger.info(
-                    f"Downgraded workspace {workspace.id} to free (subscription cancelled)"
-                )
-
-        # Handle payment failure (downgrade to free)
-        elif event["type"] == "invoice.payment_failed":
-            invoice = event["data"]["object"]
-            customer_id = invoice.get("customer")
-
-            workspace = db.session.execute(
-                db.select(Workspace).where(Workspace.billing_customer_id == customer_id)
-            ).scalar_one_or_none()
-
-            if workspace and workspace.plan == "pro":
-                workspace.plan = "free"
-                db.session.commit()
-                current_app.logger.warning(
-                    f"Downgraded workspace {workspace.id} to free (payment failed)"
-                )
-
-        return "OK", 200
+        return _process_event(event.get("id"), event.get("type"), process)
 
 elif PROVIDER == "chargebee":
 
@@ -111,57 +110,25 @@ elif PROVIDER == "chargebee":
             return "Unauthorized", 401
 
         event = request.get_json()
-        if not event:
+        if not isinstance(event, dict) or not event:
             return "Invalid request", 400
 
-        event_type = event.get("event_type")
-        event_id = event.get("id")
+        def process():
+            if event["event_type"] in {
+                "subscription_created",
+                "subscription_started",
+                "subscription_activated",
+                "subscription_changed",
+                "subscription_cancelled",
+                "subscription_reactivated",
+                "subscription_paused",
+                "subscription_resumed",
+                "subscription_renewed",
+                "subscription_cancellation_scheduled",
+                "subscription_scheduled_cancellation_removed",
+                "payment_failed",
+                "payment_succeeded",
+            }:
+                HostedBilling.sync_customer(event["content"]["customer"]["id"])
 
-        # Skip duplicate events
-        try:
-            db.session.add(
-                BillingEvent(
-                    event_id=event_id, event_type=event_type, provider="chargebee"
-                )
-            )
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            return "OK", 200
-
-        content = event.get("content", {})
-
-        # Handle subscription cancellation (downgrade to free)
-        # Note: Upgrades handled via redirect flow, not webhook
-        if event_type == "subscription_cancelled":
-            customer = content.get("customer", {})
-            customer_id = customer.get("id")
-
-            workspace = db.session.execute(
-                db.select(Workspace).where(Workspace.billing_customer_id == customer_id)
-            ).scalar_one_or_none()
-
-            if workspace:
-                workspace.plan = "free"
-                db.session.commit()
-                current_app.logger.info(
-                    f"Downgraded workspace {workspace.id} to free (subscription cancelled)"
-                )
-
-        # Handle payment failure (downgrade to free)
-        elif event_type == "payment_failed":
-            customer = content.get("customer", {})
-            customer_id = customer.get("id")
-
-            workspace = db.session.execute(
-                db.select(Workspace).where(Workspace.billing_customer_id == customer_id)
-            ).scalar_one_or_none()
-
-            if workspace and workspace.plan == "pro":
-                workspace.plan = "free"
-                db.session.commit()
-                current_app.logger.warning(
-                    f"Downgraded workspace {workspace.id} to free (payment failed)"
-                )
-
-        return "OK", 200
+        return _process_event(event.get("id"), event.get("event_type"), process)
