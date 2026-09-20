@@ -8,7 +8,7 @@
     "preview": "vitepress preview"
   },
   "devDependencies": {
-    "vite": "6.4.3",
+    "vite": "8.3.0",
     "vitepress": "1.6.4"
   },
   "overrides": {
@@ -16,6 +16,6 @@
     "postcss": "8.5.23",
     "preact": "10.29.7",
     "rollup": "4.62.2",
-    "vite": "6.4.3"
+    "vite": "8.3.0"
   }
 }
