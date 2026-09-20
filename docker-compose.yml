@@ -82,6 +82,12 @@ services:
     build: .
     user: "${DOCKER_UID:-1000}"
     command: celery -A enferno.tasks worker -l info
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A enferno.tasks inspect ping --destination celery@$$HOSTNAME --timeout 5"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     volumes:
       - './enferno:/app/enferno'
       - './run.py:/app/run.py'

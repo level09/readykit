@@ -18,6 +18,7 @@ reporting the Docker Compose port and default password issues.
 
 ### Fixed
 
+- Check the Docker Compose Celery worker through Redis instead of HTTP.
 - Install Redis and Celery dependencies in the production Docker image.
 - Reject unsupported Python versions during setup.
 - Configure Redis sessions and local cookie security correctly during setup.

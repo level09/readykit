@@ -26,6 +26,15 @@ This starts:
 - **Nginx** reverse proxy with SSL
 - **Celery** worker for background tasks
 
+The web container uses an HTTP health check. The Celery container overrides it
+with a ping to its own worker through Redis. An unresponsive worker or unavailable
+broker causes this check to fail. Docker reports the health status; it does not
+restart an unhealthy container automatically.
+
+The supplied Fly.io and Railway configs run only the web app. The systemd worker
+does not use Docker health checks. If you run a separate worker from the Docker
+image, override its HTTP health check as shown in `docker-compose.yml`.
+
 ### Configuration
 
 1. Copy and edit environment file:
