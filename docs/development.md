@@ -103,6 +103,10 @@ class Project(db.Model, WorkspaceScoped):
 
 ### 2. Create the Route
 
+Protect the route and scope its queries separately. `WorkspaceScoped` filters only
+calls to its helpers; it does not change `db.select()` or `db.session.get()`.
+Set new records' `workspace_id` from `g.current_workspace.id` after the access check.
+
 ```python
 from enferno.services.workspace import require_workspace_access
 from flask import g, render_template

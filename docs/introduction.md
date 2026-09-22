@@ -8,7 +8,9 @@ Built on the [Enferno framework](https://github.com/level09/enferno), ReadyKit a
 
 ### Multi-Tenant Workspaces
 
-Every user gets their own workspace. Data is automatically scoped to workspaces, ensuring complete isolation between customers.
+Workspaces group each customer's business data. Protected routes check membership,
+and workspace query helpers filter records. New features must use both protections;
+ordinary SQLAlchemy queries are not automatically scoped.
 
 - Automatic workspace creation on signup
 - Workspace-scoped data models

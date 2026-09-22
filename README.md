@@ -103,7 +103,7 @@ Example - workspace-scoped model:
 from enferno.services.workspace import WorkspaceScoped, require_workspace_access
 
 class Invoice(db.Model, WorkspaceScoped):
-    workspace_id = db.Column(db.Integer, db.ForeignKey('workspace.id'))
+    workspace_id = db.Column(db.Integer, db.ForeignKey('workspace.id'), nullable=False)
     # your fields here
 
 @app.get("/workspace/<int:workspace_id>/invoices/")
@@ -113,7 +113,10 @@ def invoices(workspace_id):
     return render_template("invoices.html", invoices=invoices)
 ```
 
-All queries are automatically scoped to the current workspace.
+The decorator checks membership; `for_current_workspace()` and `get_by_id()`
+filter records to the selected workspace. Ordinary SQLAlchemy queries are not
+automatically filtered. Use these helpers or an explicit `workspace_id` filter
+for every query on workspace data. See the [workspace guide](docs/workspaces.md).
 
 ### Database Migrations
 

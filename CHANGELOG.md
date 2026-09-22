@@ -27,6 +27,7 @@ reporting the Docker Compose port and default password issues.
 
 ### Changed
 
+- Clarified workspace query scoping and added route tests for cross-workspace access and revoked membership.
 - Removed `enferno.__version__`; `pyproject.toml` is the single source of truth.
 - Applied `ruff format` to the four files that had drifted from it.
 - Test Python 3.11, 3.12, and 3.13 in CI.

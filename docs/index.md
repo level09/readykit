@@ -16,7 +16,7 @@ hero:
 features:
   - icon: 🏢
     title: Multi-Tenant Workspaces
-    details: Every user gets their own workspace with complete data isolation. Built-in workspace-scoped models and queries.
+    details: Workspace membership checks and scoped query helpers for keeping customer data separate.
   - icon: 💳
     title: Subscription Billing
     details: Stripe or Chargebee. Hosted checkout, customer portal, and webhook handlers. Free and Pro plans out of the box.

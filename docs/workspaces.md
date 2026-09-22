@@ -4,7 +4,9 @@ Multi-tenant architecture for data isolation.
 
 ## Overview
 
-ReadyKit uses workspaces as the foundation for multi-tenancy. Every piece of business data belongs to a workspace, ensuring complete isolation between customers.
+ReadyKit groups business data by workspace. Isolation depends on two explicit
+steps: check the user's membership with `require_workspace_access`, then filter
+every data query to that workspace. The model mixin does not add global query filters.
 
 ## How It Works
 
@@ -17,7 +19,7 @@ User → Membership → Workspace
 - Users can belong to multiple workspaces
 - Each workspace has one owner (the creator)
 - Members have either `admin` or `member` role
-- All business data is scoped to a workspace
+- Business data must be queried and written within its workspace
 
 ## Automatic Workspace Creation
 
@@ -76,7 +78,7 @@ def list_projects(workspace_id):
 ### What the Decorator Does
 
 1. Verifies user is authenticated
-2. Fetches workspace from URL parameter
+2. Fetches the workspace from the URL parameter, or the session when the URL has none
 3. Checks user has membership in workspace
 4. Validates role requirement (`admin` or `member`)
 5. Sets session and context:
@@ -103,12 +105,16 @@ class Project(db.Model, WorkspaceScoped):
 ```
 
 ::: warning
-Always include `workspace_id` as a non-nullable foreign key. This ensures data isolation at the database level.
+Always include `workspace_id` as a non-nullable foreign key to identify the record's
+workspace. This does not restrict which rows a query can read or change. ReadyKit
+does not configure database row-level security.
 :::
 
 ## Querying Workspace Data
 
-The `WorkspaceScoped` mixin provides convenient query methods:
+The `WorkspaceScoped` mixin provides query methods that filter by the selected
+workspace. Call them from a route protected by `require_workspace_access`; they
+read the session context and do not check membership themselves.
 
 ```python
 # Get all records for current workspace
@@ -127,6 +133,17 @@ from enferno.services.workspace import workspace_query
 stmt = workspace_query(Project).where(Project.status == "active")
 active_projects = db.session.execute(stmt).scalars().all()
 ```
+
+`db.select(Project)`, `db.session.get(Project, id)`, bulk updates, and bulk deletes
+do not gain workspace filters from the mixin. Add an explicit filter when you do
+not use the helpers:
+
+```python
+stmt = db.select(Project).where(Project.workspace_id == g.current_workspace.id)
+```
+
+Without a workspace selected, `workspace_query()` and `for_current_workspace()`
+raise `ValueError`; `get_by_id()` returns `None`.
 
 ## Workspace Service Methods
 
@@ -175,7 +192,8 @@ role = current_user.get_workspace_role(workspace_id)  # Returns "admin" or "memb
 ## Security Best Practices
 
 ::: details Always use the decorator
-Never access workspace data without `@require_workspace_access()`. The decorator handles all security checks.
+Use `@require_workspace_access()` on workspace routes. It validates membership
+and the required role. Each query must still filter records by workspace.
 :::
 
 ::: details Don't trust session alone
@@ -183,9 +201,13 @@ Never access workspace data without `@require_workspace_access()`. The decorator
 :::
 
 ::: details Include workspace_id in queries
-Even with the mixin, always scope queries to workspace_id. Defense in depth.
+Use the scoped helpers or filter by `g.current_workspace.id`. A foreign key and
+the mixin alone do not filter ordinary SQLAlchemy queries.
 :::
 
 ::: details Validate ownership for destructive actions
-For delete/modify operations, verify the record's workspace_id matches the current workspace.
+For updates and deletes, fetch the record with `get_by_id()` or an explicit
+workspace filter before changing it. Return 404 when that lookup finds no record.
+For creation, set `workspace_id` from `g.current_workspace.id`, not the request
+body. Do not let a general field-update method move a record to another workspace.
 :::
