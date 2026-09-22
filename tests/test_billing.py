@@ -5,6 +5,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event, Lock
 from types import SimpleNamespace
+from urllib.parse import urlsplit
 
 import pytest
 from sqlalchemy import event
@@ -443,6 +444,44 @@ def test_checkout_reuses_customer(app, workspace, provider, monkeypatch):
         "https://app.example/",
     )
     assert result.url == "https://checkout.example"
+
+
+def test_billing_portal_returns_to_workspace_settings(
+    app, workspace, provider, monkeypatch
+):
+    params = {}
+    portal = SimpleNamespace(id="portal_test", access_url="https://portal.example")
+    if PROVIDER == "stripe":
+        import stripe
+
+        def create(**kwargs):
+            params.update(kwargs)
+            return portal
+
+        monkeypatch.setattr(stripe.billing_portal.Session, "create", create)
+        return_field = "return_url"
+    else:
+
+        def create(values):
+            params.update(values)
+            return SimpleNamespace(portal_session=portal)
+
+        monkeypatch.setattr(
+            billing._cb_client,
+            "PortalSession",
+            SimpleNamespace(create=create),
+            raising=False,
+        )
+        return_field = "redirect_url"
+
+    with app.test_request_context(base_url="https://app.example/"):
+        billing.HostedBilling.create_portal_session(
+            workspace.billing_customer_id, workspace.id, "https://app.example/"
+        )
+    destination = urlsplit(params[return_field])
+    assert destination.netloc == "app.example"
+    endpoint, _ = app.url_map.bind("app.example").match(destination.path)
+    assert endpoint == "portal.workspace_settings"
 
 
 @pytest.mark.skipif(PROVIDER != "stripe", reason="Stripe checkout webhook")

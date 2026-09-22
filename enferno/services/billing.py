@@ -8,6 +8,7 @@ import os
 from datetime import UTC, datetime
 from functools import wraps
 from typing import Any
+from urllib.parse import urljoin
 
 from flask import current_app, jsonify, redirect, request, url_for
 
@@ -111,7 +112,7 @@ if PROVIDER == "stripe":
             _init_stripe()
             session = stripe.billing_portal.Session.create(
                 customer=customer_id,
-                return_url=f"{base_url}workspace/{workspace_id}/settings",
+                return_url=urljoin(base_url, url_for("portal.workspace_settings")),
             )
             current_app.logger.info(f"Created Stripe Portal session: {session.id}")
             return session
@@ -224,7 +225,9 @@ elif PROVIDER == "chargebee":
             result = cb.PortalSession.create(
                 {
                     "customer": {"id": customer_id},
-                    "redirect_url": f"{base_url}workspace/{workspace_id}/settings",
+                    "redirect_url": urljoin(
+                        base_url, url_for("portal.workspace_settings")
+                    ),
                 }
             )
             portal_session = result.portal_session

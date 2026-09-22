@@ -18,6 +18,7 @@ reporting the Docker Compose port and default password issues.
 
 ### Fixed
 
+- Return Stripe and Chargebee billing portal users to workspace settings instead of a missing page.
 - Check the Docker Compose Celery worker through Redis instead of HTTP.
 - Install Redis and Celery dependencies in the production Docker image.
 - Reject unsupported Python versions during setup.
