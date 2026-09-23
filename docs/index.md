@@ -22,13 +22,13 @@ features:
     details: Stripe or Chargebee. Hosted checkout, customer portal, and webhook handlers. Free and Pro plans out of the box.
   - icon: 👥
     title: Team Collaboration
-    details: Invite members with admin or member roles. Owner protection and role-based access control.
+    details: Create member accounts with admin or member roles. Owner protection and role-based access control.
   - icon: 🔐
     title: Authentication
     details: Email/password, Google & GitHub OAuth, 2FA with TOTP, WebAuthn passkeys, and recovery codes.
   - icon: ⚡
     title: Modern Stack
-    details: Flask 3.1, Vue 3, Vuetify 3, SQLAlchemy 2.0, Celery, Redis - all configured and ready.
+    details: Flask 3.1, Vue 3, Vuetify 3, and SQLAlchemy. SQLite for local setup, with optional Redis and Celery.
   - icon: 🚀
     title: Deploy Anywhere
     details: Docker Compose for any server, Fly.io with CI/CD, or traditional deployment guides.

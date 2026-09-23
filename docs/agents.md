@@ -6,11 +6,13 @@ Using AI tools effectively with ReadyKit.
 
 ReadyKit is designed to work seamlessly with AI-powered development tools like Cursor, Claude Code, and GitHub Copilot. The codebase follows consistent patterns that AI assistants can understand and replicate.
 
-## Setting Up CLAUDE.md
+## Project Instructions
 
-For the best AI-assisted development experience, create a `CLAUDE.md` file at your project root. This file provides context to AI assistants like Claude Code.
+The repository includes `AGENTS.md` with shared project patterns. `CLAUDE.md` is
+ignored by Git; if you use one locally, point it to `AGENTS.md` instead of maintaining
+a second copy. Update the shared instructions when the architecture changes.
 
-A well-structured CLAUDE.md should include:
+The shared instructions cover:
 
 - Project architecture overview
 - Multi-tenant patterns and conventions
@@ -112,7 +114,7 @@ from flask_security import current_user, auth_required
 
 If you're an AI assistant working with ReadyKit:
 
-1. **Always scope data to workspaces** - Use `workspace_id` foreign key and `WorkspaceScoped` mixin
+1. **Always scope data to workspaces** - Use scoped helpers or explicit workspace filters. A foreign key and mixin alone do not filter ordinary queries.
 2. **Use the decorator** - `@require_workspace_access('member')` or `@require_workspace_access('admin')`
 3. **Access workspace via `g`** - After the decorator, use `g.current_workspace`
 4. **SQLAlchemy 2.0 style** - Use `db.select()`, `db.session.scalars()`, not legacy Query API

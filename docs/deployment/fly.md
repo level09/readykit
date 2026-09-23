@@ -1,6 +1,8 @@
 # Fly.io Deployment
 
-Automated CI/CD deployment to Fly.io. Push to `master` and your app deploys in ~2 minutes.
+The supplied GitHub Actions workflow deploys manually. Enable its commented push
+trigger if you want deployments on `master` changes. `fly.toml` configures a web
+process only; it does not start a Celery worker.
 
 ## One-Time Setup
 
@@ -29,13 +31,9 @@ flyctl apps create your-app-name
 
 ### 3. Create Postgres Database
 
-```bash
-# Create database
-flyctl postgres create --name your-app-name-db --region iad --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1
-
-# Attach to your app (sets DATABASE_URL automatically)
-flyctl postgres attach your-app-name-db -a your-app-name
-```
+Provision PostgreSQL for your app and obtain its connection URI from the database
+setup. ReadyKit reads `SQLALCHEMY_DATABASE_URI`, not `DATABASE_URL`; set it explicitly
+using the `postgresql://` scheme. Keep the database provider's required TLS options.
 
 ### 4. Set Secrets
 
@@ -44,14 +42,16 @@ flyctl postgres attach your-app-name-db -a your-app-name
 flyctl secrets set -a your-app-name \
   SECRET_KEY="$(openssl rand -hex 32)" \
   SECURITY_PASSWORD_SALT="$(openssl rand -hex 32)" \
-  SECURITY_TOTP_SECRETS="$(openssl rand -hex 32)"
+  SECURITY_TOTP_SECRETS="$(openssl rand -hex 32)" \
+  SESSION_COOKIE_SECURE=True
 
-# Fix database URL (Fly uses postgres://, SQLAlchemy needs postgresql://)
-# Get the DATABASE_URL from: flyctl secrets list -a your-app-name
-# Then set SQLALCHEMY_DATABASE_URI with postgresql:// prefix:
+# Use the actual connection URI from your database setup:
 flyctl secrets set -a your-app-name \
-  SQLALCHEMY_DATABASE_URI="postgresql://user:pass@your-app-name-db.flycast:5432/your-app-name?sslmode=disable"
+  SQLALCHEMY_DATABASE_URI="postgresql://user:pass@database-host/database-name"
 ```
+
+`flyctl secrets list` shows names and digests, not secret values. See the
+[Fly secrets reference](https://fly.io/docs/flyctl/secrets-list/).
 
 ### 5. Update fly.toml
 
@@ -96,21 +96,18 @@ SSH into your app and create the admin:
 
 ```bash
 flyctl ssh console -a your-app-name
-python -c "from run import app; from enferno.commands import create_db, install; app.app_context().push(); create_db(); install()"
+# Inside the deployed container, for a fresh database:
+flask create-db
+flask install
 ```
 
-Or run interactively:
-```bash
-flyctl ssh console -a your-app-name -C "flask create-db && flask install"
-```
+For existing databases, run `flask db upgrade` instead of `flask create-db`.
 
 ### Optional: Add Redis
 
-For sessions and Celery background tasks:
-
-```bash
-flyctl redis create --name your-app-name-redis --region iad --no-replicas
-```
+Provision a Redis service reachable from the app for Redis sessions. Without
+Redis, sessions use the configured SQLAlchemy database. Background jobs also need
+a separate Celery worker; setting broker variables does not start one.
 
 Then set the Redis secrets:
 ```bash

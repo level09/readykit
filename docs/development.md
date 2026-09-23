@@ -50,12 +50,13 @@ def before_request():
 
 @portal.route('/dashboard/')
 def dashboard():
-    return render_template('portal/dashboard.html')
+    return render_template('dashboard.html', workspaces=[])
 ```
 
 ### Public (Unauthenticated)
 
-Landing pages, login, registration:
+Landing pages and OAuth account handling. Flask-Security supplies password login;
+email/password self-registration is disabled.
 
 ```python
 from flask import Blueprint
@@ -64,23 +65,25 @@ public = Blueprint('public', __name__)
 
 @public.route('/')
 def index():
-    return render_template('public/index.html')
+    return render_template('index.html')
 ```
 
 ### User
 
-Profile and account management:
+Superadmin user management. Profile and security pages belong to the portal blueprint.
 
 ```python
 from flask import Blueprint
 from flask_security import auth_required
+from enferno.services.auth import require_superadmin
 
 user = Blueprint('user', __name__)
 
-@user.route('/profile/')
-@auth_required()
-def profile():
-    return render_template('user/profile.html')
+@user.before_request
+@auth_required("session")
+@require_superadmin()
+def before_request():
+    pass
 ```
 
 ## Creating Workspace-Scoped Features
@@ -109,13 +112,13 @@ Set new records' `workspace_id` from `g.current_workspace.id` after the access c
 
 ```python
 from enferno.services.workspace import require_workspace_access
-from flask import g, render_template
+from flask import abort, g, render_template
 
 @portal.route('/workspace/<int:workspace_id>/projects/')
 @require_workspace_access('member')
 def list_projects(workspace_id):
     projects = Project.for_current_workspace()
-    return render_template('projects/list.html', projects=projects)
+    return render_template('projects/list.html', projects=projects, workspace=g.current_workspace)
 
 @portal.route('/workspace/<int:workspace_id>/projects/<int:project_id>/')
 @require_workspace_access('member')
@@ -177,7 +180,7 @@ users = db.session.scalars(stmt).all()
 
 # Workspace-scoped query
 from enferno.services.workspace import workspace_query
-stmt = workspace_query(Project).where(Project.status == 'active')
+stmt = workspace_query(Project).where(Project.name.ilike('Acme%'))
 projects = db.session.scalars(stmt).all()
 
 # Create
@@ -222,7 +225,7 @@ from enferno.tasks import send_welcome_email
 send_welcome_email.delay(user.id)
 ```
 
-Run the worker:
+After installing the `full` extra and configuring Redis, run the worker:
 
 ```bash
 uv run celery -A enferno.tasks worker --loglevel=info
@@ -295,7 +298,7 @@ from flask import jsonify
 
 @api.route('/projects/')
 @require_workspace_access('member')
-def api_list_projects(workspace_id):
+def api_list_projects():
     projects = Project.for_current_workspace()
     return jsonify([{
         'id': p.id,

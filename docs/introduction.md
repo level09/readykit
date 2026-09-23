@@ -12,10 +12,10 @@ Workspaces group each customer's business data. Protected routes check membershi
 and workspace query helpers filter records. New features must use both protections;
 ordinary SQLAlchemy queries are not automatically scoped.
 
-- Automatic workspace creation on signup
+- Automatic workspace creation for new OAuth accounts
 - Workspace-scoped data models
 - Session-based workspace context
-- Solo users never see workspace UI (invisible until they need teams)
+- Non-superadmins with one workspace skip workspace selection
 
 ### Subscription Billing
 
@@ -28,7 +28,8 @@ Stripe or Chargebee - your choice. Hosted pages, no custom checkout UI to mainta
 
 ### Team Collaboration
 
-Invite team members to your workspace with role-based access control.
+Workspace admins create member accounts and assign roles. Email invitations are
+not implemented yet.
 
 - Admin and Member roles
 - Member management UI
@@ -48,7 +49,8 @@ Comprehensive auth system with modern security features.
 - **Backend**: Python 3.11+, Flask 3.1, SQLAlchemy 2.0
 - **Frontend**: Vue 3, Vuetify 3 (Material Design)
 - **Database**: PostgreSQL (production), SQLite (development)
-- **Task Queue**: Celery with Redis
+- **Sessions**: SQLAlchemy by default, Redis with the full setup
+- **Task Queue**: Optional Celery with Redis
 - **Deployment**: Docker Compose ready
 
 ## Documentation

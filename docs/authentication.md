@@ -4,18 +4,21 @@ User authentication and security in ReadyKit.
 
 ## Overview
 
-ReadyKit uses Flask-Security-Too for authentication, with OAuth integration via Flask-Dance. Every new user automatically gets a workspace created for them.
+ReadyKit uses Flask-Security-Too for authentication and Flask-Dance for OAuth.
+New OAuth accounts receive a workspace; admin-created accounts do not receive one
+automatically.
 
 ## Authentication Methods
 
 ### Email/Password
 
-Standard registration and login with secure password hashing:
+Admins create email/password accounts. Self-registration, email confirmation,
+and email password recovery are disabled in `enferno/settings.py`.
 
 - **Argon2** password hashing (configured in settings)
 - Email-only login (no usernames)
-- Password recovery via email
-- Configurable password policies
+- Password changes for authenticated users; admin resets through the CLI
+- Minimum password length configured as 12 characters
 
 ### OAuth (Social Login)
 
@@ -23,7 +26,8 @@ Supported providers:
 - **Google** (profile and email scopes)
 - **GitHub** (user:email scope)
 
-OAuth users automatically get a workspace created on first login.
+New OAuth accounts receive a workspace. Linking OAuth to an existing account
+keeps its existing memberships.
 
 ## OAuth Setup
 
@@ -71,17 +75,20 @@ When 2FA is enabled, users receive 3 recovery codes. These can be regenerated if
 
 ## Session Management
 
-Sessions are stored in Redis for security and scalability:
+Local setup stores sessions in the SQLAlchemy database. The full setup uses Redis:
 
 ```bash
 # .env
 REDIS_SESSION=redis://localhost:6379/1
 ```
 
+Install Redis support with `uv sync --extra dev --extra full`. If both `REDIS_URL`
+and `REDIS_SESSION` are set, `REDIS_URL` takes precedence.
+
 Session security features:
 - **Strong protection**: IP + user agent validation
-- **Secure cookies**: HttpOnly, Secure, SameSite
-- **Session clearing**: On login/logout to prevent workspace data leakage
+- **Cookies**: HttpOnly and SameSite=Lax; Secure is disabled for local HTTP setup
+- **Workspace context**: Cleared on login/logout; protected routes recheck membership
 
 ## Platform Roles vs Workspace Roles
 
@@ -89,18 +96,20 @@ ReadyKit has two role systems:
 
 ### Platform Roles
 
-Applied to the user account itself:
+Platform access uses `User.is_superadmin`, a Boolean field:
 
 | Role | Access |
 |------|--------|
-| **superadmin** | Full platform access, admin panel |
-| **admin** | Legacy role (use workspace roles instead) |
+| **is_superadmin=True** | Platform administration and user management |
+| **admin role record** | Legacy role; assigning it alone does not grant superadmin access |
+
+Workspace routes still require workspace membership and the appropriate role.
 
 Create a superadmin:
 ```bash
-uv run flask install --super-admin
+uv run flask install
 # or
-uv run flask create -e admin@example.com -p password --super-admin
+uv run flask create -e admin@example.com --super-admin  # Prompts for a password
 ```
 
 ### Workspace Roles
@@ -128,10 +137,10 @@ def account():
 ### Require Platform Role
 
 ```python
-from flask_security import roles_required
+from enferno.services.auth import require_superadmin
 
 @app.route("/admin/")
-@roles_required("superadmin")
+@require_superadmin()
 def admin_panel():
     return render_template("admin/index.html")
 ```
@@ -157,32 +166,31 @@ SECRET_KEY=your_secure_key
 SECURITY_PASSWORD_SALT=your_salt
 SECURITY_TOTP_SECRETS=your_totp_secrets
 
-# Registration settings
-SECURITY_REGISTERABLE=true
-SECURITY_CONFIRMABLE=false  # Set true to require email confirmation
-SECURITY_RECOVERABLE=true   # Password reset via email
-
-# Password policy
-SECURITY_PASSWORD_LENGTH_MIN=8
-
 # Session settings
-SESSION_PROTECTION=strong
-PERMANENT_SESSION_LIFETIME=86400  # 1 day
+SESSION_COOKIE_SECURE=True  # HTTPS deployments
+SESSION_COOKIE_HTTPONLY=True
+SESSION_COOKIE_SAMESITE=Lax
 ```
+
+Registration, recovery, password policy, session protection, and the one-hour
+session lifetime are configured in `enferno/settings.py`. Setting similarly named
+variables in `.env` does not override constants that `Config` does not read.
 
 ## Email Configuration
 
-For password recovery and email confirmation:
+Mail configuration available through `.env`:
 
 ```bash
 # .env
-MAIL_SERVER=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USE_TLS=true
+MAIL_SERVER=your_smtp_host
 MAIL_USERNAME=your_email
 MAIL_PASSWORD=your_app_password
-MAIL_DEFAULT_SENDER=noreply@yourdomain.com
+SECURITY_EMAIL_SENDER=noreply@yourdomain.com
 ```
+
+The current settings use SMTP over SSL on port 465. Change `Config` if your provider
+requires another transport. Mail credentials alone do not enable password recovery
+or confirmation flows.
 
 ## User Model
 
@@ -204,11 +212,12 @@ if user.is_superadmin:
 ## Important Security Notes
 
 ::: warning
-**Email cannot be changed** (`SECURITY_EMAIL_CHANGEABLE=False`). This prevents account takeover attacks in multi-tenant environments where email is used as the identity.
+Email changes are disabled (`SECURITY_EMAIL_CHANGEABLE=False`); email is the login identity.
 :::
 
 ::: info
-Sessions are cleared on login/logout to prevent workspace data from leaking between sessions.
+Selected workspace context is cleared on login/logout. Workspace routes must still
+check membership and scope every data query.
 :::
 
 ## CLI Commands
@@ -218,11 +227,11 @@ Sessions are cleared on login/logout to prevent workspace data from leaking betw
 uv run flask install
 
 # Create user with specific options
-uv run flask create -e user@example.com -p password123
-uv run flask create -e admin@example.com -p password123 --super-admin
+uv run flask create -e user@example.com
+uv run flask create -e admin@example.com --super-admin
 
 # Reset password
-uv run flask reset -e user@example.com -p newpassword
+uv run flask reset -e user@example.com
 
 # Add platform role
 uv run flask add-role -e user@example.com -r admin

@@ -23,7 +23,7 @@ This starts:
 - **Flask app** via uWSGI
 - **PostgreSQL** database
 - **Redis** for sessions and Celery
-- **Nginx** reverse proxy with SSL
+- **Nginx** reverse proxy on HTTP port 80; configure HTTPS separately
 - **Celery** worker for background tasks
 
 The web container uses an HTTP health check. The Celery container overrides it
@@ -37,10 +37,10 @@ image, override its HTTP health check as shown in `docker-compose.yml`.
 
 ### Configuration
 
-1. Copy and edit environment file:
+1. Generate the Docker environment:
 ```bash
-cp .env-sample .env
-# Edit .env with production values
+./setup.sh  # Answer y to Docker configuration
+# Review .env and configure HTTPS before serving users
 ```
 
 2. Key production settings:
@@ -60,54 +60,26 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 docker compose up --build -d
 ```
 
-4. Create admin user:
+4. Initialize a fresh database and create an admin user:
 ```bash
-docker compose exec web flask create-db
-docker compose exec web flask install
+docker compose exec website flask create-db
+docker compose exec website flask install
 ```
+
+For an existing database, use `docker compose exec website flask db upgrade`.
+`create-db` initializes tables and stamps migrations; it does not apply schema changes.
 
 ## Fly.io Deployment
 
 Quick cloud deployment with automatic CI/CD. See [Fly.io Guide](/deployment/fly) for detailed setup.
 
-### Quick Start
-
-```bash
-# Install Fly CLI
-brew install flyctl  # or curl -L https://fly.io/install.sh | sh
-
-# Login and create app
-flyctl auth login
-flyctl apps create your-app-name
-
-# Create database
-flyctl postgres create --name your-app-db
-
-# Set secrets
-flyctl secrets set SECRET_KEY="$(openssl rand -hex 32)"
-
-# Deploy
-flyctl deploy
-```
-
-Your app will be live at `https://your-app-name.fly.dev`
+Use the [Fly.io guide](/deployment/fly) to configure the database, required secrets,
+and app name before deploying. The checked-in workflow runs manually by default.
 
 ## Railway Deployment
 
-Simple cloud deployment with automatic CI/CD. See [Railway Guide](/deployment/railway) for detailed setup.
-
-### Quick Start
-
-```bash
-# Create project at railway.app
-# Add PostgreSQL and Redis services
-# Set environment variables in dashboard
-
-# Add GitHub secret: RAILWAY_TOKEN
-# Push to deploy branch - auto-deploys
-```
-
-Your app will be live at the URL shown in Railway dashboard.
+Use the [Railway guide](/deployment/railway) to configure the services, environment,
+and deployment token. The checked-in workflow also runs manually by default.
 
 ## Traditional Deployment
 
@@ -142,7 +114,7 @@ git clone https://github.com/level09/readykit.git
 cd readykit
 
 # Setup environment
-./setup.sh
+./setup.sh --full
 
 # Configure production settings
 nano .env  # Update with production values
@@ -166,7 +138,7 @@ After=network.target
 User=www-data
 WorkingDirectory=/path/to/readykit
 Environment="PATH=/path/to/readykit/.venv/bin"
-ExecStart=/path/to/readykit/.venv/bin/gunicorn -w 4 -b 127.0.0.1:5000 wsgi:app
+ExecStart=/path/to/readykit/.venv/bin/gunicorn -w 4 -b 127.0.0.1:5000 run:app
 
 [Install]
 WantedBy=multi-user.target

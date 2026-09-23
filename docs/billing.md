@@ -157,30 +157,20 @@ def upgrade(workspace_id):
 
 ### Success Callback
 
-The success URL includes a session ID that's validated server-side:
+The existing `/billing/success` route requires login and accepts Stripe's
+`session_id` or Chargebee's `id`. It calls
+`HostedBilling.handle_successful_payment()` to validate the hosted checkout with
+the provider, link the customer, and reconcile the current subscription state.
+It renders a success page only when that state grants Pro access.
 
-```python
-@app.route("/billing/success")
-def billing_success():
-    # Works with both Stripe (session_id) and Chargebee (id)
-    session_id = request.args.get("session_id") or request.args.get("id")
-    workspace_id = HostedBilling.handle_successful_payment(session_id)
-
-    if workspace_id:
-        flash("Welcome to Pro!")
-        return redirect(url_for("portal.workspace_settings", workspace_id=workspace_id))
-
-    flash("Payment processing failed")
-    return redirect(url_for("portal.dashboard"))
-```
-
-::: info
-The session ID is the security token. Always validate it via the provider's API before upgrading - never trust URL parameters directly.
-:::
+The checkout ID alone is not proof of entitlement. Revisiting an old successful
+checkout must not restore a canceled subscription. Keep provider validation and
+subscription reconciliation in the shared billing service.
 
 ### Manage Billing (Customer Portal)
 
-Existing Pro users can manage their subscription through the provider's portal:
+Workspace admins with a linked billing customer can use the provider's portal,
+including after losing Pro access. Both providers return to `/workspace/settings/`.
 
 ```python
 @app.route("/workspace/<int:workspace_id>/billing/")
@@ -189,7 +179,7 @@ def manage_billing(workspace_id):
     workspace = g.current_workspace
 
     if not workspace.billing_customer_id:
-        return redirect(url_for("portal.upgrade", workspace_id=workspace_id))
+        return redirect(url_for("portal.upgrade_workspace"))
 
     session = HostedBilling.create_portal_session(
         customer_id=workspace.billing_customer_id,
@@ -304,10 +294,18 @@ stripe login
 # Forward webhooks to local server
 stripe listen --forward-to localhost:5000/stripe/webhook
 
-# In another terminal, trigger test events
-stripe trigger checkout.session.completed
-stripe trigger customer.subscription.deleted
+# Put the listener's whsec_... value in STRIPE_WEBHOOK_SECRET, then restart the app.
+# Open /workspace/upgrade as a workspace admin and complete a sandbox checkout.
 ```
+
+Use a sandbox price for `STRIPE_PRO_PRICE_ID` and credentials from the same sandbox.
+Generic CLI fixture events do not carry ReadyKit's workspace mapping or necessarily
+use its configured price, so they do not prove the full upgrade flow.
+
+The Stripe sandbox flow has been checked for checkout, failed renewal, payment
+recovery, cancellation, duplicate events, and portal return. Chargebee coverage
+uses SDK fixtures; a real Chargebee sandbox run remains pending. Run the automated
+suite for both providers as described in [Contributing](https://github.com/level09/readykit/blob/master/CONTRIBUTING.md).
 
 ### Chargebee
 
@@ -340,7 +338,7 @@ if workspace.is_pro:
 {% if get_current_workspace().is_pro %}
   <span class="badge">Pro</span>
 {% else %}
-  <a href="{{ url_for('portal.upgrade', workspace_id=workspace.id) }}">
+  <a href="{{ url_for('portal.upgrade_workspace') }}">
     Upgrade to Pro
   </a>
 {% endif %}

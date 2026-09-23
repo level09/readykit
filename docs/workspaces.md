@@ -23,10 +23,12 @@ User → Membership → Workspace
 
 ## Automatic Workspace Creation
 
-When users sign up (email or OAuth), a workspace is automatically created for them:
+The OAuth flow creates a workspace for a new account. Linking OAuth to an existing
+account does not create one. Email/password self-registration is disabled;
+`flask install` creates a superadmin who can create workspaces from the dashboard.
 
 ```python
-# Happens automatically on registration/OAuth
+# Used when creating a new OAuth account
 workspace = WorkspaceService.create_workspace(
     name="",           # Ignored when auto_name=True
     owner_user=user,
@@ -39,17 +41,19 @@ The auto-generated name uses:
 2. Email prefix as fallback → `"john's Workspace"`
 3. Default → `"My Workspace"`
 
-## Invisible Workspaces for Solo Users
+## Workspace Selection
 
-Solo users never see workspace UI. When a user has only one workspace, they're automatically redirected to it:
+Non-superadmins with one workspace skip the selection screen:
 
 ```python
 workspaces = current_user.get_workspaces()
-if len(workspaces) == 1:
+if len(workspaces) == 1 and not current_user.is_superadmin:
     return redirect(url_for("portal.switch_workspace", workspace_id=workspaces[0].id))
 ```
 
-Team features (member list, billing, settings) only appear when users invite team members.
+Team management is available to workspace admins. Settings and API key pages are
+available to members; billing changes and key creation require admin access.
+These pages do not depend on the number of members.
 
 ## Route Protection
 
@@ -130,8 +134,8 @@ For custom queries, use the helper function:
 from enferno.services.workspace import workspace_query
 
 # Build workspace-scoped query
-stmt = workspace_query(Project).where(Project.status == "active")
-active_projects = db.session.execute(stmt).scalars().all()
+stmt = workspace_query(Project).where(Project.name.ilike("Acme%"))
+projects = db.session.execute(stmt).scalars().all()
 ```
 
 `db.select(Project)`, `db.session.get(Project, id)`, bulk updates, and bulk deletes
@@ -181,6 +185,9 @@ role = current_user.get_workspace_role(workspace_id)  # Returns "admin" or "memb
 ## Template Context
 
 `get_current_workspace()` is globally available in all templates:
+
+It reads the selected workspace from the session; it does not check membership.
+Render workspace data only after the route's access check.
 
 ```html
 {% if get_current_workspace() %}

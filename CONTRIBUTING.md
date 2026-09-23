@@ -19,6 +19,20 @@ uv run pytest
 uv run ruff check .
 ```
 
+The default setup needs no Redis service. For the full test environment, install
+the optional dependencies and run each provider in a separate process:
+
+```bash
+uv sync --extra dev --extra full
+BILLING_PROVIDER=stripe uv run pytest
+BILLING_PROVIDER=chargebee uv run pytest
+```
+
+Tests use a disposable SQLite database by default. PostgreSQL locking tests require
+`TEST_DATABASE_URI` pointing to a dedicated test database: the test fixture creates
+and drops its tables. CI runs PostgreSQL 15 with Python 3.11, 3.12, and 3.13 for both
+providers. Provider-specific tests skip in the other provider's run.
+
 Build the documentation with:
 
 ```bash

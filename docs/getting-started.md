@@ -5,7 +5,6 @@ Get ReadyKit up and running in 5 minutes.
 ## Prerequisites
 
 - Python 3.11+
-- Redis (for sessions and Celery)
 - Git
 - [uv](https://github.com/astral-sh/uv) (fast Python package manager)
 
@@ -31,8 +30,12 @@ cd readykit
 
 The setup script will:
 - Create a Python virtual environment
-- Install all dependencies via uv
+- Install core and development dependencies via uv
 - Generate a `.env` file with secure random keys
+- Use SQLite for data and sessions, with no Redis service required
+
+For Redis sessions and Celery, run `./setup.sh --full` and start Redis locally.
+Selecting Docker during setup also installs and configures the full stack.
 
 ### 3. Initialize the Application
 
@@ -48,18 +51,33 @@ Visit `http://localhost:5000` - you're ready to go!
 The first user created with `flask install` becomes a superadmin with full platform access.
 :::
 
+### Add Redis and Celery Later
+
+Keep your existing `.env` and keys. Install the optional dependencies:
+
+```bash
+uv sync --extra dev --extra full
+```
+
+Start Redis, then uncomment `REDIS_SESSION`, `CELERY_BROKER_URL`, and
+`CELERY_RESULT_BACKEND` in `.env`. Restart the app and start a Celery worker.
+
 ## What Happens on First Login?
 
-1. User registers or logs in via OAuth
-2. A workspace is automatically created for them
-3. They're redirected to their workspace dashboard
-4. Solo users never see "workspace" UI - it's invisible until they invite team members
+New OAuth accounts receive a workspace. A non-superadmin with one workspace goes
+straight to it; users with several workspaces select one. Team and settings pages
+remain visible according to role, even for a one-person workspace.
+
+The superadmin created by `flask install` starts at the dashboard and can create
+workspaces there. Email/password self-registration and email invitations are
+not enabled.
 
 ## Docker Setup (Production)
 
-One-command production stack:
+Generate the Docker configuration, then start the stack:
 
 ```bash
+./setup.sh  # Select Docker and review the generated .env
 docker compose up --build
 ```
 
@@ -84,9 +102,10 @@ SECURITY_TOTP_SECRETS=your_totp_secrets
 SQLALCHEMY_DATABASE_URI=sqlite:///enferno.sqlite3  # Dev
 # SQLALCHEMY_DATABASE_URI=postgresql://user:pass@localhost/db  # Production
 
-# Redis
-REDIS_SESSION=redis://localhost:6379/1
-CELERY_BROKER_URL=redis://localhost:6379/2
+# Optional Redis and Celery (enabled by --full)
+# REDIS_SESSION=redis://localhost:6379/1
+# CELERY_BROKER_URL=redis://localhost:6379/2
+# CELERY_RESULT_BACKEND=redis://localhost:6379/3
 
 # OAuth (optional but recommended)
 GOOGLE_AUTH_ENABLED=true
@@ -109,18 +128,19 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 ```bash
 # Development
 uv run flask run              # Start dev server
-uv run flask create-db        # Create/reset database
+uv run flask create-db        # Initialize a fresh database and stamp migrations
+uv run flask db upgrade       # Apply migrations to an existing database
 uv run flask install          # Create admin user
 
 # User management
-uv run flask create -e user@example.com -p password123
-uv run flask reset -e user@example.com -p newpassword
+uv run flask create -e user@example.com   # Prompts for a password
+uv run flask reset -e user@example.com    # Prompts for a new password
 
 # Code quality
 uv run ruff check --fix .     # Lint and auto-fix
 uv run ruff format .          # Format code
 
-# Background tasks
+# Background tasks (requires the full setup and Redis)
 uv run celery -A enferno.tasks worker --loglevel=info
 ```
 

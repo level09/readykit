@@ -1,212 +1,77 @@
 # Teams
 
-Member management and collaboration.
+Workspace admins manage accounts and roles through `/workspace/team/`.
 
-## Overview
+## Current Behavior
 
-ReadyKit supports team collaboration within workspaces. Users can invite team members, assign roles, and manage access - all while maintaining data isolation.
+The Add Member form creates a new account with a name, username, email, password,
+and workspace role. Login uses email, though the form still requires a username.
+The form rejects an email or username that already exists. It does not send an
+invitation email or offer an invitation acceptance flow.
+
+To attach an existing account from application code, use `WorkspaceService.add_member`
+inside an authorized admin operation and commit the transaction.
 
 ## Roles
 
-Each workspace member has one of two roles:
+| Role | Built-in access |
+|------|-----------------|
+| Admin | Manage members, change workspace settings, manage billing, create and revoke API keys |
+| Member | View the workspace, settings, member list API, and active API keys |
 
-| Role | Permissions |
-|------|-------------|
-| **Admin** | Full access: billing, member management, settings, all data |
-| **Member** | Standard access: view and edit workspace data |
+New product routes define their own required role. Workspace ownership always
+requires admin membership; owners cannot be removed or demoted. The member removal
+API also prevents an admin from removing themselves.
 
-The workspace **owner** is always an admin and cannot be removed or demoted.
+## Member API
 
-## Adding Team Members
+All routes require login and membership in the URL's workspace.
 
-### Using WorkspaceService
+| Method | Route | Role | Behavior |
+|--------|-------|------|----------|
+| POST | `/api/workspace/<workspace_id>/members` | Member | Paginated member list; body accepts `options.page` and `options.itemsPerPage` |
+| POST | `/api/workspace/<workspace_id>/members/add` | Admin | Create an account; requires `name`, `username`, `email`, `password`; `role` defaults to `member` |
+| PUT | `/api/workspace/<workspace_id>/members/<user_id>` | Admin | Change `role` to `admin` or `member` |
+| DELETE | `/api/workspace/<workspace_id>/members/<user_id>` | Admin | Remove membership, keeping the user account |
+
+The Team page itself requires admin access. The list API permits any member.
+
+## Service Methods
+
+These methods do not authorize the caller. Protect the calling route with
+`@require_workspace_access("admin")` and use the authorized workspace ID.
 
 ```python
 from enferno.services.workspace import WorkspaceService
-from enferno.user.models import User
 from enferno.extensions import db
+from flask import render_template
 
-# Find or create user
-user = db.session.execute(
-    db.select(User).where(User.email == "teammate@example.com")
-).scalar_one_or_none()
+# Attach an existing User object to the authorized workspace.
+WorkspaceService.add_member(g.current_workspace.id, user, role="member")
+db.session.commit()
 
-if user:
-    # Add existing user to workspace
-    WorkspaceService.add_member(workspace_id, user, role="member")
-    db.session.commit()
+# These methods commit on success and return False if membership is absent.
+WorkspaceService.update_member_role(g.current_workspace.id, user.id, "admin")
+WorkspaceService.remove_member(g.current_workspace.id, user.id)
 ```
 
-### Route Example
+Invalid roles, duplicate membership, and attempts to remove or demote the owner
+raise `ValueError`. After removal, protected workspace routes reject that user on
+their next request, even if their session still selects the workspace.
+
+## Checking Access
 
 ```python
-@app.route("/workspace/<int:workspace_id>/members/add/", methods=["POST"])
-@require_workspace_access("admin")  # Only admins can add members
-def add_member(workspace_id):
-    email = request.form.get("email")
-    role = request.form.get("role", "member")
+from flask import g
+from enferno.services.workspace import require_workspace_access
 
-    user = db.session.execute(
-        db.select(User).where(User.email == email)
-    ).scalar_one_or_none()
-
-    if not user:
-        flash("User not found. They must register first.")
-        return redirect(url_for("portal.workspace_members", workspace_id=workspace_id))
-
-    try:
-        WorkspaceService.add_member(workspace_id, user, role=role)
-        db.session.commit()
-        flash(f"Added {email} as {role}")
-    except ValueError as e:
-        flash(str(e))
-
-    return redirect(url_for("portal.workspace_members", workspace_id=workspace_id))
-```
-
-## Removing Members
-
-```python
-@app.route("/workspace/<int:workspace_id>/members/<int:user_id>/remove/", methods=["POST"])
-@require_workspace_access("admin")
-def remove_member(workspace_id, user_id):
-    try:
-        WorkspaceService.remove_member(workspace_id, user_id)
-        flash("Member removed")
-    except ValueError as e:
-        flash(str(e))  # "Cannot remove workspace owner"
-
-    return redirect(url_for("portal.workspace_members", workspace_id=workspace_id))
-```
-
-::: warning
-The workspace owner cannot be removed. Attempting to do so raises a `ValueError`.
-:::
-
-## Changing Roles
-
-```python
-@app.route("/workspace/<int:workspace_id>/members/<int:user_id>/role/", methods=["POST"])
-@require_workspace_access("admin")
-def change_role(workspace_id, user_id):
-    new_role = request.form.get("role")
-
-    try:
-        WorkspaceService.update_member_role(workspace_id, user_id, new_role)
-        flash("Role updated")
-    except ValueError as e:
-        flash(str(e))  # "Cannot change workspace owner's role"
-
-    return redirect(url_for("portal.workspace_members", workspace_id=workspace_id))
-```
-
-## Listing Members
-
-```python
-@app.route("/workspace/<int:workspace_id>/members/")
-@require_workspace_access("admin")
-def workspace_members(workspace_id):
-    workspace = g.current_workspace
-
-    # Get all memberships with user data
-    members = db.session.execute(
-        db.select(Membership, User)
-        .join(User, Membership.user_id == User.id)
-        .where(Membership.workspace_id == workspace_id)
-    ).all()
-
-    return render_template(
-        "workspace/members.html",
-        workspace=workspace,
-        members=members
-    )
-```
-
-## Role-Based Route Protection
-
-Use the `required_role` parameter in the decorator:
-
-```python
-# Any member can access
-@app.route("/workspace/<int:workspace_id>/projects/")
+@portal.get("/workspace/<int:workspace_id>/projects/")
 @require_workspace_access("member")
 def list_projects(workspace_id):
-    pass
-
-# Only admins can access
-@app.route("/workspace/<int:workspace_id>/settings/")
-@require_workspace_access("admin")
-def workspace_settings(workspace_id):
-    pass
+    projects = Project.for_current_workspace()
+    return render_template("projects.html", projects=projects)
 ```
 
-## Checking User's Role
-
-```python
-# In routes (after decorator)
-if g.user_workspace_role == "admin":
-    # Show admin controls
-    pass
-
-# Via User model
-role = current_user.get_workspace_role(workspace_id)
-```
-
-In templates:
-
-```html
-{% if g.user_workspace_role == 'admin' %}
-  <a href="{{ url_for('portal.workspace_settings', workspace_id=workspace.id) }}">
-    Settings
-  </a>
-{% endif %}
-```
-
-## Owner Protection
-
-The workspace owner has special protections:
-
-```python
-# These will raise ValueError:
-WorkspaceService.remove_member(workspace_id, owner.id)
-# → "Cannot remove workspace owner"
-
-WorkspaceService.update_member_role(workspace_id, owner.id, "member")
-# → "Cannot change workspace owner's role"
-```
-
-## Template Example
-
-```html
-<h2>Team Members</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>Email</th>
-      <th>Role</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for membership, user in members %}
-    <tr>
-      <td>
-        {{ user.email }}
-        {% if user.id == workspace.owner_id %}
-          <span class="badge">Owner</span>
-        {% endif %}
-      </td>
-      <td>{{ membership.role }}</td>
-      <td>
-        {% if user.id != workspace.owner_id and g.user_workspace_role == 'admin' %}
-          <form method="POST" action="{{ url_for('portal.remove_member', workspace_id=workspace.id, user_id=user.id) }}">
-            <button type="submit">Remove</button>
-          </form>
-        {% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-```
+`g.user_workspace_role` contains the checked role. Query helpers still need an
+explicit call; ordinary SQLAlchemy queries are not automatically filtered.
+See [Workspaces](/workspaces) for the full contract.

@@ -30,13 +30,11 @@ https://github.com/user-attachments/assets/c955e2a2-8f25-4430-98fe-5bbc95ffb4da
 - **Modern stack** - Flask 3.1, Vue 3, Vuetify 3, PostgreSQL, Redis
 - **Production ready** - Docker Compose, Celery background jobs
 
-### The Smart Part
+### Workspace Flow
 
-Workspaces are **invisible to solo users**:
-- Sign in → Auto workspace created → Straight to your app
-- No "select workspace" screens for single users
-- Team features appear when you add members
-- Multi-tenant infrastructure works behind the scenes
+New OAuth accounts receive a workspace. Non-superadmins with one workspace skip
+the selection screen. Team, API key, and settings pages remain available according
+to the user's role. Superadmins manage workspaces from the dashboard.
 
 ---
 
@@ -63,23 +61,31 @@ uv run flask install
 uv run flask run
 ```
 
-Visit http://localhost:5000 and sign in with Google.
+Visit http://localhost:5000 and sign in with the admin credentials from `flask install`.
+Google login is available after configuring OAuth.
+
+Local setup uses SQLite for data and sessions; Redis is not required. Use
+`./setup.sh --full` for Redis sessions and Celery, or select Docker during setup
+for the full production stack. See the [setup guide](docs/getting-started.md).
 
 ---
 
 ## Production Deploy
 
-**One-Click Cloud Platforms:**
+**Cloud Platforms:**
 
-| Platform | Cost | Guide |
-|----------|------|-------|
-| [Fly.io](https://fly.io) | ~$5/month | [Setup Guide](docs/deployment/fly.md) |
-| [Railway](https://railway.app) | ~$5/month | [Setup Guide](docs/deployment/railway.md) |
+| Platform | Guide |
+|----------|-------|
+| Fly.io | [Setup Guide](docs/deployment/fly.md) |
+| Railway | [Setup Guide](docs/deployment/railway.md) |
 
-The platform guides cover managed PostgreSQL, Redis, and deployment workflows.
+The platform guides cover PostgreSQL, Redis, and deployment workflows. Deployment
+workflows run manually unless you enable their push triggers. Check provider
+pricing for your chosen resources.
 
 **Docker Compose** - Self-hosted:
 ```bash
+./setup.sh  # Select Docker; review .env before starting
 docker compose up --build
 ```
 
@@ -100,9 +106,12 @@ ReadyKit handles auth, billing, workspaces, and teams. You add your product feat
 
 Example - workspace-scoped model:
 ```python
+from enferno.extensions import db
+from flask import render_template
 from enferno.services.workspace import WorkspaceScoped, require_workspace_access
 
 class Invoice(db.Model, WorkspaceScoped):
+    id = db.Column(db.Integer, primary_key=True)
     workspace_id = db.Column(db.Integer, db.ForeignKey('workspace.id'), nullable=False)
     # your fields here
 

@@ -15,6 +15,7 @@ Context for AI agents working with ReadyKit, a Flask SaaS template with multi-te
 
 ```bash
 ./setup.sh                    # First-time setup
+./setup.sh --full             # Optional Redis sessions and Celery
 uv run flask create-db        # Initialize database (stamps migrations head)
 uv run flask install          # Create admin user
 uv run flask run              # Dev server on :5000
@@ -48,7 +49,7 @@ enferno/
 ├── app.py              # Application factory
 ├── settings.py         # Single Config class (env-based)
 ├── extensions.py       # Flask extensions (db, cache, mail, session)
-├── public/views.py     # Landing, login, register (no auth)
+├── public/views.py     # Landing and OAuth account flow
 ├── portal/views.py     # Dashboard, workspace routes (authenticated)
 ├── user/
 │   ├── views.py        # Superadmin CMS (user management)
@@ -57,7 +58,7 @@ enferno/
 ├── services/
 │   ├── workspace.py    # Multi-tenant: WorkspaceService, require_workspace_access
 │   ├── billing.py      # HostedBilling, requires_pro_plan
-│   └── auth.py         # OAuth handlers
+│   └── auth.py         # Superadmin authorization decorators
 ├── static/js/config.js # Vue config with custom delimiters
 └── templates/          # All Jinja2 templates (single directory)
 ```
@@ -144,6 +145,9 @@ db.session.commit()
 
 All business data belongs to a workspace. Use `WorkspaceScoped` mixin:
 
+The mixin filters only its query helpers. Ordinary SQLAlchemy queries need an
+explicit workspace filter; the foreign key does not provide row-level isolation.
+
 ```python
 from enferno.services.workspace import WorkspaceScoped
 from enferno.extensions import db
@@ -212,22 +216,24 @@ def pro_feature(workspace_id):
 ## API Pattern
 
 ```python
-@api.get("/api/items")
-def get_items():
+@api.get("/api/workspace/<int:workspace_id>/items")
+@require_workspace_access("member")
+def get_items(workspace_id):
     page = request.args.get("page", 1, type=int)
-    query = db.select(Item)
+    query = db.select(Item).where(Item.workspace_id == g.current_workspace.id)
     pagination = db.paginate(query, page=page, per_page=25)
     return jsonify({
         "items": [i.to_dict() for i in pagination.items],
         "total": pagination.total
     })
 
-@api.post("/api/items/<int:item_id>")
-def update_item(item_id):
-    item = db.session.get(Item, item_id)
+@api.post("/api/workspace/<int:workspace_id>/items/<int:item_id>")
+@require_workspace_access("admin")
+def update_item(workspace_id, item_id):
+    item = Item.get_by_id(item_id)  # Item inherits WorkspaceScoped
     if not item:
         return jsonify({"error": "Not found"}), 404
-    item.from_dict(request.get_json())
+    item.name = request.get_json()["name"]  # Only update permitted fields
     db.session.commit()
     return jsonify({"message": "Updated", "data": item.to_dict()})
 ```
@@ -251,6 +257,10 @@ def before_request():
 
 ## Security
 
+- Local setup uses SQLAlchemy sessions; Redis and Celery require the full setup.
+- Email self-registration and email password recovery are disabled in `Config`.
+- New OAuth accounts receive a workspace; CLI-created accounts do not.
+- Superadmin access uses `User.is_superadmin`, not a role named `superadmin`.
 - Always use `@require_workspace_access()` on workspace routes
 - Never query business data without workspace scope
 - Webhook signature verification required (STRIPE_WEBHOOK_SECRET or Chargebee auth)

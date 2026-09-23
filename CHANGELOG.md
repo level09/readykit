@@ -18,6 +18,7 @@ reporting the Docker Compose port and default password issues.
 
 ### Fixed
 
+- Make billing webhook processing retry-safe and reconcile plans from current provider subscriptions.
 - Return Stripe and Chargebee billing portal users to workspace settings instead of a missing page.
 - Check the Docker Compose Celery worker through Redis instead of HTTP.
 - Install Redis and Celery dependencies in the production Docker image.
@@ -27,6 +28,8 @@ reporting the Docker Compose port and default password issues.
 
 ### Changed
 
+- Align authentication, team, deployment, and contributor guides with the current code and remove stale duplicated instructions.
+- Use SQLite sessions for local setup by default; enable Redis and Celery with `./setup.sh --full` or Docker setup.
 - Clarified workspace query scoping and added route tests for cross-workspace access and revoked membership.
 - Removed `enferno.__version__`; `pyproject.toml` is the single source of truth.
 - Applied `ruff format` to the four files that had drifted from it.

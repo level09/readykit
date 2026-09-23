@@ -20,5 +20,5 @@ Start with the repository's
 [contribution guide](https://github.com/level09/readykit/blob/master/CONTRIBUTING.md).
 Issues labeled `good first issue` are intended to be self-contained entry points.
 
-The maintainer cadence aims for one practical recipe every two weeks and a
-maintenance release when accumulated fixes justify it.
+Recipes and maintenance releases follow the [roadmap](/roadmap). No fixed
+publication schedule is promised.

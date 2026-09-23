@@ -7,6 +7,21 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m'
 
+FULL_CONFIG=false
+for arg in "$@"; do
+    case "$arg" in
+        --full) FULL_CONFIG=true ;;
+        -h|--help)
+            echo "Usage: ./setup.sh [--full]"
+            echo "Default: SQLite data and sessions, no Redis required."
+            echo "--full: Install and configure Redis sessions and Celery."
+            echo "Choosing Docker also enables the full stack."
+            exit 0
+            ;;
+        *) echo "Unknown option: $arg"; exit 1 ;;
+    esac
+done
+
 # Find a supported Python version
 PYTHON_CMD=""
 for cmd in python3.14 python3.13 python3.12 python3.11 python3; do
@@ -43,10 +58,6 @@ else
 fi
 echo -e "${GREEN}Virtual environment will be available at .venv${NC}"
 
-# Install dependencies using modern uv sync
-echo -e "${GREEN}Installing dependencies from pyproject.toml...${NC}"
-uv sync --python "$PYTHON_CMD" --extra dev --extra full
-
 # Check for required commands
 for cmd in tr openssl awk; do
     if ! command -v $cmd &> /dev/null; then
@@ -77,6 +88,7 @@ echo
 DOCKER_CONFIG=false
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     DOCKER_CONFIG=true
+    FULL_CONFIG=true
     echo -e "${GREEN}Docker configuration will be included.${NC}"
 else
     echo -e "${YELLOW}Skipping Docker configuration.${NC}"
@@ -96,6 +108,14 @@ if [ -f .env ]; then
         exit 1
     fi
     echo -e "${GREEN}Created backup of existing .env at $BACKUP_FILE${NC}"
+fi
+
+# Install only the dependencies needed for the selected setup.
+echo -e "${GREEN}Installing dependencies from pyproject.toml...${NC}"
+if [ "$FULL_CONFIG" = true ]; then
+    uv sync --python "$PYTHON_CMD" --extra dev --extra full
+else
+    uv sync --python "$PYTHON_CMD" --extra dev
 fi
 
 # Copy the sample file
@@ -121,7 +141,7 @@ fi
 
 # Process the .env file
 if ! awk -v sk="$SECRET_KEY" -v ts1="$TOTP_SECRET1" -v ts2="$TOTP_SECRET2" -v ps="$PASSWORD_SALT" \
-       -v docker="$DOCKER_CONFIG" -v rpass="$REDIS_PASSWORD" -v dbpass="$DB_PASSWORD" -v uid="$DOCKER_UID" '
+       -v docker="$DOCKER_CONFIG" -v full="$FULL_CONFIG" -v rpass="$REDIS_PASSWORD" -v dbpass="$DB_PASSWORD" -v uid="$DOCKER_UID" '
 {
     if ($0 ~ /^SECRET_KEY=/) {
         print "SECRET_KEY=\"" sk "\""
@@ -139,6 +159,9 @@ if ! awk -v sk="$SECRET_KEY" -v ts1="$TOTP_SECRET1" -v ts2="$TOTP_SECRET2" -v ps
     }
     else if (docker != "true" && $0 ~ /^SESSION_COOKIE_SECURE=/) {
         print "SESSION_COOKIE_SECURE=False"
+    }
+    else if (full != "true" && $0 ~ /^(REDIS_SESSION|CELERY_BROKER_URL|CELERY_RESULT_BACKEND)=/) {
+        print "#" $0
     }
     else if (docker == "true" && $0 ~ /^#REDIS_PASSWORD=/) {
         print "REDIS_PASSWORD=" rpass
@@ -187,8 +210,14 @@ echo -e "${GREEN}Successfully generated .env file with secure keys${NC}"
 echo -e "${GREEN}Generated secure values for: SECRET_KEY, SECURITY_TOTP_SECRETS, SECURITY_PASSWORD_SALT${NC}"
 if [ "$DOCKER_CONFIG" = true ]; then
     echo -e "${GREEN}Docker configuration enabled with secure passwords for Redis and PostgreSQL${NC}"
+else
+    echo -e "${GREEN}SQLite database configured at: enferno.sqlite3${NC}"
+    if [ "$FULL_CONFIG" = true ]; then
+        echo -e "${YELLOW}Redis is required at localhost:6379 for sessions and Celery.${NC}"
+    else
+        echo -e "${GREEN}Sessions use SQLite. Redis and Celery are disabled.${NC}"
+    fi
 fi
-echo -e "${GREEN}SQLite database configured at: enferno.sqlite3${NC}"
 echo
 echo -e "${GREEN}Next steps:${NC}"
 echo -e "1. Update the remaining values in your .env file (mail settings, etc.)"
