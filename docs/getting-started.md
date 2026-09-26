@@ -39,11 +39,27 @@ Selecting Docker during setup also installs and configures the full stack.
 
 ### 3. Initialize the Application
 
+Configure OAuth in `.env`, or set `GOOGLE_AUTH_ENABLED=False` to use only the admin
+email/password login. Check the configuration before starting:
+
+```bash
+uv run python checks.py --config
+```
+
+This command checks required secrets, the database URL format, enabled OAuth
+settings, and optional dependencies without starting the app or contacting services.
+It names missing settings without displaying secret values and returns exit code 1
+on failure. Use `--config --billing` to also check the selected provider's required
+billing settings. Passing does not verify credentials, connections, schema, or workers.
+
 ```bash
 uv run flask create-db    # Create database tables
 uv run flask install      # Create admin user (interactive)
 uv run flask run          # Start development server
 ```
+
+After initializing the database, `uv run python checks.py` runs the existing app
+and database smoke checks.
 
 Visit `http://localhost:5000` - you're ready to go!
 

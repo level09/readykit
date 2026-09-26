@@ -16,6 +16,8 @@ Context for AI agents working with ReadyKit, a Flask SaaS template with multi-te
 ```bash
 ./setup.sh                    # First-time setup
 ./setup.sh --full             # Optional Redis sessions and Celery
+uv run python checks.py --config  # Offline configuration checks before app startup
+uv run python checks.py --config --billing  # Include billing settings
 uv run flask create-db        # Initialize database (stamps migrations head)
 uv run flask install          # Create admin user
 uv run flask run              # Dev server on :5000

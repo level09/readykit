@@ -2,7 +2,11 @@
 
 All notable ReadyKit changes are documented here.
 
-## v1.5.1 (unreleased)
+## v1.5.1 (2026-09-26)
+
+### Added
+
+- Check configuration before app startup with `checks.py --config`; add `--billing` to check provider settings without contacting services.
 
 ### Security
 

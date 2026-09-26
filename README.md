@@ -56,6 +56,7 @@ STRIPE_SECRET_KEY=sk_test_...
 STRIPE_PRO_PRICE_ID=price_...
 
 # 3. Run
+uv run python checks.py --config
 uv run flask create-db
 uv run flask install
 uv run flask run
