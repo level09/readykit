@@ -29,6 +29,11 @@ Supported providers:
 New OAuth accounts receive a workspace. Linking OAuth to an existing account
 keeps its existing memberships.
 
+## Terms and Privacy
+
+Set `TERMS_URL` and `PRIVACY_URL` to show a Terms and Privacy notice on the sign-in and
+registration pages. The notice stays hidden until both are set.
+
 ## OAuth Setup
 
 Each provider's login button appears once both its client ID and secret are set.
