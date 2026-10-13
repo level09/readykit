@@ -150,7 +150,6 @@ class Config:
     BILLING_PROVIDER = os.environ.get("BILLING_PROVIDER", "stripe")
 
     # Stripe Settings (if BILLING_PROVIDER=stripe)
-    STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY")
     STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
     STRIPE_PRO_PRICE_ID = os.environ.get("STRIPE_PRO_PRICE_ID")
     STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")

@@ -34,7 +34,7 @@ Plans are stored on the `Workspace` model, not the user. This means the entire t
 
 From [Stripe Dashboard](https://dashboard.stripe.com):
 
-1. **API Keys** → Copy your secret key and publishable key
+1. **API Keys** → Copy your secret key
 2. **Products** → Create a product with a recurring price
 3. **Webhooks** → Add endpoint (see below)
 
@@ -45,7 +45,6 @@ From [Stripe Dashboard](https://dashboard.stripe.com):
 BILLING_PROVIDER=stripe
 
 STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_PRO_PRICE_ID=price_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
@@ -144,15 +143,15 @@ User clicks "Upgrade"
 ```python
 from enferno.services.billing import HostedBilling
 
-@app.route("/workspace/<int:workspace_id>/upgrade/")
+# enferno/portal/views.py: the workspace comes from the session, not the URL
+@portal.get("/workspace/upgrade")
 @require_workspace_access("admin")
-def upgrade(workspace_id):
-    session = HostedBilling.create_upgrade_session(
-        workspace_id=workspace_id,
-        user_email=current_user.email,
-        base_url=request.host_url
+def upgrade_workspace():
+    workspace = g.current_workspace
+    checkout_session = HostedBilling.create_upgrade_session(
+        workspace.id, current_user.email, request.url_root
     )
-    return redirect(session.url)
+    return redirect(checkout_session.url)
 ```
 
 ### Success Callback
@@ -173,20 +172,17 @@ Workspace admins with a linked billing customer can use the provider's portal,
 including after losing Pro access. Both providers return to `/workspace/settings/`.
 
 ```python
-@app.route("/workspace/<int:workspace_id>/billing/")
+@portal.get("/workspace/billing")
 @require_workspace_access("admin")
-def manage_billing(workspace_id):
+def billing_portal():
     workspace = g.current_workspace
-
     if not workspace.billing_customer_id:
         return redirect(url_for("portal.upgrade_workspace"))
 
-    session = HostedBilling.create_portal_session(
-        customer_id=workspace.billing_customer_id,
-        workspace_id=workspace_id,
-        base_url=request.host_url
+    portal_session = HostedBilling.create_portal_session(
+        workspace.billing_customer_id, workspace.id, request.url_root
     )
-    return redirect(session.url)
+    return redirect(portal_session.url)
 ```
 
 ## Webhook Handlers
@@ -360,8 +356,8 @@ if workspace.is_pro:
 ```python
 class Workspace(db.Model):
     # Billing fields
-    plan = db.Column(db.String(20), default="free")  # "free" or "pro"
-    billing_customer_id = db.Column(db.String(255))  # Provider customer ID
+    plan = db.Column(db.String(10), default="free")  # "free" or "pro"
+    billing_customer_id = db.Column(db.String(100))  # Provider customer ID
     upgraded_at = db.Column(db.DateTime)             # When they upgraded
 
     @property

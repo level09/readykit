@@ -13,11 +13,15 @@ ReadyKit provides multiple deployment options:
 
 ## Docker Compose (Recommended)
 
-The simplest way to deploy. One command starts everything:
+The simplest way to deploy. Generate the Docker environment once, then start
+everything:
 
 ```bash
+./setup.sh               # Answer yes to Docker; generates DB and Redis passwords
 docker compose up --build -d
 ```
+
+Compose requires `DB_PASSWORD` and `REDIS_PASSWORD`; `setup.sh` generates both.
 
 This starts:
 - **Flask app** via uWSGI
@@ -47,7 +51,7 @@ image, override its HTTP health check as shown in `docker-compose.yml`.
 ```bash
 FLASK_DEBUG=0
 SECRET_KEY=your_secure_random_key
-SQLALCHEMY_DATABASE_URI=postgresql://user:pass@postgres:5432/readykit
+# The website service builds SQLALCHEMY_DATABASE_URI from DB_PASSWORD (docker-compose.yml)
 
 # Billing (Stripe or Chargebee)
 BILLING_PROVIDER=stripe  # or chargebee

@@ -73,17 +73,16 @@ def index():
 Superadmin user management. Profile and security pages belong to the portal blueprint.
 
 ```python
-from flask import Blueprint
-from flask_security import auth_required
-from enferno.services.auth import require_superadmin
+from flask import Blueprint, abort
+from flask_security import auth_required, current_user
 
-user = Blueprint('user', __name__)
+bp_user = Blueprint("users", __name__, static_folder="../static")
 
-@user.before_request
+@bp_user.before_request
 @auth_required("session")
-@require_superadmin()
 def before_request():
-    pass
+    if not current_user.is_superadmin:
+        abort(403)
 ```
 
 ## Creating Workspace-Scoped Features
@@ -199,7 +198,8 @@ db.session.commit()
 
 ## Background Tasks
 
-Define tasks in `enferno/tasks/__init__.py`:
+Background tasks need the `full` extra and `CELERY_BROKER_URL`; without them
+`enferno.tasks.celery` is `None`. Define tasks in `enferno/tasks/__init__.py`:
 
 ```python
 from enferno.tasks import celery
