@@ -8,13 +8,16 @@ YELLOW='\033[0;33m'
 NC='\033[0m'
 
 FULL_CONFIG=false
+ASSUME_YES=false
 for arg in "$@"; do
     case "$arg" in
         --full) FULL_CONFIG=true ;;
+        --yes) ASSUME_YES=true ;;
         -h|--help)
-            echo "Usage: ./setup.sh [--full]"
+            echo "Usage: ./setup.sh [--full] [--yes]"
             echo "Default: SQLite data and sessions, no Redis required."
             echo "--full: Install and configure Redis sessions and Celery."
+            echo "--yes: Skip prompts; no Docker, regenerate .env keeping DATABASE_URL."
             echo "Choosing Docker also enables the full stack."
             exit 0
             ;;
@@ -83,8 +86,11 @@ if [ ! -f .env-sample ]; then
 fi
 
 # Ask about Docker configuration
-read -p "Would you like to configure Docker settings? (y/N) " -n 1 -r
-echo
+REPLY=n
+if [ "$ASSUME_YES" = false ]; then
+    read -p "Would you like to configure Docker settings? (y/N) " -n 1 -r
+    echo
+fi
 DOCKER_CONFIG=false
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     DOCKER_CONFIG=true
@@ -95,9 +101,13 @@ else
 fi
 
 # Check if .env already exists
+BACKUP_FILE=""
 if [ -f .env ]; then
-    read -p "A .env file already exists. Do you want to overwrite it? (y/N) " -n 1 -r
-    echo
+    REPLY=y
+    if [ "$ASSUME_YES" = false ]; then
+        read -p "A .env file already exists. Do you want to overwrite it? (y/N) " -n 1 -r
+        echo
+    fi
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         exit 1
     fi
@@ -139,6 +149,13 @@ if [ -z "$SECRET_KEY" ] || [ -z "$TOTP_SECRET1" ] || [ -z "$TOTP_SECRET2" ] || [
     exit 1
 fi
 
+# Keep a provisioned DATABASE_URL (e.g. from Stripe Projects) instead of SQLite.
+DATABASE_URL_LINE=""
+if [ -n "$BACKUP_FILE" ]; then
+    DATABASE_URL_LINE=$(grep -m1 '^DATABASE_URL=' "$BACKUP_FILE" || true)
+fi
+export DATABASE_URL_LINE
+
 # Process the .env file
 if ! awk -v sk="$SECRET_KEY" -v ts1="$TOTP_SECRET1" -v ts2="$TOTP_SECRET2" -v ps="$PASSWORD_SALT" \
        -v docker="$DOCKER_CONFIG" -v full="$FULL_CONFIG" -v rpass="$REDIS_PASSWORD" -v dbpass="$DB_PASSWORD" -v uid="$DOCKER_UID" '
@@ -151,6 +168,9 @@ if ! awk -v sk="$SECRET_KEY" -v ts1="$TOTP_SECRET1" -v ts2="$TOTP_SECRET2" -v ps
     }
     else if ($0 ~ /^SECURITY_PASSWORD_SALT=/) {
         print "SECURITY_PASSWORD_SALT=\"" ps "\""
+    }
+    else if (ENVIRON["DATABASE_URL_LINE"] != "" && $0 ~ /^SQLALCHEMY_DATABASE_URI=/) {
+        print ENVIRON["DATABASE_URL_LINE"]
     }
     else if ($0 ~ /^SQLALCHEMY_DATABASE_URI=/) {
         print "SQLALCHEMY_DATABASE_URI=sqlite:///enferno.sqlite3"
@@ -211,11 +231,15 @@ echo -e "${GREEN}Generated secure values for: SECRET_KEY, SECURITY_TOTP_SECRETS,
 if [ "$DOCKER_CONFIG" = true ]; then
     echo -e "${GREEN}Docker configuration enabled with secure passwords for Redis and PostgreSQL${NC}"
 else
-    echo -e "${GREEN}SQLite database configured at: enferno.sqlite3${NC}"
+    if [ -n "$DATABASE_URL_LINE" ]; then
+        echo -e "${GREEN}Database: kept DATABASE_URL from the previous .env${NC}"
+    else
+        echo -e "${GREEN}SQLite database configured at: enferno.sqlite3${NC}"
+    fi
     if [ "$FULL_CONFIG" = true ]; then
         echo -e "${YELLOW}Redis is required at localhost:6379 for sessions and Celery.${NC}"
     else
-        echo -e "${GREEN}Sessions use SQLite. Redis and Celery are disabled.${NC}"
+        echo -e "${GREEN}Sessions use the database. Redis and Celery are disabled.${NC}"
     fi
 fi
 echo

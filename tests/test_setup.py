@@ -166,3 +166,44 @@ def test_setup_keeps_secure_cookies_for_docker(tmp_path):
         assert values[setting] == (
             f"redis://:{values['REDIS_PASSWORD']}@redis:6379/{database}"
         )
+
+
+def test_setup_yes_keeps_provisioned_services(tmp_path):
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    _write_python_candidates(bin_dir, supported_name="python3")
+    _write_executable(bin_dir / "uv", "#!/bin/sh\nexit 0\n")
+    # Shape of an .env after `stripe projects add neon/postgres`.
+    (tmp_path / ".env").write_text(
+        "DATABASE_URL=postgres://neon.example/app\n"
+        "REDIS_SESSION=redis://localhost:6379/1\n"
+    )
+
+    result = _run_setup(
+        tmp_path, f"{bin_dir}:/usr/bin:/bin", answer="", args=("--yes",)
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    values = dotenv_values(tmp_path / ".env")
+    assert values["DATABASE_URL"] == "postgres://neon.example/app"
+    assert "SQLALCHEMY_DATABASE_URI" not in values
+    assert "REDIS_SESSION" not in values
+
+    package = tmp_path / "enferno"
+    package.mkdir()
+    for name in ("__init__.py", "settings.py"):
+        shutil.copy(PROJECT_ROOT / "enferno" / name, package / name)
+    config_result = subprocess.run(
+        [
+            str(PROJECT_ROOT / ".venv/bin/python"),
+            "-c",
+            "from enferno.settings import Config; print(Config.SQLALCHEMY_DATABASE_URI)",
+        ],
+        cwd=tmp_path,
+        env={"PATH": os.environ["PATH"], "PYTHONPATH": str(tmp_path)},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert config_result.returncode == 0, config_result.stderr
+    assert config_result.stdout.strip() == "postgresql://neon.example/app"

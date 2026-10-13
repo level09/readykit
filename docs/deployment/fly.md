@@ -32,8 +32,9 @@ flyctl apps create your-app-name
 ### 3. Create Postgres Database
 
 Provision PostgreSQL for your app and obtain its connection URI from the database
-setup. ReadyKit reads `SQLALCHEMY_DATABASE_URI`, not `DATABASE_URL`; set it explicitly
-using the `postgresql://` scheme. Keep the database provider's required TLS options.
+setup. ReadyKit reads `SQLALCHEMY_DATABASE_URI` first and falls back to `DATABASE_URL`,
+rewriting a `postgres://` scheme to `postgresql://`. Keep the database provider's
+required TLS options.
 
 ### 4. Set Secrets
 

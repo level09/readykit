@@ -291,12 +291,22 @@ brew install stripe/stripe-cli/stripe
 # Login
 stripe login
 
-# Forward webhooks to local server
+# Fill missing Stripe settings in .env: the CLI's test key, a Pro price,
+# and the local listener's webhook secret
+uv run flask stripe-setup
+
+# Forward webhooks to local server, then restart the app. If STRIPE_SECRET_KEY
+# is not from your `stripe login` account, prefix STRIPE_API_KEY=<that key>.
 stripe listen --forward-to localhost:5000/stripe/webhook
 
-# Put the listener's whsec_... value in STRIPE_WEBHOOK_SECRET, then restart the app.
 # Open /workspace/upgrade as a workspace admin and complete a sandbox checkout.
 ```
+
+`flask stripe-setup` only fills values that are missing or still placeholders.
+It reuses the price with lookup key `readykit_pro` on reruns, writes the matching
+`PRO_PRICE_DISPLAY` and `PRO_PRICE_INTERVAL`, and accepts `--amount` in US cents
+for the first price. The webhook secret it saves is valid only for
+`stripe listen`; production needs the Dashboard endpoint secret.
 
 Use a sandbox price for `STRIPE_PRO_PRICE_ID` and credentials from the same sandbox.
 Generic CLI fixture events do not carry ReadyKit's workspace mapping or necessarily

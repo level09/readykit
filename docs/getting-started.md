@@ -78,6 +78,25 @@ uv sync --extra dev --extra full
 Start Redis, then uncomment `REDIS_SESSION`, `CELERY_BROKER_URL`, and
 `CELERY_RESULT_BACKEND` in `.env`. Restart the app and start a Celery worker.
 
+### Provision Postgres with Stripe Projects
+
+[Stripe Projects](https://docs.stripe.com/projects) can create a hosted Postgres
+database and write its `DATABASE_URL` to `.env`. Provision first, then let setup
+keep it:
+
+```bash
+stripe projects init
+stripe projects add neon/postgres
+./setup.sh --yes            # Keeps the provisioned DATABASE_URL
+uv run flask create-db
+uv run flask stripe-setup   # Test key, Pro price, local webhook secret
+uv run python checks.py --config --billing
+```
+
+ReadyKit reads `SQLALCHEMY_DATABASE_URI` first and falls back to `DATABASE_URL`.
+`--yes` skips prompts, does not configure Docker, and regenerates an existing
+`.env` after backing it up, keeping its `DATABASE_URL`.
+
 ## What Happens on First Login?
 
 New OAuth accounts receive a workspace. A non-superadmin with one workspace goes

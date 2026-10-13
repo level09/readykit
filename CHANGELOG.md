@@ -2,6 +2,17 @@
 
 All notable ReadyKit changes are documented here.
 
+## Unreleased
+
+### Added
+
+- `flask stripe-setup` fills missing Stripe settings: the Stripe CLI's test key, a reusable Pro price, and the local `stripe listen` webhook secret.
+- `./setup.sh --yes` runs without prompts and keeps a provisioned `DATABASE_URL` from the existing `.env`.
+
+### Changed
+
+- Fall back to `DATABASE_URL` when `SQLALCHEMY_DATABASE_URI` is unset, accepting the `postgres://` scheme.
+
 ## v1.5.1 (2026-09-26)
 
 ### Added

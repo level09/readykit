@@ -37,11 +37,11 @@ class Config:
     DEBUG_TB_ENABLED = os.environ.get("DEBUG_TB_ENABLED")
     DEBUG_TB_INTERCEPT_REDIRECTS = False
     CACHE_TYPE = "flask_caching.backends.SimpleCache"
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "SQLALCHEMY_DATABASE_URI", "postgresql:///enferno"
-    )
-    # for postgres
-    # SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI', 'postgresql:///enferno')
+    # DATABASE_URL is what Stripe Projects, Fly.io and Railway provide.
+    SQLALCHEMY_DATABASE_URI = (
+        os.environ.get("SQLALCHEMY_DATABASE_URI")
+        or os.environ.get("DATABASE_URL", "postgresql:///enferno")
+    ).replace("postgres://", "postgresql://", 1)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Celery configuration - only set if Redis available and configured

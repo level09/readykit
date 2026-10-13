@@ -1,11 +1,14 @@
 """Click commands."""
 
 import os
+import re
 import secrets
 import string
+import subprocess
 import sys
 
 import click
+from flask import current_app
 from flask.cli import AppGroup, with_appcontext
 from flask_security.utils import hash_password
 from rich.console import Console
@@ -240,6 +243,83 @@ def reset(email, password):
             print("Error committing to database.")
     except Exception as e:
         print(f"Error resetting user password: {e}")
+
+
+PRO_PRICE_LOOKUP_KEY = "readykit_pro"
+
+
+def _stripe_cli(*args, api_key=None):
+    # STRIPE_API_KEY keeps the key out of the process list.
+    env = {**os.environ, "STRIPE_API_KEY": api_key} if api_key else None
+    try:
+        return subprocess.run(
+            ["stripe", *args], capture_output=True, text=True, check=True, env=env
+        ).stdout
+    except (FileNotFoundError, subprocess.CalledProcessError) as e:
+        raise click.ClickException(
+            f"`stripe {args[0]}` failed. Install the Stripe CLI and run `stripe login`."
+        ) from e
+
+
+@click.command("stripe-setup")
+@click.option("--amount", default=2900, show_default=True, help="Pro price in cents.")
+@with_appcontext
+def stripe_setup(amount):
+    """Create the Stripe Pro price and local webhook secret, then save them to .env."""
+    import stripe
+    from dotenv import set_key
+
+    config = current_app.config
+    if config["BILLING_PROVIDER"] != "stripe":
+        raise click.ClickException("stripe-setup requires BILLING_PROVIDER=stripe.")
+
+    def missing(name):
+        value = config.get(name)
+        return not value or "your_" in value
+
+    env_file = os.path.join(config["PROJECT_ROOT"], ".env")
+    stripe.api_key = config["STRIPE_SECRET_KEY"]
+    if missing("STRIPE_SECRET_KEY"):
+        # ponytail: first test key in the CLI config; select by profile if multi-account users hit the wrong one
+        match = re.search(
+            r"test_mode_api_key\s*=\s*['\"]?(sk_test_\w+)",
+            _stripe_cli("config", "--list"),
+        )
+        if not match:
+            raise click.ClickException("Set STRIPE_SECRET_KEY or run `stripe login`.")
+        stripe.api_key = match.group(1)
+        set_key(env_file, "STRIPE_SECRET_KEY", stripe.api_key)
+        print("STRIPE_SECRET_KEY: test key from the Stripe CLI")
+    if not stripe.api_key.startswith("sk_test_"):
+        raise click.ClickException("stripe-setup only uses sk_test_ secret keys.")
+
+    if missing("STRIPE_PRO_PRICE_ID"):
+        # The lookup key makes reruns reuse the price instead of creating another.
+        existing = stripe.Price.list(lookup_keys=[PRO_PRICE_LOOKUP_KEY], active=True)
+        price = (
+            existing.data[0]
+            if existing.data
+            else stripe.Price.create(
+                unit_amount=amount,
+                currency="usd",
+                recurring={"interval": config["PRO_PRICE_INTERVAL"]},
+                product_data={"name": "Pro"},
+                lookup_key=PRO_PRICE_LOOKUP_KEY,
+            )
+        )
+        display = "$" + f"{price.unit_amount / 100:.2f}".removesuffix(".00")
+        set_key(env_file, "STRIPE_PRO_PRICE_ID", price.id)
+        set_key(env_file, "PRO_PRICE_DISPLAY", display)
+        set_key(env_file, "PRO_PRICE_INTERVAL", price.recurring.interval)
+        print(f"STRIPE_PRO_PRICE_ID: {price.id} ({display}/{price.recurring.interval})")
+
+    if missing("STRIPE_WEBHOOK_SECRET"):
+        # Valid for `stripe listen` forwarding only; production needs a Dashboard endpoint secret.
+        secret = _stripe_cli("listen", "--print-secret", api_key=stripe.api_key)
+        set_key(env_file, "STRIPE_WEBHOOK_SECRET", secret.strip())
+        print("STRIPE_WEBHOOK_SECRET: local `stripe listen` secret")
+
+    print(f"Stripe is configured in {env_file}.")
 
 
 i18n_cli = AppGroup("i18n")
