@@ -18,7 +18,7 @@
     <!-- New key revealed once -->
     <v-alert v-if="newKey" variant="outlined" class="mb-6" closable @click:close="newKey = ''">
         <div class="text-subtitle-2 font-weight-medium mb-2">Your new API key</div>
-        <div class="text-body-2 text-medium-emphasis mb-3">Copy it now — you won't be able to see it again.</div>
+        <div class="text-body-2 text-medium-emphasis mb-3">Copy it now. You won't be able to see it again.</div>
         <div class="d-flex align-center pa-3" style="background: #F4F4F5; border-radius: 4px; font-family: monospace;">
             <span class="flex-grow-1 text-body-2">${ newKey }</span>
             <v-btn icon size="small" variant="text" aria-label="Copy API key" @click="copyKey">
