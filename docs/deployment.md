@@ -285,5 +285,6 @@ echo $SQLALCHEMY_DATABASE_URI
 # Check webhook logs in your billing provider's dashboard
 # Verify webhook secrets are set correctly
 # For Stripe, test locally with:
-stripe listen --forward-to localhost:5000/stripe/webhook
+stripe listen --forward-to localhost:5000/stripe/webhook \
+  --events checkout.session.completed,checkout.session.async_payment_succeeded,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,customer.subscription.paused,customer.subscription.resumed,invoice.payment_failed,invoice.paid
 ```

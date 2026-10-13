@@ -297,7 +297,8 @@ uv run flask stripe-setup
 
 # Forward webhooks to local server, then restart the app. If STRIPE_SECRET_KEY
 # is not from your `stripe login` account, prefix STRIPE_API_KEY=<that key>.
-stripe listen --forward-to localhost:5000/stripe/webhook
+stripe listen --forward-to localhost:5000/stripe/webhook \
+  --events checkout.session.completed,checkout.session.async_payment_succeeded,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,customer.subscription.paused,customer.subscription.resumed,invoice.payment_failed,invoice.paid
 
 # Open /workspace/upgrade as a workspace admin and complete a sandbox checkout.
 ```
