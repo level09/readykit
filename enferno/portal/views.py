@@ -593,4 +593,12 @@ def billing_success():
     except Exception as e:
         current_app.logger.error(f"Payment processing error: {str(e)}")
 
-    return render_template("billing_error.html", error_type="payment_failed")
+    return render_template(
+        "billing_error.html",
+        error_type="payment_failed",
+        title="Payment not confirmed",
+        message="We could not confirm this checkout. If you were charged, your plan "
+        "updates as soon as the payment provider confirms it.",
+        action_text="Back to workspace settings",
+        action_url="/workspace/settings/",
+    )
