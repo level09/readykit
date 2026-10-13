@@ -133,7 +133,9 @@ def test_member_can_read_own_data_but_cannot_write(tenants):
     assert [key["id"] for key in client.get(prefix + "/keys").json["keys"]] == [
         tenants.own_key
     ]
-    members = client.post(prefix + "/members", json={}).json["items"]
+    page = client.post(prefix + "/members", json={}).json
+    members = page["items"]
+    assert page["total"] == 2
     assert {member["user_id"] for member in members} == {
         tenants.owner.id,
         tenants.member.id,

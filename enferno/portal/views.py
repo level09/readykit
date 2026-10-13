@@ -273,11 +273,11 @@ def workspace_members(workspace_id):
     )
 
     # Get total count
-    total_count = db.session.execute(
-        db.select(db.func.count()).select_from(
-            db.select(Membership.user_id).where(Membership.workspace_id == workspace_id)
-        )
-    ).scalar()
+    total_count = db.session.scalar(
+        db.select(db.func.count())
+        .select_from(Membership)
+        .where(Membership.workspace_id == workspace_id)
+    )
 
     # Get paginated results
     memberships = db.session.execute(
