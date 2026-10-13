@@ -75,6 +75,10 @@ dev = [
 wsgi = [
     "uwsgi>=2.0.30",
 ]
+e2e = [
+    # Browser journeys against a live app and a Stripe sandbox (RUN_E2E=1)
+    "playwright>=1.55",
+]
 
 [build-system]
 requires = ["hatchling"]

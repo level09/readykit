@@ -14,6 +14,7 @@ All notable ReadyKit changes are documented here.
 
 - Upgraded to SQLAlchemy 2.1, which uses psycopg 3 for `postgresql://` URLs; `psycopg[binary]` replaces `psycopg2-binary`. Plain `postgresql://` and `postgres://` URLs keep working. Derived projects must change `postgresql+psycopg2://` URLs to `postgresql://`, replace `psycopg2` imports and exceptions with `psycopg`, and recheck any psycopg2-specific `connect_args`.
 - Upgraded Flask-Security-Too to 5.9.1 and Stripe's Python library to 16.0, now the minimum versions. `nh3` replaces `bleach`, and login uses Flask-Security's default email mapper, which also validates the address.
+- Browser journeys in `tests/e2e` (opt-in with `RUN_E2E=1`) cover hosted checkout, the billing portal, cancellation, a failed renewal and recovery on a Stripe test clock, and team member access against a Stripe sandbox.
 - Test Python 3.14 in CI. Pre-commit hooks run the project's locked Ruff, now 0.17.
 
 ### Fixed
