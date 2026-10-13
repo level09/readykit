@@ -5,7 +5,7 @@ Uses hosted pages - no custom checkout UI.
 
 import json
 import os
-from datetime import UTC, datetime
+from datetime import datetime
 from functools import wraps
 from typing import Any
 from urllib.parse import urljoin
@@ -21,7 +21,7 @@ PROVIDER = os.environ.get("BILLING_PROVIDER", "stripe")
 
 def _set_plan(workspace, is_pro):
     if is_pro and not workspace.is_pro:
-        workspace.upgraded_at = datetime.now(UTC).replace(tzinfo=None)
+        workspace.upgraded_at = datetime.now()  # Server-local, like created_at
     workspace.plan = "pro" if is_pro else "free"
 
 
@@ -161,6 +161,21 @@ if PROVIDER == "stripe":
             )
 
         @staticmethod
+        def has_payment_issue(customer_id: str) -> bool:
+            """True when a Pro subscription exists but needs payment, not a new checkout."""
+            _init_stripe()
+            subscriptions = stripe.Subscription.list(
+                customer=customer_id,
+                price=current_app.config.get("STRIPE_PRO_PRICE_ID"),
+                status="all",
+                limit=100,
+            )
+            return any(
+                subscription.status in {"past_due", "unpaid", "incomplete", "paused"}
+                for subscription in subscriptions.auto_paging_iter()
+            )
+
+        @staticmethod
         def handle_successful_payment(session_id: str, *, commit=True) -> int | None:
             """Handle successful Stripe payment by upgrading the workspace."""
             _init_stripe()
@@ -290,6 +305,25 @@ elif PROVIDER == "chargebee":
                 if not result.next_offset:
                     _set_plan(workspace, False)
                     return
+                params["offset"] = result.next_offset
+
+        @staticmethod
+        def has_payment_issue(customer_id: str) -> bool:
+            """True when a Pro subscription exists but is paused, not a new checkout."""
+            cb = _init_chargebee()
+            params = {
+                "customer_id": {"is": customer_id},
+                "item_price_id": {
+                    "is": current_app.config.get("CHARGEBEE_PRO_ITEM_PRICE_ID")
+                },
+                "limit": 100,
+            }
+            while True:
+                result = cb.Subscription.list(params)
+                if any(entry.subscription.status == "paused" for entry in result.list):
+                    return True
+                if not result.next_offset:
+                    return False
                 params["offset"] = result.next_offset
 
         @staticmethod

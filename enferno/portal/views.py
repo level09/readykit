@@ -85,7 +85,19 @@ def workspace_settings():
         user_role=g.user_workspace_role,
         pro_price=current_app.config.get("PRO_PRICE_DISPLAY", "$29"),
         pro_interval=current_app.config.get("PRO_PRICE_INTERVAL", "month"),
+        payment_issue=_payment_issue(g.current_workspace, g.user_workspace_role),
     )
+
+
+def _payment_issue(workspace, role):
+    if role != "admin" or workspace.is_pro or not workspace.billing_customer_id:
+        return False
+    try:
+        return HostedBilling.has_payment_issue(workspace.billing_customer_id)
+    except Exception:
+        # Settings must render when the provider is unreachable.
+        current_app.logger.exception("Could not check billing status")
+        return False
 
 
 @portal.get("/settings/profile")
@@ -518,6 +530,12 @@ def upgrade_workspace():
             return redirect(url_for("portal.billing_portal"))
         else:
             return redirect(url_for("portal.workspace_settings"))
+
+    # A new checkout would start a second subscription beside the unpaid one.
+    if workspace.billing_customer_id and HostedBilling.has_payment_issue(
+        workspace.billing_customer_id
+    ):
+        return redirect(url_for("portal.billing_portal"))
 
     try:
         checkout_session = HostedBilling.create_upgrade_session(

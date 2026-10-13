@@ -614,3 +614,49 @@ def test_cancellation_during_checkout_link_is_not_lost(
         checkout.result(timeout=5)
         assert cancellation.result(timeout=5).status_code == 200
     assert db.session.get(Workspace, 1).plan == "free"
+
+
+@pytest.mark.parametrize("unpaid", [False, True])
+def test_upgrade_with_unpaid_subscription_opens_portal(
+    app, workspace, provider, monkeypatch, unpaid
+):
+    from flask_security.utils import hash_password
+
+    from enferno.services.workspace import WorkspaceService
+
+    owner = db.session.get(User, workspace.owner_id)
+    owner.password = hash_password("correct horse battery")
+    WorkspaceService.add_member(workspace.id, owner, role="admin")
+    workspace.plan = "free"
+    db.session.commit()
+    if unpaid:
+        provider.status = "past_due" if PROVIDER == "stripe" else "paused"
+    else:
+        provider.status = "canceled" if PROVIDER == "stripe" else "cancelled"
+    checkout = SimpleNamespace(url="https://checkout.example")
+    monkeypatch.setattr(
+        billing.HostedBilling,
+        "create_upgrade_session",
+        staticmethod(lambda *args: checkout),
+    )
+    from flask.testing import FlaskClient
+
+    class RequestClient(FlaskClient):
+        def open(self, *args, **kwargs):
+            # The database fixture holds an app context; requests need their own.
+            with self.application.app_context():
+                return super().open(*args, **kwargs)
+
+    monkeypatch.setattr(app, "test_client_class", RequestClient)
+    client = app.test_client()
+    login = client.post(
+        "/login", data={"email": owner.email, "password": "correct horse battery"}
+    )
+    assert login.status_code == 302
+    client.get(f"/workspace/{workspace.id}/switch/")
+
+    response = client.get("/workspace/upgrade")
+
+    assert response.location == (
+        "/workspace/billing" if unpaid else "https://checkout.example"
+    )
