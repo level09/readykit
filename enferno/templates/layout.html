@@ -22,7 +22,7 @@
 <v-app id="app" v-cloak>
     <v-layout class="rounded rounded-md">
         <v-app-bar color="white" density="comfortable" elevation="0" border="b">
-            <v-app-bar-nav-icon @click="drawer = !drawer" class="d-md-none"></v-app-bar-nav-icon>
+            <v-app-bar-nav-icon @click="drawer = !drawer" class="d-md-none" aria-label="Toggle navigation"></v-app-bar-nav-icon>
 
             <v-app-bar-title>
                 <a href="/" class="text-decoration-none d-flex align-center">
@@ -34,7 +34,7 @@
             {% if current_user.is_authenticated %}
             <v-menu location="bottom end" offset="4">
                 <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" icon variant="text" size="small" class="mr-2">
+                    <v-btn v-bind="props" icon variant="text" size="small" class="mr-2" aria-label="Account menu">
                         <v-avatar size="30" color="#E4E4E7">
                             <span class="font-weight-bold text-caption" style="color: #52525B;">{{ current_user.name[:1].upper() if current_user.name else 'U' }}</span>
                         </v-avatar>
@@ -61,7 +61,7 @@
             {% endif %}
         </v-app-bar>
 
-        <v-navigation-drawer v-model="drawer" width="240">
+        <v-navigation-drawer v-model="drawer" width="240" mobile-breakpoint="md">
             {% if current_user.is_authenticated %}
             <!-- User Identity -->
             <a href="/settings/profile" class="d-block pa-4 pb-2 text-decoration-none" style="color: inherit;">
@@ -166,7 +166,7 @@
                 {% for category, message in messages %}
                     <div class="flash-message {{ category if category in ['success', 'warning', 'error', 'info'] else 'primary' }}">
                         <span>{{ message }}</span>
-                        <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+                        <button class="flash-close" aria-label="Dismiss message" onclick="this.parentElement.remove()">&times;</button>
                     </div>
                 {% endfor %}
             </div>
@@ -195,13 +195,15 @@
     const layoutMixin = {
         data() {
             return {
-                drawer: true,
+                drawer: window.innerWidth >= 960,
                 isMobile: window.innerWidth < 960
             };
         },
         methods: {
             handleResize() {
-                this.isMobile = window.innerWidth < 960;
+                const mobile = window.innerWidth < 960;
+                if (mobile !== this.isMobile) this.drawer = !mobile;
+                this.isMobile = mobile;
             }
         },
         mounted() {

@@ -26,6 +26,11 @@ html, body {
     background-color: rgba(0, 0, 0, 0.25);
 }
 
+/* ===== Buttons ===== */
+.v-btn {
+    letter-spacing: normal;
+}
+
 /* ===== Input Focus States ===== */
 .v-field--focused .v-field__outline {
     --v-field-border-opacity: 1;

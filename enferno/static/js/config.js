@@ -11,19 +11,24 @@ const config = {
     vuetifyConfig: {
         defaults: {
             VTextField: {
-                variant: 'underlined'
+                variant: 'outlined',
+                density: 'comfortable'
             },
             VSelect: {
-                variant: 'underlined'
+                variant: 'outlined',
+                density: 'comfortable'
             },
             VTextarea: {
-                variant: 'underlined'
+                variant: 'outlined',
+                density: 'comfortable'
             },
             VCombobox: {
-                variant: 'underlined'
+                variant: 'outlined',
+                density: 'comfortable'
             },
             VAutocomplete: {
-                variant: 'underlined'
+                variant: 'outlined',
+                density: 'comfortable'
             },
             VChip: {
                 size: 'small'
@@ -32,7 +37,8 @@ const config = {
                 elevation: 0
             },
             VBtn: {
-                variant: 'flat'
+                variant: 'flat',
+                class: 'text-none'
             },
             VDataTableServer: {
                 itemsPerPage: 25,
