@@ -152,6 +152,10 @@ class Config:
     CHARGEBEE_WEBHOOK_USERNAME = os.environ.get("CHARGEBEE_WEBHOOK_USERNAME")
     CHARGEBEE_WEBHOOK_PASSWORD = os.environ.get("CHARGEBEE_WEBHOOK_PASSWORD")
 
+    # Legal pages linked from sign-in; the notice is hidden until both are set.
+    TERMS_URL = os.environ.get("TERMS_URL")
+    PRIVACY_URL = os.environ.get("PRIVACY_URL")
+
     # Pricing Display (update when price changes)
     PRO_PRICE_DISPLAY = os.environ.get("PRO_PRICE_DISPLAY", "$29")
     PRO_PRICE_INTERVAL = os.environ.get("PRO_PRICE_INTERVAL", "month")
