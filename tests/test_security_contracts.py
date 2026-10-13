@@ -151,3 +151,15 @@ def test_user_update_with_password_sets_it(app):
     user.from_dict({"password": "Replacement-Pass-2"})
 
     assert verify_password("Replacement-Pass-2", user.password)
+
+
+@pytest.mark.parametrize("configured", [False, True])
+def test_sign_in_shows_legal_notice_only_when_configured(app, monkeypatch, configured):
+    urls = ("https://example.com/terms", "https://example.com/privacy")
+    monkeypatch.setitem(app.config, "TERMS_URL", urls[0] if configured else None)
+    monkeypatch.setitem(app.config, "PRIVACY_URL", urls[1] if configured else None)
+
+    page = app.test_client().get("/login").get_data(as_text=True)
+
+    assert ("Privacy Policy" in page) is configured
+    assert 'href="#"' not in page

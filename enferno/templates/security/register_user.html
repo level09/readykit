@@ -88,11 +88,13 @@
                     ${ flashMessage }
                 </v-alert>
 
+                {% if config.TERMS_URL and config.PRIVACY_URL %}
                 <div class="text-center text-caption text-medium-emphasis mb-4">
-                    By continuing, you agree to ReadyKit's
-                    <a href="#" class="text-decoration-none">Terms</a> and
-                    <a href="#" class="text-decoration-none">Privacy Policy</a>.
+                    By continuing, you agree to the
+                    <a href="{{ config.TERMS_URL }}" class="text-decoration-none">Terms</a> and
+                    <a href="{{ config.PRIVACY_URL }}" class="text-decoration-none">Privacy Policy</a>.
                 </div>
+                {% endif %}
 
                 {% if security.login_url %}
                 <div class="text-center">
