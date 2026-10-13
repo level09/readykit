@@ -2,6 +2,17 @@
 
 All notable ReadyKit changes are documented here.
 
+## Unreleased
+
+### Fixed
+
+- A workspace whose Pro subscription lapsed or is unpaid now shows "Restore Pro" in the sidebar instead of "Upgrade to Pro".
+- The sign-in and registration pages show the Terms and Privacy notice only when `TERMS_URL` and `PRIVACY_URL` are set, instead of linking to `#`.
+
+### Changed
+
+- Upgraded the GitHub Actions used in CI and deploys, and build the documentation on Node 22.
+
 ## v1.7.0 (2026-10-14)
 
 ### Security
