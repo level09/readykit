@@ -2,11 +2,12 @@
 
 All notable ReadyKit changes are documented here.
 
-## Unreleased
+## v1.7.0 (2026-10-14)
 
 ### Security
 
 - Require a verified Google or GitHub email before an OAuth sign-in links to an existing account by email or creates a new one. An unverified provider address could previously sign in as the ReadyKit user with that email. Accounts already linked to the provider still sign in.
+- Saving a user in the admin editor with an empty password field no longer replaces that user's password. The editor and the add-member form also stop browsers from autofilling the signed-in admin's credentials.
 - Upgraded Mako, oauthlib (4.0), urllib3, virtualenv, and Werkzeug, and the documentation site's Vue and source-map-js, for published advisories.
 - Pinned the Fly.io deploy action to a release commit instead of its `master` branch.
 
@@ -25,6 +26,7 @@ All notable ReadyKit changes are documented here.
 - Store the Pro upgrade time in server-local time like other timestamps, so it no longer appears before the workspace's creation date.
 - The billing success page no longer lists features ReadyKit does not provide, and the billing error page explains unconfirmed checkouts.
 - Render styled 400 and 403 pages.
+- Dialogs fit narrow screens, show the primary action as a filled button, and leave room for field hints and errors.
 - Acknowledge billing events for customers not linked to a workspace instead of returning HTTP 500. Checkout already reconciles the plan when it links the customer, and other applications' customers on a shared Stripe or Chargebee account no longer fail delivery indefinitely.
 - Link OAuth sign-ins to existing accounts case-insensitively, matching password login, instead of creating a duplicate user.
 - Count workspace members without a deprecated SQLAlchemy subquery.

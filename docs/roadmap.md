@@ -1,8 +1,17 @@
 # Roadmap
 
 Direction, not delivery dates. See [CHANGELOG.md](https://github.com/level09/readykit/blob/master/CHANGELOG.md)
-for release history. Version 1.6.0 removes manual setup steps: Stripe test billing,
-provisioned databases, and OAuth configured from credentials alone.
+for release history. Version 1.7.0 closes an OAuth account-takeover path, keeps billing
+correct when payments fail or events race checkout, and refines the interface.
+
+## In 1.7.0
+
+- Verified provider email required before OAuth links or creates an account.
+- Unpaid subscriptions route to the billing portal instead of a second checkout.
+- A per-customer lock orders checkout with webhook events on PostgreSQL.
+- SQLAlchemy 2.1 with psycopg 3, Flask-Security-Too 5.9, Stripe 16, Python 3.14 in CI.
+- Browser journeys against a Stripe sandbox, including a failed renewal on a test clock.
+- One page header, form, dialog and error page design across the app.
 
 ## In 1.6.0
 
