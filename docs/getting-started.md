@@ -56,7 +56,7 @@ billing settings. Passing does not verify credentials, connections, schema, or w
 ```bash
 uv run flask create-db    # Create database tables
 uv run flask install      # Create admin user (interactive)
-uv run flask run          # Start development server
+uv run flask run          # Start development server (macOS: --port 5050 if AirPlay holds 5000)
 ```
 
 After initializing the database, `uv run python checks.py` runs the existing app

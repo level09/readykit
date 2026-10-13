@@ -1,8 +1,19 @@
 # Roadmap
 
 Direction, not delivery dates. See [CHANGELOG.md](https://github.com/level09/readykit/blob/master/CHANGELOG.md)
-for release history. Version 1.5.1 focuses on reliable billing, workspace isolation,
-and a smaller local setup for solo builders.
+for release history. Version 1.6.0 removes manual setup steps: Stripe test billing,
+provisioned databases, and OAuth configured from credentials alone.
+
+## In 1.6.0
+
+- `flask stripe-setup` creates the Pro price and local webhook secret from an `sk_test_` key.
+- `./setup.sh --yes` for non-interactive setup that keeps a provisioned `DATABASE_URL`.
+- `DATABASE_URL` fallback for Stripe Projects, Fly.io, and Railway databases.
+- OAuth providers enabled by their credentials; a fresh install passes `checks.py --config`.
+
+The Stripe sandbox flow was rerun end to end with `stripe-setup`. A Stripe Projects
+template listing is pending a live-account test of provisioning order and
+`stripe projects env --pull`.
 
 ## In 1.5.1
 

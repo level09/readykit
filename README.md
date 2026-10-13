@@ -46,24 +46,19 @@ git clone git@github.com:level09/readykit.git
 cd readykit
 ./setup.sh
 
-# 2. Configure (edit .env)
-GOOGLE_OAUTH_CLIENT_ID=your_id
-GOOGLE_OAUTH_CLIENT_SECRET=your_secret
-
-# Billing: choose stripe (default) or chargebee
-BILLING_PROVIDER=stripe
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PRO_PRICE_ID=price_...
-
-# 3. Run
+# 2. Run
 uv run python checks.py --config
 uv run flask create-db
 uv run flask install
 uv run flask run
+
+# 3. Optional: Stripe test billing (set STRIPE_SECRET_KEY=sk_test_... in .env first)
+uv run flask stripe-setup     # Creates the Pro price and local webhook secret
 ```
 
 Visit http://localhost:5000 and sign in with the admin credentials from `flask install`.
-Google login is available after configuring OAuth.
+Google or GitHub login appears once its client ID and secret are set in `.env`.
+On macOS, AirPlay Receiver may hold port 5000; use `uv run flask run --port 5050`.
 
 Local setup uses SQLite for data and sessions; Redis is not required. Use
 `./setup.sh --full` for Redis sessions and Celery, or select Docker during setup
