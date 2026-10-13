@@ -89,7 +89,7 @@ stripe projects init
 stripe projects add neon/postgres
 ./setup.sh --yes            # Keeps the provisioned DATABASE_URL
 uv run flask create-db
-uv run flask stripe-setup   # Test key, Pro price, local webhook secret
+uv run flask stripe-setup   # After setting STRIPE_SECRET_KEY: Pro price, webhook secret
 uv run python checks.py --config --billing
 ```
 

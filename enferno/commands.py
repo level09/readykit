@@ -1,7 +1,6 @@
 """Click commands."""
 
 import os
-import re
 import secrets
 import string
 import subprocess
@@ -279,19 +278,9 @@ def stripe_setup(amount):
 
     env_file = os.path.join(config["PROJECT_ROOT"], ".env")
     stripe.api_key = config["STRIPE_SECRET_KEY"]
-    if missing("STRIPE_SECRET_KEY"):
-        # ponytail: first test key in the CLI config; select by profile if multi-account users hit the wrong one
-        match = re.search(
-            r"test_mode_api_key\s*=\s*['\"]?(sk_test_\w+)",
-            _stripe_cli("config", "--list"),
-        )
-        if not match:
-            raise click.ClickException("Set STRIPE_SECRET_KEY or run `stripe login`.")
-        stripe.api_key = match.group(1)
-        set_key(env_file, "STRIPE_SECRET_KEY", stripe.api_key)
-        print("STRIPE_SECRET_KEY: test key from the Stripe CLI")
-    if not stripe.api_key.startswith("sk_test_"):
-        raise click.ClickException("stripe-setup only uses sk_test_ secret keys.")
+    # The Stripe CLI keeps its own keys in the system keychain, so the app key is required.
+    if missing("STRIPE_SECRET_KEY") or not stripe.api_key.startswith("sk_test_"):
+        raise click.ClickException("Set STRIPE_SECRET_KEY to an sk_test_ key first.")
 
     if missing("STRIPE_PRO_PRICE_ID"):
         # The lookup key makes reruns reuse the price instead of creating another.

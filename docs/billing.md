@@ -291,7 +291,7 @@ brew install stripe/stripe-cli/stripe
 # Login
 stripe login
 
-# Fill missing Stripe settings in .env: the CLI's test key, a Pro price,
+# Put your sandbox sk_test_ key in STRIPE_SECRET_KEY, then fill the Pro price
 # and the local listener's webhook secret
 uv run flask stripe-setup
 

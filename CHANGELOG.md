@@ -6,7 +6,7 @@ All notable ReadyKit changes are documented here.
 
 ### Added
 
-- `flask stripe-setup` fills missing Stripe settings: the Stripe CLI's test key, a reusable Pro price, and the local `stripe listen` webhook secret.
+- `flask stripe-setup` fills a reusable Pro price and the local `stripe listen` webhook secret from an `sk_test_` key.
 - `./setup.sh --yes` runs without prompts and keeps a provisioned `DATABASE_URL` from the existing `.env`.
 
 ### Changed
