@@ -1,45 +1,42 @@
 {% extends 'layout.html' %}
 {% block content %}
 
-<v-container fluid class="pa-4">
+<v-container class="py-8 px-4 px-md-8" style="max-width: 960px">
     <!-- Header Section -->
-    <v-row class="mb-6">
-        <v-col cols="12">
-            <div class="d-flex align-center justify-space-between">
-                <div>
-                    <h1 class="text-h4 font-weight-medium mb-1">
-                        {% if current_user.is_superadmin %}
-                            Platform Overview
-                        {% else %}
-                            Your Workspaces
-                        {% endif %}
-                    </h1>
-                    <p class="text-body-2 text-medium-emphasis">
-                        {% if current_user.is_superadmin %}
-                            Manage the entire platform, workspaces, and users
-                        {% else %}
-                            Choose a workspace to get started
-                        {% endif %}
-                    </p>
-                </div>
+    <div class="d-flex align-start justify-space-between flex-wrap ga-4 mb-8">
+        <div>
+            <h1 class="text-h5 font-weight-bold">
                 {% if current_user.is_superadmin %}
-                <v-btn
-                    color="primary"
-                    prepend-icon="mdi-plus"
-                    @click="createDialog = true"
-                >
-                    Create Workspace
-                </v-btn>
+                    Platform Overview
+                {% else %}
+                    Your Workspaces
                 {% endif %}
-            </div>
-        </v-col>
-    </v-row>
+            </h1>
+            <p class="text-body-2 text-medium-emphasis mt-1">
+                {% if current_user.is_superadmin %}
+                    Manage the entire platform, workspaces, and users
+                {% else %}
+                    Choose a workspace to get started
+                {% endif %}
+            </p>
+        </div>
+        {% if current_user.is_superadmin %}
+        <v-btn
+            v-if="workspaces.length > 0"
+            color="primary"
+            prepend-icon="mdi-plus"
+            @click="createDialog = true"
+        >
+            Create Workspace
+        </v-btn>
+        {% endif %}
+    </div>
 
 
     <!-- Workspaces Section -->
     <div v-if="workspaces.length > 0">
         <div class="d-flex align-center mb-4">
-            <h2 class="text-h6 font-weight-medium">
+            <h2 class="text-subtitle-1 font-weight-medium">
                 {% if current_user.is_superadmin %}
                     All Workspaces
                 {% else %}
@@ -60,17 +57,18 @@
             >
                 <v-card
                     :href="`/workspace/${workspace.id}/switch/`"
-                    variant="outlined"
-                    class="h-100"
+                    variant="flat"
+                    link
+                    class="border h-100"
                 >
-                    <v-card-text class="pa-4">
-                        <div class="d-flex align-center mb-3">
+                    <v-card-text class="pa-5">
+                        <div class="d-flex align-center">
                             <div class="flex-grow-1">
                                 <div class="d-flex align-center">
                                     <div class="text-subtitle-1 font-weight-medium mr-2">${workspace.name}</div>
-                                    <v-chip v-if="workspace.is_pro" size="x-small" variant="outlined">Pro</v-chip>
+                                    <v-chip v-if="workspace.is_pro" variant="outlined">Pro</v-chip>
                                 </div>
-                                <div class="text-body-2 text-medium-emphasis">
+                                <div class="text-body-2 text-medium-emphasis mt-1">
                                     {% if current_user.is_superadmin %}
                                         Client workspace
                                     {% else %}
@@ -78,7 +76,7 @@
                                     {% endif %}
                                 </div>
                             </div>
-                            <i class="ti ti-chevron-right" style="opacity: 0.3;"></i>
+                            <i class="ti ti-chevron-right text-medium-emphasis" aria-hidden="true"></i>
                         </div>
                     </v-card-text>
                 </v-card>
@@ -88,8 +86,8 @@
 
     <!-- Empty State -->
     <div v-else class="text-center py-16">
-        <i class="ti ti-briefcase-2 mb-4" style="font-size: 48px; opacity: 0.15;"></i>
-        <h2 class="text-h6 font-weight-medium mb-3">No workspaces yet</h2>
+        <i class="ti ti-briefcase-2 mb-4 text-medium-emphasis" style="font-size: 48px;" aria-hidden="true"></i>
+        <h2 class="text-subtitle-1 font-weight-medium mb-2">No workspaces yet</h2>
         <p class="text-body-2 text-medium-emphasis mb-6">
             {% if current_user.is_superadmin %}
                 Create your first workspace to get started.
@@ -107,7 +105,7 @@
         </v-btn>
         {% endif %}
     </div>
-    
+
 </v-container>
 
 <!-- Create Workspace Dialog -->
@@ -115,7 +113,7 @@
     <v-card>
         <v-card-title class="d-flex align-center justify-space-between">
             <span>New Workspace</span>
-            <v-btn @click="createDialog=false" icon="mdi-close" variant="text" size="small"></v-btn>
+            <v-btn @click="createDialog=false" icon="mdi-close" variant="text" size="small" aria-label="Close dialog"></v-btn>
         </v-card-title>
 
         <v-card-text class="pb-0">
@@ -152,7 +150,7 @@
 >
     ${snackMessage}
     <template v-slot:actions>
-        <v-btn @click="snackBar=false" variant="text" size="small">Close</v-btn>
+        <v-btn @click="snackBar=false" variant="text" size="small" aria-label="Close notification">Close</v-btn>
     </template>
 </v-snackbar>
 
@@ -169,7 +167,6 @@ const app = createApp({
     data() {
         return {
             menu: null,
-            drawer: true,
             workspaces: [],
             createDialog: false,
             newWorkspaceName: '',
@@ -184,42 +181,42 @@ const app = createApp({
         };
     },
     delimiters: config.delimiters,
-    
+
     mounted() {
         // Load workspace data from template (already includes user roles)
         this.workspaces = {{ workspaces | tojson | safe }};
     },
-    
+
     methods: {
         showSnack(message, color = 'success') {
             this.snackMessage = message;
             this.snackColor = color;
             this.snackBar = true;
         },
-        
+
         async createWorkspace() {
             if (!this.newWorkspaceName.trim()) {
                 this.showSnack('Workspace name is required', 'error');
                 return;
             }
-            
+
             this.creating = true;
-            
+
             try {
                 const response = await axios.post('/api/workspaces', {
                     name: this.newWorkspaceName.trim()
                 });
-                
+
                 this.showSnack('Workspace created successfully!');
                 this.createDialog = false;
                 this.newWorkspaceName = '';
-                
+
                 // Redirect to the new workspace
                 window.location.href = `/workspace/${response.data.workspace.id}/switch/`;
-                
+
             } catch (error) {
                 this.showSnack(
-                    error.response?.data?.error || 'Failed to create workspace', 
+                    error.response?.data?.error || 'Failed to create workspace',
                     'error'
                 );
             } finally {

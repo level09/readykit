@@ -6,31 +6,31 @@
 {% block layout_classes %} align-center {% endblock %}
 {% block content %}
 
-    <v-card class="ma-2 mt-12 w-100 h-100">
-        <v-toolbar>
-            <v-toolbar-title>Activity Logs</v-toolbar-title>
-            <v-spacer></v-spacer>
-        </v-toolbar>
-        <v-card-text>
+    <v-container class="py-8 px-4 px-md-8" style="max-width: 960px">
+        <div class="d-flex align-start justify-space-between flex-wrap ga-4 mb-8">
+            <div>
+                <h1 class="text-h5 font-weight-bold">Activity Logs</h1>
+                <p class="text-body-2 text-medium-emphasis mt-1">Record of actions taken by users across the platform</p>
+            </div>
+        </div>
 
-            <v-data-table-server
-                :headers="headers"
-                :items="items"
-                :items-length="itemsLength"
-                :page="options.page"
-                :items-per-page="options.itemsPerPage"
-                @update:options="refresh"
-                hover
-            >
-                <template v-slot:item.data="{ item }">
-                    <v-btn size="small" variant="text" color="primary" @click="showData(item)">
-                        View Data
-                    </v-btn>
-                </template>
-            </v-data-table-server>
-
-        </v-card-text>
-    </v-card>
+        <v-data-table-server
+            :headers="headers"
+            :items="items"
+            :items-length="itemsLength"
+            :page="options.page"
+            :items-per-page="options.itemsPerPage"
+            @update:options="refresh"
+            class="border rounded"
+            hover
+        >
+            <template v-slot:item.data="{ item }">
+                <v-btn size="small" variant="text" @click="showData(item)">
+                    View Data
+                </v-btn>
+            </template>
+        </v-data-table-server>
+    </v-container>
 
     <!-- Data Dialog -->
     <v-dialog v-model="dataDialog" width="800">
@@ -38,7 +38,7 @@
             <v-card-title class="d-flex align-center">
                 Activity Data
                 <v-spacer></v-spacer>
-                <v-btn icon="mdi-close" size="small" variant="text" @click="dataDialog = false"></v-btn>
+                <v-btn icon="mdi-close" size="small" variant="text" aria-label="Close activity data" @click="dataDialog = false"></v-btn>
             </v-card-title>
 
             <v-card-text>
@@ -50,7 +50,7 @@
     <v-snackbar size="small" class="d-flex" v-model="snackBar" rounded="pill" elevation="25">
         ${snackMessage}
         <template v-slot:actions>
-            <v-btn @click="snackBar=false" icon="mdi-close" class="ml-auto" variant="text" size="small"></v-btn>
+            <v-btn @click="snackBar=false" icon="mdi-close" class="ml-auto" variant="text" size="small" aria-label="Close notification"></v-btn>
         </template>
     </v-snackbar>
 
@@ -73,7 +73,6 @@
                         page: 1,
                         itemsPerPage: 25
                     },
-                    drawer: true,
                     dataDialog: false,
                     currentData: null,
 
