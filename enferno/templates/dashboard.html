@@ -111,12 +111,12 @@
 <!-- Create Workspace Dialog -->
 <v-dialog v-model="createDialog" max-width="440" persistent>
     <v-card>
-        <v-card-title class="d-flex align-center justify-space-between">
-            <span>New Workspace</span>
+        <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
+            <span class="text-h6">New Workspace</span>
             <v-btn @click="createDialog=false" icon="mdi-close" variant="text" size="small" aria-label="Close dialog"></v-btn>
         </v-card-title>
 
-        <v-card-text class="pb-0">
+        <v-card-text class="px-5 pb-0">
             <v-text-field
                 label="Workspace Name"
                 v-model="newWorkspaceName"
@@ -128,7 +128,7 @@
             <p class="text-caption text-medium-emphasis">You'll be the admin and can invite team members later.</p>
         </v-card-text>
 
-        <v-card-actions class="px-6 pb-6">
+        <v-card-actions class="pa-5 pt-2">
             <v-spacer></v-spacer>
             <v-btn @click="createDialog=false" variant="text" :disabled="creating">Cancel</v-btn>
             <v-btn

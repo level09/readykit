@@ -58,8 +58,11 @@
 <!-- Create dialog -->
 <v-dialog v-model="showCreate" max-width="400">
     <v-card>
-        <v-card-title>Create API Key</v-card-title>
-        <v-card-text>
+        <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
+            <span class="text-h6">Create API Key</span>
+            <v-btn @click="showCreate = false" icon="mdi-close" variant="text" size="small" aria-label="Close dialog"></v-btn>
+        </v-card-title>
+        <v-card-text class="px-5">
             <v-text-field
                 v-model="keyName"
                 label="Key name"
@@ -67,7 +70,7 @@
                 autofocus
             ></v-text-field>
         </v-card-text>
-        <v-card-actions>
+        <v-card-actions class="pa-5 pt-2">
             <v-spacer></v-spacer>
             <v-btn @click="showCreate = false" variant="text" class="text-none">Cancel</v-btn>
             <v-btn color="primary" @click="createKey" :loading="creating" class="text-none">Create</v-btn>

@@ -10,6 +10,10 @@ const config = {
     // Vuetify configuration
     vuetifyConfig: {
         defaults: {
+            // Vuetify makes card-action buttons text by default; keep primary actions filled.
+            VCardActions: {
+                VBtn: {variant: 'flat'}
+            },
             VTextField: {
                 variant: 'outlined',
                 density: 'comfortable'

@@ -88,3 +88,10 @@ a:hover {
 .v-card--variant-outlined {
     border-color: rgba(var(--v-border-color), var(--v-border-opacity));
 }
+
+/* ===== Forms ===== */
+/* Outlined labels float into the top border, so stacked fields need room for the
+   previous field's hint or error. */
+.v-input + .v-input {
+    margin-top: 8px;
+}

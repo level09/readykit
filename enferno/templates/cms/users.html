@@ -62,23 +62,24 @@
 
 
     <!--Edit Dialog-->
-    <v-dialog v-model="edialog" width="660">
+    <v-dialog v-model="edialog" max-width="660">
         <v-card v-if="edialog">
-            <v-toolbar>
-                <v-toolbar-title>User Editor</v-toolbar-title>
-                <template v-slot:append>
-                    <v-btn @click="edialog=false" size="small" icon="mdi-close" variant="text" aria-label="Close user editor"></v-btn>
-                </template>
-            </v-toolbar>
-            
-            
+            <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
+                <span class="text-h6">${eitem.id ? 'Edit User' : 'New User'}</span>
+                <v-btn @click="edialog=false" icon="mdi-close" variant="text" size="small" aria-label="Close dialog"></v-btn>
+            </v-card-title>
 
-            <v-card-text>
-                <!-- fields go here -->
-                <v-text-field label="Name" v-model="eitem.name"></v-text-field>
-                <v-text-field type="email" v-model="eitem.email" label="Email" required></v-text-field>
-
-                <v-text-field placeholder="Password" type="password" v-model="eitem.password"></v-text-field>
+            <v-card-text class="px-5">
+                <v-text-field label="Name" v-model="eitem.name" autocomplete="off"></v-text-field>
+                <v-text-field type="email" v-model="eitem.email" label="Email" autocomplete="off" required></v-text-field>
+                <v-text-field
+                    label="New password"
+                    type="password"
+                    v-model="eitem.password"
+                    autocomplete="new-password"
+                    :hint="eitem.id ? 'Leave blank to keep the current password' : ''"
+                    persistent-hint
+                ></v-text-field>
 
 
                 <v-select v-if="!eitem.is_superadmin" label="Assign to Workspaces"
@@ -98,9 +99,10 @@
 
             </v-card-text>
 
-            <v-card-actions>
+            <v-card-actions class="pa-5 pt-2">
                 <v-spacer></v-spacer>
-                <v-btn color="primary" @click="saveItem" variant="elevated">Save</v-btn>
+                <v-btn @click="edialog=false" variant="text">Cancel</v-btn>
+                <v-btn color="primary" @click="saveItem">Save</v-btn>
             </v-card-actions>
         </v-card>
 

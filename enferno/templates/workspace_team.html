@@ -90,16 +90,14 @@
 </v-container>
 
 <!-- Edit/Add Member Dialog -->
-<v-dialog v-model="edialog" width="500">
+<v-dialog v-model="edialog" max-width="500">
     <v-card v-if="edialog">
-        <v-toolbar>
-            <v-toolbar-title>${editMode ? 'Change Role' : 'Add Member'}</v-toolbar-title>
-            <template v-slot:append>
-                <v-btn @click="edialog=false" size="small" icon="mdi-close" variant="text" aria-label="Close dialog"></v-btn>
-            </template>
-        </v-toolbar>
+        <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
+            <span class="text-h6">${editMode ? 'Change Role' : 'Add Member'}</span>
+            <v-btn @click="edialog=false" icon="mdi-close" variant="text" size="small" aria-label="Close dialog"></v-btn>
+        </v-card-title>
 
-        <v-card-text>
+        <v-card-text class="px-5">
             <div v-if="editMode && eitem.name" class="mb-4">
                 <strong>${eitem.name}</strong>
                 <div class="text-caption text-medium-emphasis">${eitem.email}</div>
@@ -109,24 +107,28 @@
                 <v-text-field
                     label="Full Name"
                     v-model="eitem.name"
+                    autocomplete="off"
                     :rules="[rules.required]"
                 ></v-text-field>
                 <v-text-field
                     label="Username"
                     v-model="eitem.username"
                     :rules="[rules.required, rules.username]"
-                    hint="Used for login, letters and numbers only"
+                    autocomplete="off"
+                    hint="Letters and numbers only"
                     persistent-hint
                 ></v-text-field>
                 <v-text-field
                     label="Email Address"
                     v-model="eitem.email"
+                    autocomplete="off"
                     type="email"
                     :rules="[rules.required, rules.email]"
                 ></v-text-field>
                 <v-text-field
                     label="Password"
                     v-model="eitem.password"
+                    autocomplete="new-password"
                     type="password"
                     :rules="[rules.required]"
                 ></v-text-field>
@@ -141,8 +143,9 @@
             ></v-select>
         </v-card-text>
 
-        <v-card-actions>
+        <v-card-actions class="pa-5 pt-2">
             <v-spacer></v-spacer>
+            <v-btn @click="edialog=false" variant="text">Cancel</v-btn>
             <v-btn color="primary" @click="saveItem" class="text-none">
                 ${editMode ? 'Update Role' : 'Add Member'}
             </v-btn>
