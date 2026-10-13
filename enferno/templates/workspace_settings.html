@@ -2,19 +2,23 @@
 
 {% block content %}
 
-<div class="pa-4 w-100" style="max-width: 700px;">
-    <h1 class="text-h5 font-weight-bold mb-6">Workspace Settings</h1>
+<v-container class="py-8 px-4 px-md-8" style="max-width: 960px">
+    <div class="d-flex align-start justify-space-between flex-wrap ga-4 mb-8">
+        <div>
+            <h1 class="text-h5 font-weight-bold">Workspace Settings</h1>
+            <p class="text-body-2 text-medium-emphasis mt-1">Name, plan and access for this workspace.</p>
+        </div>
+    </div>
 
     <!-- Workspace Name -->
-    {% if user_role == 'admin' %}
-    <div class="mb-6">
+    <section class="mb-8">
         <div class="text-subtitle-2 font-weight-medium mb-3">Name</div>
-        <v-form @submit.prevent="updateWorkspaceName">
+        {% if user_role == 'admin' %}
+        <v-form @submit.prevent="updateWorkspaceName" style="max-width: 400px;">
             <v-text-field
                 v-model="workspaceData.name"
                 density="comfortable"
                 class="mb-2"
-                style="max-width: 400px;"
             ></v-text-field>
             <v-btn
                 color="primary"
@@ -25,116 +29,116 @@
                 Save
             </v-btn>
         </v-form>
-    </div>
-    {% else %}
-    <div class="mb-6">
-        <div class="text-subtitle-2 font-weight-medium mb-1">Name</div>
+        {% else %}
         <div class="text-body-2">${ workspaceData.name }</div>
-    </div>
-    {% endif %}
-
-    <v-divider class="mb-6"></v-divider>
+        {% endif %}
+    </section>
 
     <!-- Details -->
-    <div class="mb-6">
+    <section class="mb-8">
         <div class="text-subtitle-2 font-weight-medium mb-3">Details</div>
-        <div class="d-flex flex-wrap ga-6">
-            <div>
-                <div class="text-caption text-medium-emphasis mb-1">Your Role</div>
-                <div class="text-body-2">{{ user_role.title() }}</div>
+        <v-card variant="outlined" class="pa-5">
+            <div class="d-flex flex-wrap ga-8">
+                <div>
+                    <div class="text-caption text-medium-emphasis">Your Role</div>
+                    <div class="text-body-2 mt-1">{{ user_role.title() }}</div>
+                </div>
+                <div>
+                    <div class="text-caption text-medium-emphasis">Plan</div>
+                    <div class="text-body-2 mt-1">${ workspaceData.is_pro ? 'Pro' : 'Free' }</div>
+                </div>
+                <div>
+                    <div class="text-caption text-medium-emphasis">Members</div>
+                    <div class="text-body-2 mt-1">${ memberCount }</div>
+                </div>
+                <div>
+                    <div class="text-caption text-medium-emphasis">Created</div>
+                    <div class="text-body-2 mt-1">${ workspaceData.created_at ? new Date(workspaceData.created_at).toLocaleDateString() : '—' }</div>
+                </div>
             </div>
-            <div>
-                <div class="text-caption text-medium-emphasis mb-1">Plan</div>
-                <div class="text-body-2">${ workspaceData.is_pro ? 'Pro' : 'Free' }</div>
-            </div>
-            <div>
-                <div class="text-caption text-medium-emphasis mb-1">Members</div>
-                <div class="text-body-2">${ memberCount }</div>
-            </div>
-            <div>
-                <div class="text-caption text-medium-emphasis mb-1">Created</div>
-                <div class="text-body-2">${ workspaceData.created_at ? new Date(workspaceData.created_at).toLocaleDateString() : '—' }</div>
-            </div>
-        </div>
-    </div>
+        </v-card>
+    </section>
 
     {% if user_role == 'admin' %}
-    <v-divider class="mb-6"></v-divider>
+    <v-divider class="mb-8"></v-divider>
 
     <!-- Plan & Billing -->
-    <div class="mb-6">
+    <section class="mb-8">
         <div class="text-subtitle-2 font-weight-medium mb-3">Plan & Billing</div>
 
+        {% if payment_issue %}
+        <v-alert color="warning" variant="tonal" density="compact" class="mb-4">
+            Your last payment failed, so Pro is paused until you update your payment method.
+        </v-alert>
+        <v-btn color="primary" href="/workspace/billing" class="text-none">
+            Update payment method
+        </v-btn>
+        {% else %}
         <div v-if="!workspaceData.is_pro">
-            <div class="text-body-2 text-medium-emphasis mb-3">
-                You're on the <strong>Free</strong> plan.
-            </div>
-            <v-btn
-                color="primary"
-                href="/workspace/upgrade"
-                class="text-none"
-            >
+            <p class="text-body-2 text-medium-emphasis mb-4">You're on the Free plan.</p>
+            <v-btn color="primary" href="/workspace/upgrade" class="text-none">
                 Upgrade to Pro — {{ pro_price }}/{{ pro_interval }}
             </v-btn>
         </div>
 
         <div v-else>
-            <div class="text-body-2 text-medium-emphasis mb-3">
-                You're on the <strong>Pro</strong> plan — {{ pro_price }}/{{ pro_interval }}.
+            <p class="text-body-2 text-medium-emphasis mb-4">
+                You're on the Pro plan, {{ pro_price }}/{{ pro_interval }}.
                 <span v-if="workspaceData.upgraded_at">Upgraded ${ new Date(workspaceData.upgraded_at).toLocaleDateString() }.</span>
-            </div>
-            <v-btn
-                variant="outlined"
-                href="/workspace/billing"
-                class="text-none"
-            >
+            </p>
+            <v-btn variant="outlined" href="/workspace/billing" class="text-none">
                 Manage Subscription
             </v-btn>
         </div>
-    </div>
+        {% endif %}
+    </section>
 
-    <v-divider class="mb-6"></v-divider>
+    <v-divider class="mb-8"></v-divider>
 
     <!-- Danger Zone -->
-    <div class="mb-6">
-        <div class="text-subtitle-2 font-weight-medium mb-3" style="color: #DC2626;">Danger Zone</div>
-        <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between pa-4" style="border: 1px solid #FECACA; border-radius: 8px;">
-            <div class="mb-3 mb-sm-0">
-                <div class="text-body-2 font-weight-medium">Delete Workspace</div>
-                <div class="text-caption text-medium-emphasis">Permanently delete this workspace and all its data.</div>
+    <section class="mb-8">
+        <div class="text-subtitle-2 font-weight-medium mb-3 text-error">Danger Zone</div>
+        <v-card variant="outlined" class="pa-5">
+            <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between ga-4">
+                <div>
+                    <div class="text-body-2 font-weight-medium">Delete Workspace</div>
+                    <div class="text-caption text-medium-emphasis mt-1">Permanently delete this workspace and all its data.</div>
+                </div>
+                <v-btn
+                    color="error"
+                    variant="outlined"
+                    @click="confirmDeleteWorkspace"
+                    class="text-none"
+                >
+                    Delete
+                </v-btn>
             </div>
-            <v-btn
-                color="error"
-                variant="outlined"
-                @click="confirmDeleteWorkspace"
-                class="text-none"
-            >
-                Delete
-            </v-btn>
-        </div>
-    </div>
+        </v-card>
+    </section>
 
     {% else %}
-    <v-divider class="mb-6"></v-divider>
+    <v-divider class="mb-8"></v-divider>
 
     <!-- Leave Workspace (non-admin) -->
-    <div class="mb-6">
-        <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between pa-4" style="border: 1px solid #E4E4E7; border-radius: 8px;">
-            <div class="mb-3 mb-sm-0">
-                <div class="text-body-2 font-weight-medium">Leave Workspace</div>
-                <div class="text-caption text-medium-emphasis">Remove yourself from this workspace.</div>
+    <section class="mb-8">
+        <v-card variant="outlined" class="pa-5">
+            <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between ga-4">
+                <div>
+                    <div class="text-body-2 font-weight-medium">Leave Workspace</div>
+                    <div class="text-caption text-medium-emphasis mt-1">Remove yourself from this workspace.</div>
+                </div>
+                <v-btn
+                    variant="outlined"
+                    @click="confirmLeaveWorkspace"
+                    class="text-none"
+                >
+                    Leave
+                </v-btn>
             </div>
-            <v-btn
-                variant="outlined"
-                @click="confirmLeaveWorkspace"
-                class="text-none"
-            >
-                Leave
-            </v-btn>
-        </div>
-    </div>
+        </v-card>
+    </section>
     {% endif %}
-</div>
+</v-container>
 
 <!-- Snackbar -->
 <v-snackbar v-model="snackbar" timeout="4000" location="bottom right">
