@@ -46,7 +46,7 @@ Comprehensive auth system with modern security features.
 
 ### Modern Stack
 
-- **Backend**: Python 3.11+, Flask 3.1, SQLAlchemy 2.0
+- **Backend**: Python 3.11+, Flask 3.1, SQLAlchemy 2.1, psycopg 3
 - **Frontend**: Vue 3, Vuetify 3 (Material Design)
 - **Database**: PostgreSQL (production), SQLite (development)
 - **Sessions**: SQLAlchemy by default, Redis with the full setup

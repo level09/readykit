@@ -2,6 +2,24 @@
 
 All notable ReadyKit changes are documented here.
 
+## Unreleased
+
+### Security
+
+- Require a verified Google or GitHub email before an OAuth sign-in links to an existing account by email or creates a new one. An unverified provider address could previously sign in as the ReadyKit user with that email. Accounts already linked to the provider still sign in.
+- Upgraded Mako, oauthlib (4.0), urllib3, virtualenv, and Werkzeug, and the documentation site's Vue and source-map-js, for published advisories.
+- Pinned the Fly.io deploy action to a release commit instead of its `master` branch.
+
+### Changed
+
+- Upgraded to SQLAlchemy 2.1, which uses psycopg 3 for `postgresql://` URLs; `psycopg[binary]` replaces `psycopg2-binary`. Database URLs do not change.
+- Upgraded Flask-Security-Too to 5.9.1 and Stripe's Python library to 16.0. `nh3` replaces `bleach`, and login uses Flask-Security's default email mapper, which also validates the address.
+- Test Python 3.14 in CI. Pre-commit hooks run the project's locked Ruff, now 0.17.
+
+### Fixed
+
+- Count workspace members without a deprecated SQLAlchemy subquery.
+
 ## v1.6.0 (2026-10-14)
 
 ### Added

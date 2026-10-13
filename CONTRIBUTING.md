@@ -30,7 +30,7 @@ BILLING_PROVIDER=chargebee uv run pytest
 
 Tests use a disposable SQLite database by default. PostgreSQL locking tests require
 `TEST_DATABASE_URI` pointing to a dedicated test database: the test fixture creates
-and drops its tables. CI runs PostgreSQL 15 with Python 3.11, 3.12, and 3.13 for both
+and drops its tables. CI runs PostgreSQL 15 with Python 3.11 through 3.14 for both
 providers. Provider-specific tests skip in the other provider's run.
 
 Build the documentation with:
