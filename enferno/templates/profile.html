@@ -2,16 +2,18 @@
 
 {% block content %}
 
-<div class="pa-4 w-100" style="max-width: 700px;">
-    <h1 class="text-h5 font-weight-bold mb-6">Profile</h1>
+<v-container class="py-8 px-4 px-md-8" style="max-width: 960px">
+    <div class="mb-8">
+        <h1 class="text-h5 font-weight-bold">Profile</h1>
+        <p class="text-body-2 text-medium-emphasis mt-1">Update your name. Your email is managed by your sign-in.</p>
+    </div>
 
-    <v-form @submit.prevent="updateProfile">
+    <v-form @submit.prevent="updateProfile" style="max-width: 480px;">
         <div class="text-subtitle-2 font-weight-medium mb-3">Name</div>
         <v-text-field
             v-model="userData.name"
             density="comfortable"
             class="mb-4"
-            style="max-width: 400px;"
         ></v-text-field>
 
         <div class="text-subtitle-2 font-weight-medium mb-3">Email</div>
@@ -20,7 +22,6 @@
             density="comfortable"
             type="email"
             readonly
-            style="max-width: 400px;"
             class="mb-4"
         >
             <template v-slot:append-inner>
@@ -41,7 +42,7 @@
             Save
         </v-btn>
     </v-form>
-</div>
+</v-container>
 
 <!-- Snackbar -->
 <v-snackbar v-model="snackbar" timeout="4000" location="bottom right">

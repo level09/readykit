@@ -3,21 +3,25 @@
 
 {% block content %}
 
-<v-card class="ma-2 mt-12 w-100 h-100">
-    <v-toolbar>
-        <v-toolbar-title>Team Members</v-toolbar-title>
-        <v-spacer></v-spacer>
-        <v-btn 
-            href="/workspace/"
-            prepend-icon="mdi-arrow-left"
-            variant="outlined"
-            size="small"
+<v-container class="py-8 px-4 px-md-8" style="max-width: 960px">
+    <div class="d-flex align-start justify-space-between flex-wrap ga-4 mb-8">
+        <div>
+            <h1 class="text-h5 font-weight-bold">Team Members</h1>
+            <p class="text-body-2 text-medium-emphasis mt-1">Manage who can access this workspace and their roles.</p>
+        </div>
+        {% if user_role == 'admin' %}
+        <v-btn
+            prepend-icon="mdi-account-plus"
+            @click="createItem"
+            color="primary"
+            class="text-none"
         >
-            Back to Workspace
+            Add Team Member
         </v-btn>
-    </v-toolbar>
+        {% endif %}
+    </div>
 
-    <v-card-text>
+    <v-card variant="outlined">
         <v-data-table-server
             :items="items"
             :items-length="itemsLength"
@@ -28,22 +32,6 @@
             @update:options="refresh"
             hover
         >
-            <template v-slot:top>
-                <v-toolbar class="mb-4" dense elevation="0" color="transparent">
-                    {% if user_role == 'admin' %}
-                    <v-btn 
-                        class="ml-auto" 
-                        prepend-icon="mdi-account-plus" 
-                        @click="createItem" 
-                        size="small" 
-                        color="primary" 
-                        variant="elevated"
-                    >
-                        Add Team Member
-                    </v-btn>
-                    {% endif %}
-                </v-toolbar>
-            </template>
 
             <template v-slot:item.name="{ item }">
                 <div class="d-flex align-center">
@@ -60,9 +48,10 @@
             </template>
 
             <template v-slot:item.role="{ item }">
-                <v-chip 
-                    :color="getRoleColor(item.role)" 
-                    variant="outlined" 
+                <v-chip
+                    :variant="item.role === 'admin' ? 'flat' : 'outlined'"
+                    :color="item.role === 'admin' ? 'primary' : undefined"
+                    class="text-capitalize"
                     size="small"
                 >
                     ${item.role}
@@ -77,26 +66,28 @@
 
             {% if user_role == 'admin' %}
             <template v-slot:item.actions="{ item }">
-                <v-icon
+                <v-btn
                     v-if="item.user_id !== {{ current_user.id }}"
-                    small
-                    class="mr-2"
+                    icon="mdi-pencil"
+                    variant="text"
+                    size="small"
+                    class="mr-1"
+                    :aria-label="`Change role for ${item.name}`"
                     @click="editItem(item)"
-                >
-                    mdi-pencil
-                </v-icon>
-                <v-icon
+                ></v-btn>
+                <v-btn
                     v-if="item.user_id !== {{ current_user.id }}"
-                    small
+                    icon="mdi-delete"
+                    variant="text"
+                    size="small"
+                    :aria-label="`Remove ${item.name} from workspace`"
                     @click="deleteItem(item)"
-                >
-                    mdi-delete
-                </v-icon>
+                ></v-btn>
             </template>
             {% endif %}
         </v-data-table-server>
-    </v-card-text>
-</v-card>
+    </v-card>
+</v-container>
 
 <!-- Edit/Add Member Dialog -->
 <v-dialog v-model="edialog" width="500">
@@ -104,7 +95,7 @@
         <v-toolbar>
             <v-toolbar-title>${editMode ? 'Change Role' : 'Add Member'}</v-toolbar-title>
             <template v-slot:append>
-                <v-btn @click="edialog=false" size="small" icon="mdi-close" variant="text"></v-btn>
+                <v-btn @click="edialog=false" size="small" icon="mdi-close" variant="text" aria-label="Close dialog"></v-btn>
             </template>
         </v-toolbar>
 
@@ -152,7 +143,7 @@
 
         <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="primary" @click="saveItem" variant="elevated">
+            <v-btn color="primary" @click="saveItem" class="text-none">
                 ${editMode ? 'Update Role' : 'Add Member'}
             </v-btn>
         </v-card-actions>
@@ -162,7 +153,7 @@
 <v-snackbar size="small" class="d-flex" v-model="snackBar" rounded="pill" elevation="25">
     ${snackMessage}
     <template v-slot:actions>
-        <v-btn @click="snackBar=false" icon="mdi-close" class="ml-auto" size="small" variant="text"></v-btn>
+        <v-btn @click="snackBar=false" icon="mdi-close" class="ml-auto" size="small" variant="text" aria-label="Close notification"></v-btn>
     </template>
 </v-snackbar>
 
@@ -180,6 +171,7 @@ const { createVuetify } = Vuetify;
 const vuetify = createVuetify(config.vuetifyConfig);
 
 window.app = createApp({
+    mixins: [layoutMixin],
     data() {
         return {
             snackBar: false,
@@ -191,7 +183,6 @@ window.app = createApp({
                 page: 1,
                 itemsPerPage: 25
             },
-            drawer: true,
             workspaceData: {},
 
             headers: [
@@ -350,14 +341,6 @@ window.app = createApp({
                         this.showSnack(error.response?.data?.error || 'Failed to remove member.');
                     });
             }
-        },
-
-        getRoleColor(role) {
-            const colors = {
-                'admin': 'blue',
-                'member': 'green'
-            };
-            return colors[role] || 'grey';
         },
 
         formatDate(dateString) {

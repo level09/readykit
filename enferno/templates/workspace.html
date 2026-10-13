@@ -4,23 +4,24 @@
 {% block content %}
 
 
-    <div class="pa-6 w-100" style="max-width: 960px;">
-        <div class="d-flex align-center justify-space-between mb-6">
-            <h1 class="text-h5 font-weight-bold">${workspaceData.name}</h1>
+    <v-container class="py-8 px-4 px-md-8" style="max-width: 960px">
+        <div class="d-flex align-start justify-space-between flex-wrap ga-4 mb-8">
+            <div>
+                <h1 class="text-h5 font-weight-bold">${workspaceData.name}</h1>
+                <p class="text-body-2 text-medium-emphasis mt-1">Overview of this workspace.</p>
+            </div>
             {% if user_role == 'admin' %}
             <v-btn
                 href="/workspace/team/"
                 prepend-icon="mdi-account-group"
-                variant="outlined"
-                size="small"
+                class="text-none"
             >
                 Manage Team
             </v-btn>
             {% endif %}
         </div>
 
-        <!-- Main Content Area -->
-        <v-card variant="outlined" class="mb-6">
+        <v-card variant="outlined" class="border-opacity-25">
             <v-card-text class="pa-8 text-center">
                 <i class="ti ti-app-window mb-4" style="font-size: 48px; opacity: 0.15;"></i>
                 <p class="text-body-2 text-medium-emphasis">
@@ -28,7 +29,7 @@
                 </p>
             </v-card-text>
         </v-card>
-    </div>
+    </v-container>
 
 
 {% endblock %}
@@ -45,10 +46,10 @@ const { createVuetify } = Vuetify;
 const vuetify = createVuetify(config.vuetifyConfig);
 
 const app = createApp({
+    mixins: [layoutMixin],
     data() {
         return {
             memberCount: 0, // Will be loaded via API
-            drawer: true,
             workspaceData: {},
         };
     },
