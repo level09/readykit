@@ -75,7 +75,11 @@ def create_oauth_user(provider_data, oauth_token, ip_address):
 
 
 def get_oauth_user_data(blueprint):
-    """Get user data from OAuth provider."""
+    """Return the provider's user data; email is None unless the provider verified it.
+
+    New logins are linked to accounts by email, so an unverified address would
+    let anyone who registers it at the provider sign in as the matching user.
+    """
     if not blueprint:
         return None
 
@@ -84,32 +88,36 @@ def get_oauth_user_data(blueprint):
         if not resp.ok:
             current_app.logger.error(f"Failed to fetch user info: {resp.text}")
             return None
-        return resp.json()
+        data = resp.json()
+        if not data.get("verified_email"):
+            data["email"] = None
+        return data
     elif blueprint.name == "github":
-        # Get user profile
         resp = blueprint.session.get("/user")
         if not resp.ok:
             current_app.logger.error(f"Failed to fetch GitHub user info: {resp.text}")
             return None
         data = resp.json()
-
-        # GitHub doesn't return email in basic profile if private, need separate call
-        if not data.get("email"):
-            email_resp = blueprint.session.get("/user/emails")
-            if email_resp.ok:
-                emails = email_resp.json()
-                primary_email = next(
-                    (email["email"] for email in emails if email["primary"]), None
-                )
-                if primary_email:
-                    data["email"] = primary_email
-
-        # Normalize the data structure to match our needs
+        # Linked users sign in by provider ID, so a failed email lookup only blocks linking.
+        email = None
+        email_resp = blueprint.session.get("/user/emails")
+        if email_resp.ok:
+            email = next(
+                (
+                    e["email"]
+                    for e in email_resp.json()
+                    if e["primary"] and e["verified"]
+                ),
+                None,
+            )
+        else:
+            current_app.logger.warning(
+                f"Failed to fetch GitHub emails ({email_resp.status_code}): {email_resp.text}"
+            )
         return {
             "id": str(data["id"]),  # Convert to string to match Google's ID format
-            "email": data.get("email"),
-            "name": data.get("name")
-            or data.get("login"),  # Fallback to username if name not set
+            "email": email,
+            "name": data.get("name") or data.get("login"),
         }
     return None
 
@@ -151,6 +159,7 @@ def oauth_logged_in(blueprint, token):
         # Get user info from provider
         provider_data = get_oauth_user_data(blueprint)
         if not provider_data:
+            flash("Authentication failed.", category="error")
             return False
 
         user_id = provider_data["id"]
@@ -165,6 +174,13 @@ def oauth_logged_in(blueprint, token):
                 provider=blueprint.name, provider_user_id=user_id, token=token
             )
 
+        if not oauth.user and not provider_data.get("email"):
+            flash(
+                f"Could not confirm a verified {blueprint.name.title()} email.",
+                category="error",
+            )
+            return False
+
         if oauth.user:
             if current_user.is_authenticated and current_user.id != oauth.user.id:
                 logout_user()
@@ -172,8 +188,9 @@ def oauth_logged_in(blueprint, token):
             login_user(oauth.user)
         else:
             # Check if user exists with this email
-            existing_user = User.query.filter_by(
-                email=provider_data.get("email")
+            # Password login matches emails case-insensitively; linking must agree.
+            existing_user = User.query.filter(
+                db.func.lower(User.email) == provider_data["email"].lower()
             ).first()
             if existing_user:
                 # Link OAuth to existing user
