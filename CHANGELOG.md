@@ -12,12 +12,13 @@ All notable ReadyKit changes are documented here.
 
 ### Changed
 
-- Upgraded to SQLAlchemy 2.1, which uses psycopg 3 for `postgresql://` URLs; `psycopg[binary]` replaces `psycopg2-binary`. Database URLs do not change.
-- Upgraded Flask-Security-Too to 5.9.1 and Stripe's Python library to 16.0. `nh3` replaces `bleach`, and login uses Flask-Security's default email mapper, which also validates the address.
+- Upgraded to SQLAlchemy 2.1, which uses psycopg 3 for `postgresql://` URLs; `psycopg[binary]` replaces `psycopg2-binary`. Plain `postgresql://` and `postgres://` URLs keep working. Derived projects must change `postgresql+psycopg2://` URLs to `postgresql://`, replace `psycopg2` imports and exceptions with `psycopg`, and recheck any psycopg2-specific `connect_args`.
+- Upgraded Flask-Security-Too to 5.9.1 and Stripe's Python library to 16.0, now the minimum versions. `nh3` replaces `bleach`, and login uses Flask-Security's default email mapper, which also validates the address.
 - Test Python 3.14 in CI. Pre-commit hooks run the project's locked Ruff, now 0.17.
 
 ### Fixed
 
+- Link OAuth sign-ins to existing accounts case-insensitively, matching password login, instead of creating a duplicate user.
 - Count workspace members without a deprecated SQLAlchemy subquery.
 
 ## v1.6.0 (2026-10-14)

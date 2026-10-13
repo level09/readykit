@@ -1980,7 +1980,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "sluggi", specifier = ">=0.1.1" },
     { name = "sqlalchemy", specifier = ">=2.1" },
-    { name = "stripe", specifier = ">=12.0.0" },
+    { name = "stripe", specifier = ">=16.0.0" },
     { name = "uwsgi", marker = "sys_platform != 'win32'", specifier = ">=2.0.30" },
     { name = "uwsgi", marker = "extra == 'wsgi'", specifier = ">=2.0.30" },
     { name = "webauthn", specifier = ">=2.6.0" },
