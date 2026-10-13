@@ -82,3 +82,9 @@ a:hover {
     font-weight: 500;
     letter-spacing: 0;
 }
+
+/* ===== Cards ===== */
+/* Outlined cards default to currentColor; use the theme's quieter border. */
+.v-card--variant-outlined {
+    border-color: rgba(var(--v-border-color), var(--v-border-opacity));
+}

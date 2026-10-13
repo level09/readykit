@@ -12,6 +12,7 @@ All notable ReadyKit changes are documented here.
 
 ### Changed
 
+- Refined the interface: one page header and content width across app pages, outlined inputs and sentence-case buttons by default, quieter borders, neutral status chips, consistent sign-in and error pages, and accessible names on icon-only buttons.
 - Upgraded to SQLAlchemy 2.1, which uses psycopg 3 for `postgresql://` URLs; `psycopg[binary]` replaces `psycopg2-binary`. Plain `postgresql://` and `postgres://` URLs keep working. Derived projects must change `postgresql+psycopg2://` URLs to `postgresql://`, replace `psycopg2` imports and exceptions with `psycopg`, and recheck any psycopg2-specific `connect_args`.
 - Upgraded Flask-Security-Too to 5.9.1 and Stripe's Python library to 16.0, now the minimum versions. `nh3` replaces `bleach`, and login uses Flask-Security's default email mapper, which also validates the address.
 - Browser journeys in `tests/e2e` (opt-in with `RUN_E2E=1`) cover hosted checkout, the billing portal, cancellation, a failed renewal and recovery on a Stripe test clock, and team member access against a Stripe sandbox.
@@ -19,6 +20,11 @@ All notable ReadyKit changes are documented here.
 
 ### Fixed
 
+- Send workspaces with an unpaid or paused Pro subscription to the billing portal instead of starting a second subscription through checkout; workspace settings show the payment issue.
+- On phones, the navigation drawer no longer opens over the page after sign-in.
+- Store the Pro upgrade time in server-local time like other timestamps, so it no longer appears before the workspace's creation date.
+- The billing success page no longer lists features ReadyKit does not provide, and the billing error page explains unconfirmed checkouts.
+- Render styled 400 and 403 pages.
 - Acknowledge billing events for customers not linked to a workspace instead of returning HTTP 500. Checkout already reconciles the plan when it links the customer, and other applications' customers on a shared Stripe or Chargebee account no longer fail delivery indefinitely.
 - Link OAuth sign-ins to existing accounts case-insensitively, matching password login, instead of creating a duplicate user.
 - Count workspace members without a deprecated SQLAlchemy subquery.

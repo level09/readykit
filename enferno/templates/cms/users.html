@@ -50,8 +50,7 @@
             </template>
 
             <template v-slot:item.active="{ item }">
-                <v-avatar size="16" v-if="item.active" color="primary"></v-avatar>
-                <v-avatar size="16" v-if="!item.active" color="secondary"></v-avatar>
+                <v-chip size="small" :variant="item.active ? 'flat' : 'outlined'">${ item.active ? 'Active' : 'Inactive' }</v-chip>
             </template>
 
             <template v-slot:item.actions="{ item }">
@@ -169,6 +168,7 @@
             mounted() {
                 // No refresh on mount
             },
+            mixins: [layoutMixin],
             delimiters: config.delimiters,
 
             methods: {

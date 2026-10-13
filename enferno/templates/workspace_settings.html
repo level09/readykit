@@ -67,8 +67,8 @@
         <div class="text-subtitle-2 font-weight-medium mb-3">Plan & Billing</div>
 
         {% if payment_issue %}
-        <v-alert color="warning" variant="tonal" density="compact" class="mb-4">
-            Your last payment failed, so Pro is paused until you update your payment method.
+        <v-alert type="warning" variant="tonal" density="compact" class="mb-4">
+            <span class="text-high-emphasis">Your last payment failed, so Pro is paused until you update your payment method.</span>
         </v-alert>
         <v-btn color="primary" href="/workspace/billing" class="text-none">
             Update payment method
