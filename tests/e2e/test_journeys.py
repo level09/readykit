@@ -94,6 +94,10 @@ def test_failed_renewal_loses_and_recovery_restores_pro(live, page):
             "test clock did not finish advancing",
         )
         wait_for_plan(live, name, "free", timeout=120)
+        page.goto(live.url + "/workspace/settings/")
+        page.get_by_role("link", name="Update payment method").wait_for()
+        assert page.get_by_role("link", name="Restore Pro").is_visible()
+        assert page.get_by_role("link", name="Upgrade to Pro").count() == 0
 
         working = stripe.PaymentMethod.attach("pm_card_visa", customer=customer.id)
         stripe.Subscription.modify(subscription.id, default_payment_method=working.id)
