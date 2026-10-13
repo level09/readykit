@@ -96,9 +96,7 @@ def register_blueprints(app):
     app.register_blueprint(webhooks_bp)
 
     # Setup OAuth if enabled
-    if app.config.get("GOOGLE_AUTH_ENABLED") and app.config.get(
-        "GOOGLE_OAUTH_CLIENT_ID"
-    ):
+    if app.config.get("GOOGLE_AUTH_ENABLED"):
         google_bp = make_google_blueprint(
             client_id=app.config.get("GOOGLE_OAUTH_CLIENT_ID"),
             client_secret=app.config.get("GOOGLE_OAUTH_CLIENT_SECRET"),
@@ -112,9 +110,7 @@ def register_blueprints(app):
         google_bp.storage = SQLAlchemyStorage(OAuth, db.session, user=current_user)
         app.register_blueprint(google_bp, url_prefix="/login")
 
-    if app.config.get("GITHUB_AUTH_ENABLED") and app.config.get(
-        "GITHUB_OAUTH_CLIENT_ID"
-    ):
+    if app.config.get("GITHUB_AUTH_ENABLED"):
         github_bp = make_github_blueprint(
             client_id=app.config.get("GITHUB_OAUTH_CLIENT_ID"),
             client_secret=app.config.get("GITHUB_OAUTH_CLIENT_SECRET"),

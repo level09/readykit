@@ -223,13 +223,15 @@ def check_configuration(billing=False):
                 )
 
             for provider in ("GOOGLE", "GITHUB"):
-                if getattr(Config, f"{provider}_AUTH_ENABLED"):
-                    for field in ("CLIENT_ID", "CLIENT_SECRET"):
-                        name = f"{provider}_OAUTH_{field}"
+                names = [
+                    f"{provider}_OAUTH_CLIENT_{field}" for field in ("ID", "SECRET")
+                ]
+                values = [getattr(Config, name) for name in names]
+                # Login appears only with both values; one alone is a half-finished setup.
+                if any(values) and not all(values):
+                    for name, value in zip(names, values, strict=True):
                         require(
-                            name,
-                            getattr(Config, name),
-                            f"Set it or disable {provider}_AUTH_ENABLED.",
+                            name, value, f"Set both {provider} OAuth values or neither."
                         )
 
             provider = Config.BILLING_PROVIDER

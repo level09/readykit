@@ -23,6 +23,12 @@ else:
     _SESSION_REDIS = None
 
 
+def _credential(name):
+    """Return a configured credential, treating blank and sample placeholders as unset."""
+    value = (os.environ.get(name) or "").strip()
+    return None if not value or value.startswith("your_") else value
+
+
 def uia_email_mapper(identity):
     # Sanitize and strip whitespace from email input
     return bleach.clean(identity, strip=True).strip() if identity else identity
@@ -127,23 +133,18 @@ class Config:
     SECURITY_EMAIL_SENDER = os.environ.get("SECURITY_EMAIL_SENDER", "info@domain.com")
     SECURITY_SEND_PASSWORD_CHANGE_EMAIL = False
 
-    # Google OAuth Settings
-    GOOGLE_AUTH_ENABLED = (
-        os.environ.get("GOOGLE_AUTH_ENABLED", "False").lower() == "true"
-    )
-    GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID")
-    GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET")
+    # OAuth providers are enabled by setting both credentials.
+    GOOGLE_OAUTH_CLIENT_ID = _credential("GOOGLE_OAUTH_CLIENT_ID")
+    GOOGLE_OAUTH_CLIENT_SECRET = _credential("GOOGLE_OAUTH_CLIENT_SECRET")
+    GOOGLE_AUTH_ENABLED = bool(GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET)
     GOOGLE_OAUTH_REDIRECT_URI = os.environ.get(
         "GOOGLE_OAUTH_REDIRECT_URI"
     )  # Let the OAuth handler construct it dynamically
     OAUTHLIB_INSECURE_TRANSPORT = os.environ.get("OAUTHLIB_INSECURE_TRANSPORT", "0")
 
-    # GitHub OAuth Settings
-    GITHUB_AUTH_ENABLED = (
-        os.environ.get("GITHUB_AUTH_ENABLED", "False").lower() == "true"
-    )
-    GITHUB_OAUTH_CLIENT_ID = os.environ.get("GITHUB_OAUTH_CLIENT_ID")
-    GITHUB_OAUTH_CLIENT_SECRET = os.environ.get("GITHUB_OAUTH_CLIENT_SECRET")
+    GITHUB_OAUTH_CLIENT_ID = _credential("GITHUB_OAUTH_CLIENT_ID")
+    GITHUB_OAUTH_CLIENT_SECRET = _credential("GITHUB_OAUTH_CLIENT_SECRET")
+    GITHUB_AUTH_ENABLED = bool(GITHUB_OAUTH_CLIENT_ID and GITHUB_OAUTH_CLIENT_SECRET)
 
     # Billing Provider: 'stripe' or 'chargebee'
     BILLING_PROVIDER = os.environ.get("BILLING_PROVIDER", "stripe")

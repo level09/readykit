@@ -11,6 +11,7 @@ All notable ReadyKit changes are documented here.
 
 ### Changed
 
+- Enable Google and GitHub login when both OAuth credentials are set; `GOOGLE_AUTH_ENABLED` and `GITHUB_AUTH_ENABLED` are no longer read. Blank and sample placeholder credentials keep a provider off, so a fresh install passes `checks.py --config`. To turn off a configured provider, remove its credentials.
 - Fall back to `DATABASE_URL` when `SQLALCHEMY_DATABASE_URI` is unset, accepting the `postgres://` scheme.
 
 ## v1.5.1 (2026-09-26)

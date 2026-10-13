@@ -39,8 +39,9 @@ Selecting Docker during setup also installs and configures the full stack.
 
 ### 3. Initialize the Application
 
-Configure OAuth in `.env`, or set `GOOGLE_AUTH_ENABLED=False` to use only the admin
-email/password login. Check the configuration before starting:
+Google and GitHub login are optional: each appears once its client ID and secret
+are set in `.env`. Without them, sign in with the admin from `flask install`.
+Check the configuration before starting:
 
 ```bash
 uv run python checks.py --config
@@ -142,12 +143,10 @@ SQLALCHEMY_DATABASE_URI=sqlite:///enferno.sqlite3  # Dev
 # CELERY_BROKER_URL=redis://localhost:6379/2
 # CELERY_RESULT_BACKEND=redis://localhost:6379/3
 
-# OAuth (optional but recommended)
-GOOGLE_AUTH_ENABLED=true
+# OAuth (optional; a provider is enabled when both values are set)
 GOOGLE_OAUTH_CLIENT_ID=your_client_id
 GOOGLE_OAUTH_CLIENT_SECRET=your_secret
 
-GITHUB_AUTH_ENABLED=true
 GITHUB_OAUTH_CLIENT_ID=your_client_id
 GITHUB_OAUTH_CLIENT_SECRET=your_secret
 

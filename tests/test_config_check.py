@@ -76,16 +76,23 @@ def test_missing_secret_names_the_setting_without_traceback(config_command, key)
     assert "setup.sh" in result.stdout
 
 
-def test_config_reports_enabled_oauth_with_placeholder_credentials(config_command):
+def test_config_reports_half_configured_oauth(config_command):
+    result = config_command({"GOOGLE_OAUTH_CLIENT_ID": "real-client-id"})
+    assert result.returncode == 1
+    assert "GOOGLE_OAUTH_CLIENT_SECRET" in result.stdout
+    assert "GOOGLE_OAUTH_CLIENT_ID:" not in result.stdout
+
+
+def test_config_treats_placeholder_oauth_as_disabled(config_command):
+    # Installs created from the old sample keep these placeholder values.
     result = config_command(
         {
             "GOOGLE_AUTH_ENABLED": "True",
             "GOOGLE_OAUTH_CLIENT_ID": "your_google_client_id",
+            "GOOGLE_OAUTH_CLIENT_SECRET": "your_google_client_secret",
         }
     )
-    assert result.returncode == 1
-    assert "GOOGLE_OAUTH_CLIENT_ID" in result.stdout
-    assert "GOOGLE_OAUTH_CLIENT_SECRET" in result.stdout
+    assert result.returncode == 0, result.stdout
 
 
 @pytest.mark.parametrize(

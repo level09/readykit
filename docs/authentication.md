@@ -31,6 +31,9 @@ keeps its existing memberships.
 
 ## OAuth Setup
 
+Each provider's login button appears once both its client ID and secret are set.
+Remove them to turn the provider off.
+
 ### Google OAuth
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
@@ -39,7 +42,6 @@ keeps its existing memberships.
 
 ```bash
 # .env
-GOOGLE_AUTH_ENABLED=true
 GOOGLE_OAUTH_CLIENT_ID=your_client_id
 GOOGLE_OAUTH_CLIENT_SECRET=your_secret
 ```
@@ -52,7 +54,6 @@ GOOGLE_OAUTH_CLIENT_SECRET=your_secret
 
 ```bash
 # .env
-GITHUB_AUTH_ENABLED=true
 GITHUB_OAUTH_CLIENT_ID=your_client_id
 GITHUB_OAUTH_CLIENT_SECRET=your_secret
 ```
