@@ -222,6 +222,12 @@ def check_configuration(billing=False):
                     "SQLALCHEMY_DATABASE_URI: invalid database URL or unavailable dialect/driver."
                 )
 
+            for name in ("TERMS_URL", "PRIVACY_URL"):
+                url = getattr(Config, name)
+                # Rendered as links on sign-in; block javascript: and similar schemes.
+                if url and not url.startswith(("https://", "http://", "/")):
+                    errors.append(f"{name}: use an http(s) URL or a site path.")
+
             for provider in ("GOOGLE", "GITHUB"):
                 names = [
                     f"{provider}_OAUTH_CLIENT_{field}" for field in ("ID", "SECRET")

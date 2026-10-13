@@ -204,3 +204,16 @@ def test_celery_result_backend_requires_a_broker(config_command):
     result = config_command({"CELERY_RESULT_BACKEND": "redis://localhost:6379/3"})
     assert result.returncode == 1
     assert "CELERY_BROKER_URL: required" in result.stdout
+
+
+@pytest.mark.parametrize(
+    "url,ok",
+    [
+        ("https://example.com/terms", True),
+        ("/terms", True),
+        ("javascript:alert(1)", False),
+    ],
+)
+def test_legal_links_must_be_web_urls(config_command, url, ok):
+    result = config_command({"TERMS_URL": url, "PRIVACY_URL": "/privacy"})
+    assert (result.returncode == 0) is ok, result.stdout
