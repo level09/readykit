@@ -130,3 +130,24 @@ def test_password_login_normalizes_email(app, email, accepted):
 
     with client.session_transaction() as session:
         assert bool(session.get("_user_id")) is accepted
+
+
+@pytest.mark.parametrize("submitted", [{}, {"password": ""}, {"password": None}])
+def test_user_update_without_password_keeps_current_password(app, submitted):
+    user = User(email="keep@example.com", password=hash_password("Original-Pass-1"))
+    db.session.add(user)
+    db.session.commit()
+
+    user.from_dict({"name": "Renamed", **submitted})
+
+    assert verify_password("Original-Pass-1", user.password)
+
+
+def test_user_update_with_password_sets_it(app):
+    user = User(email="change@example.com", password=hash_password("Original-Pass-1"))
+    db.session.add(user)
+    db.session.commit()
+
+    user.from_dict({"password": "Replacement-Pass-2"})
+
+    assert verify_password("Replacement-Pass-2", user.password)

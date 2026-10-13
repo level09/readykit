@@ -96,7 +96,7 @@ class User(UserMixin, db.Model, BaseMixin):
     def from_dict(self, json_dict):
         self.name = json_dict.get("name", self.name)
         self.username = json_dict.get("username", self.username)
-        if "password" in json_dict:
+        if json_dict.get("password"):
             self.password = hash_password(json_dict["password"])
         self.active = json_dict.get("active", self.active)
         return self
