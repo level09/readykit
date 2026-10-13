@@ -227,15 +227,17 @@ changes. Initial checkout without a browser return is not covered by this flow.
 The `BillingEvent` receipt and the plan update commit in one transaction. Provider
 or database failures return HTTP 500 and roll back the receipt, so the provider can
 retry the same event. Only events already committed are acknowledged as duplicates.
-Handled events whose customer is not linked yet also return HTTP 500. This keeps
-early events retryable until checkout commits the customer link, even if the
-subscription changes price before that commit. Events for unrelated or deleted
-customers also retry; use a provider account dedicated to this application, and
-investigate persistent unlinked-customer errors. Linked customers without an
-eligible subscription for the configured Pro price receive Free access.
+Events for a customer not linked to any workspace are acknowledged and logged
+without changing a plan. Checkout reads the customer's current subscriptions when
+it commits the link, so events that arrive first need no retry, and customers of
+other applications on a shared provider account do not fail indefinitely. Linked
+customers without an eligible subscription for the configured Pro price receive
+Free access.
 
 PostgreSQL row locks serialize subscription reads and plan writes for each
-workspace. SQLite remains suitable for local development, but does not provide
+workspace. A per-customer advisory lock also orders checkout's customer link with
+events for that customer, so an event that arrives mid-checkout waits for the link
+instead of being skipped. SQLite remains suitable for local development, but does not provide
 this row-lock behavior. Checkout redirects use the same reconciliation path, so
 revisiting an old checkout cannot restore a cancelled subscription.
 

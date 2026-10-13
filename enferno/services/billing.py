@@ -25,9 +25,23 @@ def _set_plan(workspace, is_pro):
     workspace.plan = "pro" if is_pro else "free"
 
 
+def _lock_customer(customer_id):
+    """Serialize checkout linking with events for the same customer.
+
+    Row locks cannot see a customer link that checkout has not committed, so an
+    event could otherwise skip a workspace that checkout is about to make Pro.
+    """
+    if db.session.get_bind().dialect.name == "postgresql":
+        db.session.execute(
+            db.text("SELECT pg_advisory_xact_lock(hashtextextended(:customer, 0))"),
+            {"customer": customer_id},
+        )
+
+
 def _customer_workspace(customer_id):
     if not customer_id:
         raise ValueError("Missing billing customer")
+    _lock_customer(customer_id)
     # Serialize provider reads as well as writes for concurrent events.
     workspace = db.session.execute(
         db.select(Workspace)
@@ -36,12 +50,17 @@ def _customer_workspace(customer_id):
         .execution_options(populate_existing=True)
     ).scalar_one_or_none()
     if not workspace:
-        # Checkout may not have committed the customer link yet.
-        raise ValueError("Billing customer is not linked to a workspace")
+        # Not ours yet (checkout reconciles once it links the customer) or another
+        # app's customer on a shared account. Retrying would never change that.
+        current_app.logger.info(
+            "Ignoring billing event for unlinked customer %s", customer_id
+        )
     return workspace
 
 
 def _complete_checkout(workspace_id, customer_id, commit):
+    # Customer lock first, matching the event path's order, so the two cannot deadlock.
+    _lock_customer(customer_id)
     workspace = db.session.scalar(
         db.select(Workspace)
         .where(Workspace.id == int(workspace_id))
@@ -121,6 +140,8 @@ if PROVIDER == "stripe":
         def sync_customer(customer_id: str):
             """Apply current provider state; the caller owns the transaction."""
             workspace = _customer_workspace(customer_id)
+            if not workspace:
+                return
             _init_stripe()
             price_id = current_app.config.get("STRIPE_PRO_PRICE_ID")
             if not price_id:
@@ -247,6 +268,8 @@ elif PROVIDER == "chargebee":
         def sync_customer(customer_id: str):
             """Apply current provider state; the caller owns the transaction."""
             workspace = _customer_workspace(customer_id)
+            if not workspace:
+                return
             cb = _init_chargebee()
             price_id = current_app.config.get("CHARGEBEE_PRO_ITEM_PRICE_ID")
             if not price_id:

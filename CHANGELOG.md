@@ -18,6 +18,7 @@ All notable ReadyKit changes are documented here.
 
 ### Fixed
 
+- Acknowledge billing events for customers not linked to a workspace instead of returning HTTP 500. Checkout already reconciles the plan when it links the customer, and other applications' customers on a shared Stripe or Chargebee account no longer fail delivery indefinitely.
 - Link OAuth sign-ins to existing accounts case-insensitively, matching password login, instead of creating a duplicate user.
 - Count workspace members without a deprecated SQLAlchemy subquery.
 

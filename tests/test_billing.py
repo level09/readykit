@@ -328,8 +328,11 @@ def test_duplicate_is_acknowledged_without_processing(app, workspace, provider):
     assert receipt_count() == 1
 
 
-def test_unrelated_customer_does_not_change_workspace(app, workspace, provider):
-    assert deliver(app, "cancelled", customer="cus_other").status_code == 500
+def test_unrelated_customer_is_acknowledged_without_change(app, workspace, provider):
+    # Another app's customer on a shared provider account must not fail forever.
+    provider.error = AssertionError("unlinked customer must not call provider")
+    assert deliver(app, "cancelled", customer="cus_other").status_code == 200
+    assert receipt_count() == 1
     db.session.refresh(workspace)
     assert workspace.plan == "pro"
 
@@ -352,20 +355,15 @@ def test_ambiguous_customer_does_not_change_either_workspace(app, workspace, pro
     assert receipt_count() == 0
 
 
-@pytest.mark.parametrize("price", ["price_pro", "price_other"])
-def test_event_before_customer_link_remains_retryable(app, workspace, provider, price):
+def test_event_before_customer_link_is_acknowledged(app, workspace, provider):
+    # Checkout reconciles from current subscriptions when it links the customer.
     workspace.billing_customer_id = None
     db.session.commit()
     provider.status = "canceled" if PROVIDER == "stripe" else "cancelled"
-    provider.price = price
-    assert deliver(app, "cancelled").status_code == 500
-    assert receipt_count() == 0
-    workspace.billing_customer_id = "cus_test"
-    db.session.commit()
     assert deliver(app, "cancelled").status_code == 200
-    db.session.refresh(workspace)
-    assert workspace.plan == "free"
     assert receipt_count() == 1
+    db.session.refresh(workspace)
+    assert workspace.plan == "pro"
 
 
 def test_missing_event_id_is_rejected(app, workspace, provider):
@@ -564,3 +562,55 @@ def test_concurrent_events_serialize_provider_reads(
         assert second.result(timeout=5).status_code == 200
     assert db.session.get(Workspace, 1).plan == ("free" if duplicate else "pro")
     assert receipt_count() == (1 if duplicate else 2)
+
+
+def test_cancellation_during_checkout_link_is_not_lost(
+    app, workspace, provider, monkeypatch
+):
+    if db.engine.dialect.name != "postgresql":
+        pytest.skip("Requires PostgreSQL advisory locks")
+    workspace.billing_customer_id = None
+    workspace.plan = "free"
+    db.session.commit()
+    checkout_read, release = Event(), Event()
+    api = (
+        billing.stripe.Subscription
+        if PROVIDER == "stripe"
+        else billing._cb_client.Subscription
+    )
+    original_list = api.list
+    calls = 0
+
+    def subscriptions(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        snapshot = original_list(*args, **kwargs)
+        if calls == 1:
+            checkout_read.set()
+            assert release.wait(5), "Timed out releasing checkout's provider read"
+        return snapshot
+
+    monkeypatch.setattr(api, "list", subscriptions)
+
+    def complete_checkout():
+        with app.app_context():
+            try:
+                return billing.HostedBilling.handle_successful_payment("checkout_test")
+            finally:
+                db.session.remove()
+
+    db.session.remove()
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        checkout = pool.submit(complete_checkout)
+        try:
+            # Checkout saw an active subscription; it is cancelled before the link commits.
+            assert checkout_read.wait(5), "Checkout did not reach the provider"
+            provider.status = "canceled" if PROVIDER == "stripe" else "cancelled"
+            cancellation = pool.submit(deliver, app, "cancelled", "evt_cancel")
+            time.sleep(0.3)
+            assert not cancellation.done(), "Event skipped the checkout in progress"
+        finally:
+            release.set()
+        checkout.result(timeout=5)
+        assert cancellation.result(timeout=5).status_code == 200
+    assert db.session.get(Workspace, 1).plan == "free"
