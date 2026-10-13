@@ -9,7 +9,7 @@
 
 {% block content %}
 <v-container fluid class="pa-4">
-    <v-card max-width="700" class="mx-auto">
+    <v-card max-width="600" class="mx-auto">
         <v-card-title class="text-h5">
             <i class="ti ti-fingerprint mr-2"></i>
             Security Keys & Passkeys
@@ -107,7 +107,7 @@
                                         Last used: {{ cred.lastuse }}
                                     </div>
                                 </div>
-                                <v-btn icon variant="text" color="error" size="small" @click="deleteDevice('{{ cred.name }}')">
+                                <v-btn icon variant="text" color="error" size="small" aria-label="Delete device" @click="deleteDevice('{{ cred.name }}')">
                                     <i class="ti ti-trash"></i>
                                 </v-btn>
                             </div>

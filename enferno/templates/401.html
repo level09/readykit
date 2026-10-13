@@ -1,14 +1,33 @@
+{% extends 'auth_layout.html' %}
 
-{% extends "layout.html" %}
+{% block title %}401 - ReadyKit{% endblock %}
 
-{% block page_title %}Unauthorized{% endblock %}
+{% block css %}
+<style>
+    html, body { height: 100%; margin: 0; }
+    #app, .v-application, .v-application__wrap { min-height: 100vh; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="jumbotron">
-    <div class="text-center">
-        <h1>401</h1>
-        <p>You are not authorized to see this page.
-        </p>
-    </div>
+<div id="app">
+    <v-container class="d-flex align-center justify-center" style="min-height: 100vh;">
+        <div style="width: 100%; max-width: 380px;" class="text-center">
+            <div class="text-h5 font-weight-bold mb-8">ReadyKit</div>
+            <div class="text-h4 font-weight-bold mb-2">401</div>
+            <div class="text-body-1 text-medium-emphasis mb-6">You need to log in to view this page.</div>
+            <v-btn href="/login" color="primary" size="large" block>Log In</v-btn>
+        </div>
+    </v-container>
 </div>
+{% endblock %}
+
+{% block js %}
+<script>
+    const { createApp } = Vue;
+    const { createVuetify } = Vuetify;
+    const vuetify = createVuetify(config.vuetifyConfig);
+
+    createApp({ delimiters: config.delimiters }).use(vuetify).mount('#app');
+</script>
 {% endblock %}

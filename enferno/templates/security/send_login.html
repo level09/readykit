@@ -1,15 +1,16 @@
 {% extends 'layout.html' %}
 {% block content %}
-    <div class="main">
-        <h2>Login</h2>
+    <v-container fluid class="pa-4">
+        <v-card max-width="380" class="mx-auto pa-6">
+            <v-card-title class="text-h5 px-0">Log In</v-card-title>
 
-        <form action="{{ url_for_security('login') }}" method="POST" name="send_login_form">
-            {{ send_login_form.hidden_tag() }}
-            <v-text-field required label="Email" name="email" type="email"></v-text-field>
-            <v-btn type="submit" color="primary">Login</v-btn>
-        </form>
-
-    </div>
+            <form action="{{ url_for_security('login') }}" method="POST" name="send_login_form">
+                {{ send_login_form.hidden_tag() }}
+                <v-text-field required label="Email" name="email" type="email" class="mb-4"></v-text-field>
+                <v-btn type="submit" color="primary" block size="large">Log In</v-btn>
+            </form>
+        </v-card>
+    </v-container>
 {% endblock %}
 
 {% block js %}

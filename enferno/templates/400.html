@@ -1,12 +1,33 @@
+{% extends 'auth_layout.html' %}
 
-{% block page_title %}{% endblock %}
+{% block title %}400 - ReadyKit{% endblock %}
+
+{% block css %}
+<style>
+    html, body { height: 100%; margin: 0; }
+    #app, .v-application, .v-application__wrap { min-height: 100vh; }
+</style>
+{% endblock %}
 
 {% block content %}
+<div id="app">
+    <v-container class="d-flex align-center justify-center" style="min-height: 100vh;">
+        <div style="width: 100%; max-width: 380px;" class="text-center">
+            <div class="text-h5 font-weight-bold mb-8">ReadyKit</div>
+            <div class="text-h4 font-weight-bold mb-2">400</div>
+            <div class="text-body-1 text-medium-emphasis mb-6">The request could not be understood. Check the address and try again.</div>
+            <v-btn href="/dashboard/" color="primary" size="large" block>Go to dashboard</v-btn>
+        </div>
+    </v-container>
+</div>
+{% endblock %}
 
-    <div style="padding: 50px;margin: 100px auto; text-align: center;">
-        <h1 style="font-size: 90px;font-weight: bold;">400</h1>
-        <p>That request could not be completed.</p>
+{% block js %}
+<script>
+    const { createApp } = Vue;
+    const { createVuetify } = Vuetify;
+    const vuetify = createVuetify(config.vuetifyConfig);
 
-    </div>
-
+    createApp({ delimiters: config.delimiters }).use(vuetify).mount('#app');
+</script>
 {% endblock %}

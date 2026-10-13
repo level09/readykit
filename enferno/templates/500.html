@@ -1,13 +1,33 @@
+{% extends 'auth_layout.html' %}
 
-{% extends "layout.html" %}
+{% block title %}500 - ReadyKit{% endblock %}
 
-{% block page_title %}Server error{% endblock %}
+{% block css %}
+<style>
+    html, body { height: 100%; margin: 0; }
+    #app, .v-application, .v-application__wrap { min-height: 100vh; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="jumbotron">
-    <div class="text-center">
-        <h1>500</h1>
-        <p>Sorry, something went wrong on our system. Don't panic, we are fixing it! Please try again later.</p>
-    </div>
+<div id="app">
+    <v-container class="d-flex align-center justify-center" style="min-height: 100vh;">
+        <div style="width: 100%; max-width: 380px;" class="text-center">
+            <div class="text-h5 font-weight-bold mb-8">ReadyKit</div>
+            <div class="text-h4 font-weight-bold mb-2">500</div>
+            <div class="text-body-1 text-medium-emphasis mb-6">Something went wrong on our side. Try again in a few minutes.</div>
+            <v-btn href="/dashboard/" color="primary" size="large" block>Go to dashboard</v-btn>
+        </div>
+    </v-container>
 </div>
+{% endblock %}
+
+{% block js %}
+<script>
+    const { createApp } = Vue;
+    const { createVuetify } = Vuetify;
+    const vuetify = createVuetify(config.vuetifyConfig);
+
+    createApp({ delimiters: config.delimiters }).use(vuetify).mount('#app');
+</script>
 {% endblock %}

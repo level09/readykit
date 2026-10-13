@@ -86,7 +86,13 @@
                         @click:append-inner="copyKey"
                         hint="Can't scan? Enter this key manually"
                         persistent-hint
-                    ></v-text-field>
+                    >
+                        <template v-slot:append-inner>
+                            <v-btn icon variant="text" size="small" aria-label="Copy manual entry key" @click="copyKey">
+                                <i class="ti ti-copy"></i>
+                            </v-btn>
+                        </template>
+                    </v-text-field>
                 </v-card-text>
             </v-card>
             {% endif %}

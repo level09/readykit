@@ -3,12 +3,12 @@
 {% block content %}
     <v-app id="app" class="justify-center align-center min-vh-100 d-flex">
         <v-container class="d-flex align-center justify-center">
-            <div class="main">
-                <h2>Thank for your registration</h2>
-                <p>
-                    Please confirm your Email to continue.
-                </p>
-            </div>
+            <v-card max-width="380" class="mx-auto pa-6">
+                <v-card-title class="text-h5 px-0">Thank you for registering</v-card-title>
+                <v-card-text class="px-0 text-body-2 text-medium-emphasis">
+                    Please confirm your email to continue.
+                </v-card-text>
+            </v-card>
         </v-container>
         <v-snackbar absolute button v-model="snackBar">
             ${snackMessage}
