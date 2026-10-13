@@ -121,12 +121,21 @@
             <template v-slot:append>
                 {% if current_workspace and not current_workspace.is_pro and current_user.get_workspace_role(current_workspace.id) == 'admin' %}
                 <div class="pa-3 pt-0">
-                    <div class="pa-3" style="border: 1px solid #E4E4E7; border-radius: 8px;">
+                    <div class="pa-3 border rounded-lg">
+                        {# A billing customer without Pro had a subscription: lapsed or unpaid. #}
+                        {% if current_workspace.billing_customer_id %}
+                        <div class="text-caption font-weight-medium mb-1">Pro inactive</div>
+                        <div class="text-caption text-medium-emphasis mb-2">Check billing to restore access</div>
+                        <v-btn href="/workspace/upgrade" color="primary" size="small" block class="text-none">
+                            Restore Pro
+                        </v-btn>
+                        {% else %}
                         <div class="text-caption font-weight-medium mb-1">Free Plan</div>
                         <div class="text-caption text-medium-emphasis mb-2">Upgrade for full access</div>
                         <v-btn href="/workspace/upgrade" color="primary" size="small" block class="text-none">
                             Upgrade to Pro
                         </v-btn>
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}
