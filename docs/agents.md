@@ -50,8 +50,8 @@ The AI should generate:
 
 Expected pattern:
 ```python
-@app.route('/workspace/<int:workspace_id>/admin-action/')
-@require_workspace_access('admin')
+@app.route("/workspace/<int:workspace_id>/admin-action/")
+@require_workspace_access("admin")
 def admin_action(workspace_id):
     workspace = g.current_workspace
     # ...
@@ -67,7 +67,7 @@ Expected pattern:
 ```python
 from enferno.services.workspace import workspace_query
 
-stmt = workspace_query(Model).where(Model.status == 'active')
+stmt = workspace_query(Model).where(Model.status == "active")
 results = db.session.scalars(stmt).all()
 ```
 

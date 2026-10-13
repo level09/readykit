@@ -143,6 +143,7 @@ User clicks "Upgrade"
 ```python
 from enferno.services.billing import HostedBilling
 
+
 # enferno/portal/views.py: the workspace comes from the session, not the URL
 @portal.get("/workspace/upgrade")
 @require_workspace_access("admin")
@@ -258,6 +259,7 @@ Use the `@requires_pro_plan` decorator to restrict features:
 ```python
 from enferno.services.billing import requires_pro_plan
 
+
 @app.route("/workspace/<int:workspace_id>/advanced-feature/")
 @require_workspace_access("member")
 @requires_pro_plan
@@ -358,7 +360,7 @@ class Workspace(db.Model):
     # Billing fields
     plan = db.Column(db.String(10), default="free")  # "free" or "pro"
     billing_customer_id = db.Column(db.String(100))  # Provider customer ID
-    upgraded_at = db.Column(db.DateTime)             # When they upgraded
+    upgraded_at = db.Column(db.DateTime)  # When they upgraded
 
     @property
     def is_pro(self):

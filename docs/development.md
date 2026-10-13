@@ -41,16 +41,18 @@ All routes require authentication via `before_request`:
 from flask import Blueprint
 from flask_security import auth_required
 
-portal = Blueprint('portal', __name__)
+portal = Blueprint("portal", __name__)
+
 
 @portal.before_request
 @auth_required()
 def before_request():
     pass
 
-@portal.route('/dashboard/')
+
+@portal.route("/dashboard/")
 def dashboard():
-    return render_template('dashboard.html', workspaces=[])
+    return render_template("dashboard.html", workspaces=[])
 ```
 
 ### Public (Unauthenticated)
@@ -61,11 +63,12 @@ email/password self-registration is disabled.
 ```python
 from flask import Blueprint
 
-public = Blueprint('public', __name__)
+public = Blueprint("public", __name__)
 
-@public.route('/')
+
+@public.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 ```
 
 ### User
@@ -77,6 +80,7 @@ from flask import Blueprint, abort
 from flask_security import auth_required, current_user
 
 bp_user = Blueprint("users", __name__, static_folder="../static")
+
 
 @bp_user.before_request
 @auth_required("session")
@@ -93,14 +97,15 @@ def before_request():
 from enferno.extensions import db
 from enferno.services.workspace import WorkspaceScoped
 
+
 class Project(db.Model, WorkspaceScoped):
     id = db.Column(db.Integer, primary_key=True)
-    workspace_id = db.Column(db.Integer, db.ForeignKey('workspace.id'), nullable=False)
+    workspace_id = db.Column(db.Integer, db.ForeignKey("workspace.id"), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=db.func.now())
 
-    workspace = db.relationship('Workspace', backref='projects')
+    workspace = db.relationship("Workspace", backref="projects")
 ```
 
 ### 2. Create the Route
@@ -113,19 +118,23 @@ Set new records' `workspace_id` from `g.current_workspace.id` after the access c
 from enferno.services.workspace import require_workspace_access
 from flask import abort, g, render_template
 
-@portal.route('/workspace/<int:workspace_id>/projects/')
-@require_workspace_access('member')
+
+@portal.route("/workspace/<int:workspace_id>/projects/")
+@require_workspace_access("member")
 def list_projects(workspace_id):
     projects = Project.for_current_workspace()
-    return render_template('projects/list.html', projects=projects, workspace=g.current_workspace)
+    return render_template(
+        "projects/list.html", projects=projects, workspace=g.current_workspace
+    )
 
-@portal.route('/workspace/<int:workspace_id>/projects/<int:project_id>/')
-@require_workspace_access('member')
+
+@portal.route("/workspace/<int:workspace_id>/projects/<int:project_id>/")
+@require_workspace_access("member")
 def view_project(workspace_id, project_id):
     project = Project.get_by_id(project_id)  # Auto-scoped to workspace
     if not project:
         abort(404)
-    return render_template('projects/detail.html', project=project)
+    return render_template("projects/detail.html", project=project)
 ```
 
 ### 3. Create Form and Template
@@ -136,9 +145,10 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField
 from wtforms.validators import DataRequired, Length
 
+
 class ProjectForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired(), Length(max=100)])
-    description = TextAreaField('Description')
+    name = StringField("Name", validators=[DataRequired(), Length(max=100)])
+    description = TextAreaField("Description")
 ```
 
 ```html
@@ -174,21 +184,22 @@ users = db.session.scalars(stmt).all()
 user = db.session.get(User, user_id)
 
 # Filtered query
-stmt = db.select(User).where(User.email.like('%@example.com'))
+stmt = db.select(User).where(User.email.like("%@example.com"))
 users = db.session.scalars(stmt).all()
 
 # Workspace-scoped query
 from enferno.services.workspace import workspace_query
-stmt = workspace_query(Project).where(Project.name.ilike('Acme%'))
+
+stmt = workspace_query(Project).where(Project.name.ilike("Acme%"))
 projects = db.session.scalars(stmt).all()
 
 # Create
-project = Project(workspace_id=workspace_id, name='New Project')
+project = Project(workspace_id=workspace_id, name="New Project")
 db.session.add(project)
 db.session.commit()
 
 # Update
-project.name = 'Updated Name'
+project.name = "Updated Name"
 db.session.commit()
 
 # Delete
@@ -203,6 +214,7 @@ Background tasks need the `full` extra and `CELERY_BROKER_URL`; without them
 
 ```python
 from enferno.tasks import celery
+
 
 @celery.task
 def send_welcome_email(user_id):
@@ -273,22 +285,23 @@ uv run celery -A enferno.tasks worker --loglevel=info
 ```python
 from flask import flash, redirect, url_for
 
-@portal.route('/workspace/<int:workspace_id>/project/create/', methods=['POST'])
-@require_workspace_access('member')
+
+@portal.route("/workspace/<int:workspace_id>/project/create/", methods=["POST"])
+@require_workspace_access("member")
 def create_project(workspace_id):
     form = ProjectForm()
     if form.validate_on_submit():
         project = Project(
             workspace_id=workspace_id,
             name=form.name.data,
-            description=form.description.data
+            description=form.description.data,
         )
         db.session.add(project)
         db.session.commit()
-        flash('Project created successfully')
-        return redirect(url_for('portal.list_projects', workspace_id=workspace_id))
-    flash('Please fix the errors below')
-    return render_template('projects/create.html', form=form)
+        flash("Project created successfully")
+        return redirect(url_for("portal.list_projects", workspace_id=workspace_id))
+    flash("Please fix the errors below")
+    return render_template("projects/create.html", form=form)
 ```
 
 ### API Responses
@@ -296,15 +309,14 @@ def create_project(workspace_id):
 ```python
 from flask import jsonify
 
-@api.route('/projects/')
-@require_workspace_access('member')
+
+@api.route("/projects/")
+@require_workspace_access("member")
 def api_list_projects():
     projects = Project.for_current_workspace()
-    return jsonify([{
-        'id': p.id,
-        'name': p.name,
-        'description': p.description
-    } for p in projects])
+    return jsonify(
+        [{"id": p.id, "name": p.name, "description": p.description} for p in projects]
+    )
 ```
 
 ### Error Handling
@@ -312,8 +324,11 @@ def api_list_projects():
 ```python
 from flask import abort
 
-@portal.route('/workspace/<int:workspace_id>/project/<int:project_id>/delete/', methods=['POST'])
-@require_workspace_access('admin')  # Admin only
+
+@portal.route(
+    "/workspace/<int:workspace_id>/project/<int:project_id>/delete/", methods=["POST"]
+)
+@require_workspace_access("admin")  # Admin only
 def delete_project(workspace_id, project_id):
     project = Project.get_by_id(project_id)
     if not project:
@@ -321,8 +336,8 @@ def delete_project(workspace_id, project_id):
 
     db.session.delete(project)
     db.session.commit()
-    flash('Project deleted')
-    return redirect(url_for('portal.list_projects', workspace_id=workspace_id))
+    flash("Project deleted")
+    return redirect(url_for("portal.list_projects", workspace_id=workspace_id))
 ```
 
 ## Template Context

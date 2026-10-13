@@ -30,9 +30,9 @@ account does not create one. Email/password self-registration is disabled;
 ```python
 # Used when creating a new OAuth account
 workspace = WorkspaceService.create_workspace(
-    name="",           # Ignored when auto_name=True
+    name="",  # Ignored when auto_name=True
     owner_user=user,
-    auto_name=True     # Generates "John's Workspace" from user data
+    auto_name=True,  # Generates "John's Workspace" from user data
 )
 ```
 
@@ -62,6 +62,7 @@ These pages do not depend on the number of members.
 ```python
 from enferno.services.workspace import require_workspace_access
 from flask import g
+
 
 @app.get("/workspace/<int:workspace_id>/projects/")
 @require_workspace_access("member")  # or "admin" for admin-only routes
@@ -98,14 +99,15 @@ All business data should inherit from `WorkspaceScoped` mixin:
 from enferno.services.workspace import WorkspaceScoped
 from enferno.extensions import db
 
+
 class Project(db.Model, WorkspaceScoped):
     id = db.Column(db.Integer, primary_key=True)
-    workspace_id = db.Column(db.Integer, db.ForeignKey('workspace.id'), nullable=False)
+    workspace_id = db.Column(db.Integer, db.ForeignKey("workspace.id"), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
 
     # Relationship to workspace
-    workspace = db.relationship('Workspace', backref='projects')
+    workspace = db.relationship("Workspace", backref="projects")
 ```
 
 ::: warning
@@ -156,9 +158,7 @@ from enferno.services.workspace import WorkspaceService
 
 # Create workspace
 ws = WorkspaceService.create_workspace(
-    name="Acme Corp",
-    owner_user=user,
-    auto_name=False
+    name="Acme Corp", owner_user=user, auto_name=False
 )
 
 # Add member

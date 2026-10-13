@@ -156,9 +156,11 @@ explicit workspace filter; the foreign key does not provide row-level isolation.
 from enferno.services.workspace import WorkspaceScoped
 from enferno.extensions import db
 
+
 class Invoice(db.Model, WorkspaceScoped):
     id = db.Column(db.Integer, primary_key=True)
     workspace_id = db.Column(db.Integer, db.ForeignKey("workspace.id"), nullable=False)
+
 
 # Query within current workspace
 invoices = Invoice.for_current_workspace()
@@ -170,6 +172,7 @@ invoice = Invoice.get_by_id(invoice_id)
 ```python
 from enferno.services.workspace import require_workspace_access
 from flask import g
+
 
 @portal.get("/workspace/<int:workspace_id>/data/")
 @require_workspace_access("member")  # or "admin"
@@ -206,9 +209,10 @@ return redirect(session.url)
 session = HostedBilling.create_portal_session(
     customer_id=workspace.billing_customer_id,
     workspace_id=workspace.id,
-    base_url=request.host_url
+    base_url=request.host_url,
 )
 return redirect(session.url)
+
 
 # Gate pro features
 @require_workspace_access("member")
@@ -226,10 +230,10 @@ def get_items(workspace_id):
     page = request.args.get("page", 1, type=int)
     query = db.select(Item).where(Item.workspace_id == g.current_workspace.id)
     pagination = db.paginate(query, page=page, per_page=25)
-    return jsonify({
-        "items": [i.to_dict() for i in pagination.items],
-        "total": pagination.total
-    })
+    return jsonify(
+        {"items": [i.to_dict() for i in pagination.items], "total": pagination.total}
+    )
+
 
 @api.post("/api/workspace/<int:workspace_id>/items/<int:item_id>")
 @require_workspace_access("admin")
@@ -250,6 +254,7 @@ def update_item(workspace_id, item_id):
 @auth_required("session")
 def before_request():
     pass
+
 
 # Superadmin only (user management CMS)
 @bp_user.before_request

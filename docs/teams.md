@@ -65,6 +65,7 @@ their next request, even if their session still selects the workspace.
 from flask import g
 from enferno.services.workspace import require_workspace_access
 
+
 @portal.get("/workspace/<int:workspace_id>/projects/")
 @require_workspace_access("member")
 def list_projects(workspace_id):

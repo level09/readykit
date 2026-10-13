@@ -129,6 +129,7 @@ Applied to membership within a workspace (see [Teams](/teams)):
 ```python
 from flask_security import auth_required
 
+
 @app.route("/account/")
 @auth_required()
 def account():
@@ -140,6 +141,7 @@ def account():
 ```python
 from enferno.services.auth import require_superadmin
 
+
 @app.route("/admin/")
 @require_superadmin()
 def admin_panel():
@@ -150,6 +152,7 @@ def admin_panel():
 
 ```python
 from enferno.services.workspace import require_workspace_access
+
 
 @app.route("/workspace/<int:workspace_id>/data/")
 @require_workspace_access("member")  # or "admin"

@@ -106,10 +106,12 @@ from enferno.extensions import db
 from flask import render_template
 from enferno.services.workspace import WorkspaceScoped, require_workspace_access
 
+
 class Invoice(db.Model, WorkspaceScoped):
     id = db.Column(db.Integer, primary_key=True)
-    workspace_id = db.Column(db.Integer, db.ForeignKey('workspace.id'), nullable=False)
+    workspace_id = db.Column(db.Integer, db.ForeignKey("workspace.id"), nullable=False)
     # your fields here
+
 
 @app.get("/workspace/<int:workspace_id>/invoices/")
 @require_workspace_access("member")
