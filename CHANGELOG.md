@@ -2,7 +2,7 @@
 
 All notable ReadyKit changes are documented here.
 
-## Unreleased
+## v1.6.0 (2026-10-14)
 
 ### Added
 
@@ -15,6 +15,10 @@ All notable ReadyKit changes are documented here.
 - Removed the unused `STRIPE_PUBLISHABLE_KEY` setting.
 - Corrected billing route examples, model field sizes, Docker Compose startup, background task, and blueprint examples in the guides.
 - Fall back to `DATABASE_URL` when `SQLALCHEMY_DATABASE_URI` is unset, accepting the `postgres://` scheme.
+
+### Fixed
+
+- Pass the webhook events that current Stripe CLI versions require to `stripe listen` in the billing and deployment guides.
 
 ## v1.5.1 (2026-09-26)
 
