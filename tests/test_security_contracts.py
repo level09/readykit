@@ -99,3 +99,34 @@ def test_stripe_webhook_rejects_invalid_signature(app):
     )
 
     assert response.status_code == 400
+
+
+@pytest.mark.parametrize(
+    "email,accepted",
+    [
+        ("owner@example.com", True),
+        ("Owner@Example.COM", True),
+        ("<b>owner@example.com", False),
+        ("not-an-email", False),
+    ],
+)
+def test_password_login_normalizes_email(app, email, accepted):
+    from flask_security.utils import hash_password
+
+    from enferno.extensions import db
+    from enferno.user.models import User
+
+    db.session.add(
+        User(
+            email="owner@example.com",
+            password=hash_password("Correct-Horse-9"),
+            active=True,
+        )
+    )
+    db.session.commit()
+    client = app.test_client()
+
+    client.post("/login", data={"email": email, "password": "Correct-Horse-9"})
+
+    with client.session_transaction() as session:
+        assert bool(session.get("_user_id")) is accepted

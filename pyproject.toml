@@ -20,8 +20,8 @@ dependencies = [
     "blinker>=1.9.0",
     # Flask extensions (production)
     "flask-sqlalchemy>=3.1.1",
-    # 5.8.0-5.8.1: unpatched WebAuthn reauth freshness bypass (GHSA-f66q-9rf6-8795)
-    "flask-security-too>=5.6.2,<5.8",
+    # 5.8.0-5.8.1 had a WebAuthn reauth freshness bypass (GHSA-f66q-9rf6-8795)
+    "flask-security-too>=5.9.1",
     "flask-session>=0.8.0",
     "flask-caching>=2.3.1",
     "flask-mail>=0.10.0",
@@ -31,8 +31,8 @@ dependencies = [
     "flask-login>=0.6.3",
     "flask-dance>=7.1.0",
     # Database and ORM
-    "sqlalchemy>=2.0.41",
-    "psycopg2-binary>=2.9.10",
+    "sqlalchemy>=2.1",
+    "psycopg[binary]>=3.2",
     # Authentication and security
     "argon2-cffi>=25.1.0",
     "cryptography>=50.0.0",
@@ -46,7 +46,7 @@ dependencies = [
     "rich>=14.0.0",
     "qrcode>=8.2",
     "pillow>=11.3.0",
-    "bleach>=6.2.0",
+    "nh3>=0.2.15",  # Required by Flask-Security for WebAuthn
     "wtforms>=3.2.1",
     # Production server
     "uwsgi>=2.0.30; sys_platform != 'win32'",

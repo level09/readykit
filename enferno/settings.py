@@ -2,7 +2,6 @@ import importlib.util
 import os
 from datetime import timedelta
 
-import bleach
 from dotenv import load_dotenv
 
 # Detect optional dependencies (installed via --extra full)
@@ -27,11 +26,6 @@ def _credential(name):
     """Return a configured credential, treating blank and sample placeholders as unset."""
     value = (os.environ.get(name) or "").strip()
     return None if not value or value.startswith("your_") else value
-
-
-def uia_email_mapper(identity):
-    # Sanitize and strip whitespace from email input
-    return bleach.clean(identity, strip=True).strip() if identity else identity
 
 
 class Config:
@@ -71,10 +65,7 @@ class Config:
     SECURITY_PASSWORD_SALT = os.environ.get("SECURITY_PASSWORD_SALT")
     if not SECURITY_PASSWORD_SALT:
         raise ValueError("SECURITY_PASSWORD_SALT environment variable is required")
-    # Email-only login - simplest and most user-friendly
-    SECURITY_USER_IDENTITY_ATTRIBUTES = [
-        {"email": {"mapper": uia_email_mapper, "case_insensitive": True}},
-    ]
+    # Email-only login uses Flask-Security's default validating, case-insensitive mapper
     SECURITY_USERNAME_ENABLE = False  # Disable username completely
 
     SECURITY_POST_LOGIN_VIEW = "/dashboard"
