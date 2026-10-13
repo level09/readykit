@@ -37,9 +37,11 @@ def provider(app, monkeypatch):
 
 def sign_in(app, name):
     client = app.test_client()
-    start = client.get(f"/login/{name}")
+    # OAuth 2 requires HTTPS; testing over it avoids depending on OAUTHLIB_INSECURE_TRANSPORT.
+    https = "https://localhost"
+    start = client.get(f"/login/{name}", base_url=https)
     state = parse_qs(urlsplit(start.location).query)["state"][0]
-    client.get(f"/login/{name}/authorized?code=c&state={state}")
+    client.get(f"/login/{name}/authorized?code=c&state={state}", base_url=https)
     with client.session_transaction() as session:
         return session.get("_user_id")
 
