@@ -2,6 +2,12 @@
 
 All notable ReadyKit changes are documented here.
 
+## Unreleased
+
+### Fixed
+
+- `flask` commands find the app when `.env` has no `FLASK_APP`, such as one written by Stripe Projects before setup runs. `FLASK_APP` now lives in a committed `.flaskenv`; a value in `.env` still takes precedence.
+
 ## v1.7.1 (2026-10-14)
 
 ### Fixed
