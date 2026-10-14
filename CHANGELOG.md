@@ -2,7 +2,7 @@
 
 All notable ReadyKit changes are documented here.
 
-## Unreleased
+## v1.7.2 (2026-10-14)
 
 ### Fixed
 

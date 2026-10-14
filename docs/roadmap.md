@@ -1,8 +1,15 @@
 # Roadmap
 
 Direction, not delivery dates. See [CHANGELOG.md](https://github.com/level09/readykit/blob/master/CHANGELOG.md)
-for release history. Version 1.7.1 makes `./setup.sh` safe to rerun and reads the
-database Stripe Projects provisions.
+for release history. Version 1.7.2 finds the Flask app when Stripe Projects writes
+`.env` before setup runs; 1.7.1 makes `./setup.sh` safe to rerun.
+
+## In 1.7.2
+
+- `FLASK_APP` lives in a committed `.flaskenv`, so `flask` commands work with any `.env`.
+
+A full `stripe projects build` of the ReadyKit template passed setup, database, billing
+and app checks on a provisioned Neon database.
 
 ## In 1.7.1
 
