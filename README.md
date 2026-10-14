@@ -59,7 +59,6 @@ uv run flask stripe-listen    # Forward test webhooks (separate terminal)
 
 Visit http://localhost:5050 and sign in with the admin credentials from `flask install`.
 Google or GitHub login appears once its client ID and secret are set in `.env`.
-On macOS, AirPlay Receiver may hold port 5000; use `uv run flask run --port 5050`.
 
 Local setup uses SQLite for data and sessions; Redis is not required. Use
 `./setup.sh --full` for Redis sessions and Celery, or select Docker during setup
