@@ -92,16 +92,24 @@ stripe projects add neon/free       # Neon needs its plan before the database
 stripe projects add neon/postgres
 ./setup.sh --yes                    # Keeps the provisioned connection string
 uv run flask create-db
-uv run flask stripe-setup           # After setting STRIPE_SECRET_KEY: Pro price, webhook secret
+uv run flask install                # Admin user for password login
+# Set STRIPE_SECRET_KEY in .env to a sandbox sk_test_ key, then:
+uv run flask stripe-setup           # Pro price and local webhook secret
 uv run python checks.py --config --billing
+uv run flask run
 ```
+
+Forward webhooks while testing billing so plan changes reach the app; see
+[Testing Locally](billing.md#testing-locally) for the `stripe listen` command.
 
 ReadyKit reads `SQLALCHEMY_DATABASE_URI` first, then `DATABASE_URL`, then
 `NEON_POSTGRES_CONNECTION_STRING`. `--yes` skips prompts, does not configure Docker,
-and regenerates an existing `.env` after backing it up, keeping a provisioned
-connection string. `stripe projects env --pull` merges provider values back into
-`.env` without touching ReadyKit's own settings. If you ran setup before provisioning,
-run `./setup.sh --yes` again so it drops the SQLite default.
+and regenerates `.env` from the sample after backing it up. It keeps existing secrets
+and the previous database URL, and never lets its SQLite default replace a provisioned
+database, so it is safe to run again. If you ran setup before provisioning, run
+`./setup.sh --yes` again; `checks.py --config` fails until you do.
+`stripe projects env --pull` merges provider values back into `.env` without touching
+ReadyKit's own settings.
 
 ## What Happens on First Login?
 

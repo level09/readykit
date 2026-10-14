@@ -211,3 +211,70 @@ def test_setup_yes_keeps_provisioned_services(tmp_path, variable):
     )
     assert config_result.returncode == 0, config_result.stderr
     assert config_result.stdout.strip() == "postgresql://neon.example/app"
+
+
+def _secrets(path):
+    values = dotenv_values(path)
+    return {
+        key: values[key]
+        for key in ("SECRET_KEY", "SECURITY_PASSWORD_SALT", "SECURITY_TOTP_SECRETS")
+    }
+
+
+@pytest.fixture
+def quiet_setup(tmp_path):
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    _write_python_candidates(bin_dir, supported_name="python3")
+    _write_executable(bin_dir / "uv", "#!/bin/sh\nexit 0\n")
+
+    def run():
+        result = _run_setup(
+            tmp_path, f"{bin_dir}:/usr/bin:/bin", answer="", args=("--yes",)
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+        return dotenv_values(tmp_path / ".env")
+
+    return run
+
+
+def test_setup_rerun_keeps_secrets_and_private_permissions(tmp_path, quiet_setup):
+    quiet_setup()
+    first = _secrets(tmp_path / ".env")
+    assert all(first.values())
+    env = (tmp_path / ".env").read_text()
+    env = env.replace(
+        "STRIPE_SECRET_KEY=sk_test_your_secret_key_here",
+        "STRIPE_SECRET_KEY=sk_test_kept",
+    )
+    (tmp_path / ".env").write_text(env + "CUSTOM_SETTING=kept\n")
+
+    values = quiet_setup()
+
+    # New secrets would break stored password hashes and encrypted 2FA secrets.
+    assert _secrets(tmp_path / ".env") == first
+    assert values["STRIPE_SECRET_KEY"] == "sk_test_kept"
+    assert values["CUSTOM_SETTING"] == "kept"
+    assert stat.S_IMODE((tmp_path / ".env").stat().st_mode) == 0o600
+    assert not (tmp_path / ".env.new").exists()
+
+
+def test_setup_keeps_an_existing_postgres_database(tmp_path, quiet_setup):
+    (tmp_path / ".env").write_text(
+        "SQLALCHEMY_DATABASE_URI=postgresql://db.example/app\n"
+    )
+    assert quiet_setup()["SQLALCHEMY_DATABASE_URI"] == "postgresql://db.example/app"
+
+
+def test_setup_rerun_after_provisioning_prefers_the_provisioned_database(
+    tmp_path, quiet_setup
+):
+    quiet_setup()
+    # `stripe projects add neon/postgres` after setup appends its connection string.
+    with (tmp_path / ".env").open("a") as env:
+        env.write("NEON_POSTGRES_CONNECTION_STRING=postgresql://neon.example/app\n")
+
+    values = quiet_setup()
+
+    assert "SQLALCHEMY_DATABASE_URI" not in values
+    assert values["NEON_POSTGRES_CONNECTION_STRING"] == "postgresql://neon.example/app"

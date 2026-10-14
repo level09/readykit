@@ -222,6 +222,16 @@ def check_configuration(billing=False):
                     "SQLALCHEMY_DATABASE_URI: invalid database URL or unavailable dialect/driver."
                 )
 
+            provisioned = os.environ.get("DATABASE_URL") or os.environ.get(
+                "NEON_POSTGRES_CONNECTION_STRING"
+            )
+            if provisioned and Config.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
+                # setup.sh ran before provisioning; its SQLite default takes precedence.
+                errors.append(
+                    "SQLALCHEMY_DATABASE_URI: SQLite overrides the provisioned database. "
+                    "Run ./setup.sh --yes again or remove that line."
+                )
+
             for name in ("TERMS_URL", "PRIVACY_URL"):
                 url = getattr(Config, name)
                 # Rendered as links on sign-in; block javascript: and similar schemes.
