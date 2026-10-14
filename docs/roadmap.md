@@ -1,8 +1,17 @@
 # Roadmap
 
 Direction, not delivery dates. See [CHANGELOG.md](https://github.com/level09/readykit/blob/master/CHANGELOG.md)
-for release history. Version 1.7.0 closes an OAuth account-takeover path, keeps billing
-correct when payments fail or events race checkout, and refines the interface.
+for release history. Version 1.7.1 makes `./setup.sh` safe to rerun and reads the
+database Stripe Projects provisions.
+
+## In 1.7.1
+
+- Rerunning `./setup.sh` edits `.env` in place and no longer rotates password and 2FA secrets.
+- `NEON_POSTGRES_CONNECTION_STRING` from Stripe Projects is used as the database URL.
+- `checks.py --config` fails when the SQLite default hides a provisioned database.
+- Docker setup uses the host user ID and secure cookies.
+
+Stripe Projects provisioning, setup and reruns were verified on a live account.
 
 ## In 1.7.0
 
