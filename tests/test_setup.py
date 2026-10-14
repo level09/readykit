@@ -49,7 +49,8 @@ def _run_setup(tmp_path, path, answer="n\n", args=(), env=None):
     return subprocess.run(
         ["bash", "setup.sh", *args],
         cwd=tmp_path,
-        env={**os.environ, "PATH": path, **(env or {})},
+        # Only what a test sets: the developer's .env is loaded into os.environ.
+        env={"PATH": path, "HOME": os.environ["HOME"], **(env or {})},
         input=answer,
         capture_output=True,
         text=True,
@@ -166,6 +167,8 @@ def test_setup_keeps_secure_cookies_for_docker(tmp_path):
 
     config = (tmp_path / ".env").read_text()
     assert "SESSION_COOKIE_SECURE=True" in config
+    assert config.count("DOCKER_UID=") == 1
+    assert dotenv_values(tmp_path / ".env")["DOCKER_UID"] == str(os.getuid())
     values = dotenv_values(tmp_path / ".env")
     assert values["SQLALCHEMY_DATABASE_URI"] == (
         f"postgresql://enferno:{values['DB_PASSWORD']}@postgres/enferno"
@@ -327,6 +330,8 @@ def test_setup_switches_existing_env_to_docker_and_keeps_secrets(tmp_path, quiet
     assert values["REDIS_SESSION"] == (
         f"redis://:{values['REDIS_PASSWORD']}@redis:6379/1"
     )
+    assert values["SESSION_COOKIE_SECURE"] == "True"
+    assert values["DOCKER_UID"] == str(os.getuid())
 
 
 def test_setup_counts_an_exported_database_url_as_provisioned(tmp_path, quiet_setup):
@@ -379,3 +384,16 @@ def test_fresh_setup_does_not_override_an_exported_database_url(tmp_path):
     assert result.returncode == 0, result.stdout + result.stderr
 
     assert "SQLALCHEMY_DATABASE_URI" not in dotenv_values(tmp_path / ".env")
+
+
+def test_setup_keeps_extras_for_exported_service_settings(tmp_path, quiet_setup):
+    (tmp_path / ".env").write_text("CUSTOM_SETTING=kept\n")
+
+    quiet_setup(env={"REDIS_URL": "redis://localhost:6379/0"})
+
+    syncs = [
+        call
+        for call in (tmp_path / "uv-calls.txt").read_text().splitlines()
+        if call.startswith("sync")
+    ]
+    assert syncs and all("--extra full" in call for call in syncs)
