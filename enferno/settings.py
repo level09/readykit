@@ -37,10 +37,12 @@ class Config:
     DEBUG_TB_ENABLED = os.environ.get("DEBUG_TB_ENABLED")
     DEBUG_TB_INTERCEPT_REDIRECTS = False
     CACHE_TYPE = "flask_caching.backends.SimpleCache"
-    # DATABASE_URL is what Stripe Projects, Fly.io and Railway provide.
+    # Fly.io and Railway provide DATABASE_URL; Stripe Projects' Neon service provides
+    # NEON_POSTGRES_CONNECTION_STRING.
     SQLALCHEMY_DATABASE_URI = (
         os.environ.get("SQLALCHEMY_DATABASE_URI")
-        or os.environ.get("DATABASE_URL", "postgresql:///enferno")
+        or os.environ.get("DATABASE_URL")
+        or os.environ.get("NEON_POSTGRES_CONNECTION_STRING", "postgresql:///enferno")
     ).replace("postgres://", "postgresql://", 1)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

@@ -82,21 +82,26 @@ Start Redis, then uncomment `REDIS_SESSION`, `CELERY_BROKER_URL`, and
 ### Provision Postgres with Stripe Projects
 
 [Stripe Projects](https://docs.stripe.com/projects) can create a hosted Postgres
-database and write its `DATABASE_URL` to `.env`. Provision first, then let setup
-keep it:
+database on Neon's free plan and write its connection string to `.env` as
+`NEON_POSTGRES_CONNECTION_STRING`. Projects needs a live-mode Stripe account.
+Provision first, then let setup keep it:
 
 ```bash
 stripe projects init
+stripe projects add neon/free       # Neon needs its plan before the database
 stripe projects add neon/postgres
-./setup.sh --yes            # Keeps the provisioned DATABASE_URL
+./setup.sh --yes                    # Keeps the provisioned connection string
 uv run flask create-db
-uv run flask stripe-setup   # After setting STRIPE_SECRET_KEY: Pro price, webhook secret
+uv run flask stripe-setup           # After setting STRIPE_SECRET_KEY: Pro price, webhook secret
 uv run python checks.py --config --billing
 ```
 
-ReadyKit reads `SQLALCHEMY_DATABASE_URI` first and falls back to `DATABASE_URL`.
-`--yes` skips prompts, does not configure Docker, and regenerates an existing
-`.env` after backing it up, keeping its `DATABASE_URL`.
+ReadyKit reads `SQLALCHEMY_DATABASE_URI` first, then `DATABASE_URL`, then
+`NEON_POSTGRES_CONNECTION_STRING`. `--yes` skips prompts, does not configure Docker,
+and regenerates an existing `.env` after backing it up, keeping a provisioned
+connection string. `stripe projects env --pull` merges provider values back into
+`.env` without touching ReadyKit's own settings. If you ran setup before provisioning,
+run `./setup.sh --yes` again so it drops the SQLite default.
 
 ## What Happens on First Login?
 
