@@ -400,3 +400,25 @@ def test_setup_keeps_extras_for_exported_service_settings(tmp_path, quiet_setup)
         if call.startswith("sync")
     ]
     assert syncs and all("--extra full" in call for call in syncs)
+
+
+def test_flask_finds_the_app_when_env_lacks_flask_app(tmp_path):
+    # Stripe Projects writes .env before setup.sh runs, so FLASK_APP must not live only there.
+    for name in ("run.py", ".flaskenv"):
+        shutil.copy(PROJECT_ROOT / name, tmp_path / name)
+    (tmp_path / "enferno").symlink_to(PROJECT_ROOT / "enferno")
+    (tmp_path / ".env").write_text(
+        "NEON_POSTGRES_CONNECTION_STRING=sqlite:///app.sqlite3\n"
+        "SECRET_KEY=a\nSECURITY_PASSWORD_SALT=b\nSECURITY_TOTP_SECRETS=c,d\n"
+    )
+
+    result = subprocess.run(
+        [str(PROJECT_ROOT / ".venv/bin/flask"), "--help"],
+        cwd=tmp_path,
+        env={"PATH": "/usr/bin:/bin", "HOME": os.environ["HOME"]},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "create-db" in result.stdout
