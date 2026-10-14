@@ -103,12 +103,12 @@ Forward webhooks while testing billing so plan changes reach the app; see
 [Testing Locally](billing.md#testing-locally) for the `stripe listen` command.
 
 ReadyKit reads `SQLALCHEMY_DATABASE_URI` first, then `DATABASE_URL`, then
-`NEON_POSTGRES_CONNECTION_STRING`. `--yes` skips prompts, does not configure Docker,
-and regenerates `.env` from the sample after backing it up. It keeps existing secrets
-and the previous database URL, and never lets its SQLite default replace a provisioned
-database, so it is safe to run again. If you ran setup before provisioning, run
-`./setup.sh --yes` again; `checks.py --config` fails until you do.
-`stripe projects env --pull` merges provider values back into `.env` without touching
+`NEON_POSTGRES_CONNECTION_STRING`. `--yes` skips prompts and does not configure
+Docker. When `.env` already exists, setup backs it up and edits it in place: it adds
+missing secrets and the settings the chosen mode needs, and leaves every other line as
+written, so it is safe to run again. If you ran setup before provisioning, run
+`./setup.sh --yes` again to drop its SQLite default; `checks.py --config` fails until
+you do. `stripe projects env --pull` merges provider values back into `.env` without touching
 ReadyKit's own settings.
 
 ## What Happens on First Login?

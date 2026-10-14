@@ -30,6 +30,17 @@ def _write_python_candidates(bin_dir, supported_name=None):
         )
 
 
+def _fake_uv(bin_dir):
+    # Skip installs; run the .env update script with the project's Python.
+    _write_executable(
+        bin_dir / "uv",
+        "#!/bin/sh\n"
+        'if [ "$1" = run ]; then shift 3; '
+        f'exec {PROJECT_ROOT / ".venv/bin/python"} "$@"; fi\n'
+        "exit 0\n",
+    )
+
+
 def _run_setup(tmp_path, path, answer="n\n", args=()):
     shutil.copy(PROJECT_ROOT / "setup.sh", tmp_path / "setup.sh")
     shutil.copy(PROJECT_ROOT / ".env-sample", tmp_path / ".env-sample")
@@ -177,7 +188,7 @@ def test_setup_yes_keeps_provisioned_services(tmp_path, variable):
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     _write_python_candidates(bin_dir, supported_name="python3")
-    _write_executable(bin_dir / "uv", "#!/bin/sh\nexit 0\n")
+    _fake_uv(bin_dir)
     (tmp_path / ".env").write_text(
         f"{variable}=postgres://neon.example/app\n"
         "REDIS_SESSION=redis://localhost:6379/1\n"
@@ -191,7 +202,7 @@ def test_setup_yes_keeps_provisioned_services(tmp_path, variable):
     values = dotenv_values(tmp_path / ".env")
     assert values[variable] == "postgres://neon.example/app"
     assert "SQLALCHEMY_DATABASE_URI" not in values
-    assert "REDIS_SESSION" not in values
+    assert values["REDIS_SESSION"] == "redis://localhost:6379/1"  # left as written
 
     package = tmp_path / "enferno"
     package.mkdir()
@@ -226,7 +237,7 @@ def quiet_setup(tmp_path):
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     _write_python_candidates(bin_dir, supported_name="python3")
-    _write_executable(bin_dir / "uv", "#!/bin/sh\nexit 0\n")
+    _fake_uv(bin_dir)
 
     def run():
         result = _run_setup(
@@ -278,3 +289,37 @@ def test_setup_rerun_after_provisioning_prefers_the_provisioned_database(
 
     assert "SQLALCHEMY_DATABASE_URI" not in values
     assert values["NEON_POSTGRES_CONNECTION_STRING"] == "postgresql://neon.example/app"
+
+
+def test_setup_rerun_leaves_unusual_values_untouched(tmp_path, quiet_setup):
+    quiet_setup()
+    extra = (
+        "APP_SECRET=from-elsewhere\n"
+        "INTERPOLATED=${APP_SECRET}\n"
+        'MULTILINE="first\nsecond"\n'
+        "DOUBLED=one\nDOUBLED=two\n"
+    )
+    with (tmp_path / ".env").open("a") as env:
+        env.write(extra)
+
+    quiet_setup()
+
+    assert (tmp_path / ".env").read_text().endswith(extra)
+
+
+def test_setup_switches_existing_env_to_docker_and_keeps_secrets(tmp_path, quiet_setup):
+    quiet_setup()
+    first = _secrets(tmp_path / ".env")
+    bin_dir = tmp_path / "bin"
+
+    result = _run_setup(tmp_path, f"{bin_dir}:/usr/bin:/bin", answer="y\n")
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    # Raw values: the developer's own environment must not leak into ${VAR} expansion.
+    values = dotenv_values(tmp_path / ".env", interpolate=False)
+    assert _secrets(tmp_path / ".env") == first
+    assert values["DB_PASSWORD"] and values["REDIS_PASSWORD"]
+    assert values["SQLALCHEMY_DATABASE_URI"] == (
+        "postgresql://enferno:${DB_PASSWORD}@postgres/enferno"
+    )
+    assert values["REDIS_SESSION"] == "redis://:${REDIS_PASSWORD}@redis:6379/1"
