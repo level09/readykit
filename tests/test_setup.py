@@ -314,6 +314,8 @@ def test_setup_rerun_leaves_unusual_values_untouched(tmp_path, quiet_setup):
 
 def test_setup_switches_existing_env_to_docker_and_keeps_secrets(tmp_path, quiet_setup):
     quiet_setup()
+    with (tmp_path / ".env").open("a") as env:
+        env.write("REDIS_URL=redis://localhost:6379/0\n")
     first = _secrets(tmp_path / ".env")
     bin_dir = tmp_path / "bin"
 
@@ -331,6 +333,7 @@ def test_setup_switches_existing_env_to_docker_and_keeps_secrets(tmp_path, quiet
         f"redis://:{values['REDIS_PASSWORD']}@redis:6379/1"
     )
     assert values["SESSION_COOKIE_SECURE"] == "True"
+    assert values["REDIS_URL"] == values["REDIS_SESSION"]
     assert values["DOCKER_UID"] == str(os.getuid())
 
 
