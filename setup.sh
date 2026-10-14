@@ -176,6 +176,9 @@ if docker:
     put("SQLALCHEMY_DATABASE_URI", f"postgresql://enferno:{values['DB_PASSWORD']}@postgres/enferno")
     for key, db in (("REDIS_SESSION", 1), ("CELERY_BROKER_URL", 2), ("CELERY_RESULT_BACKEND", 3)):
         put(key, f"redis://:{values['REDIS_PASSWORD']}@redis:6379/{db}")
+    if values.get("REDIS_URL"):
+        # REDIS_URL outranks REDIS_SESSION (enferno/settings.py); point it at the container too.
+        put("REDIS_URL", values["REDIS_SESSION"])
     put("DOCKER_UID", os.environ["DOCKER_UID"])
     put("SESSION_COOKIE_SECURE", "True")  # Docker serves the app behind HTTPS
 else:
