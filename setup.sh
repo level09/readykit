@@ -115,7 +115,9 @@ fi
 # An existing .env that uses Redis or Celery keeps their packages installed; its
 # configuration is left alone.
 KEEP_EXTRAS=false
-if [ -n "$BACKUP_FILE" ] && grep -qE \
+if [ -n "${REDIS_URL:-}${REDIS_SESSION:-}${CELERY_BROKER_URL:-}" ]; then
+    KEEP_EXTRAS=true  # Exported service settings count as well.
+elif [ -n "$BACKUP_FILE" ] && grep -qE \
     '^[[:space:]]*(export[[:space:]]+)?(REDIS_SESSION|REDIS_URL|CELERY_BROKER_URL)[[:space:]]*=[[:space:]]*[^[:space:]#]' .env; then
     KEEP_EXTRAS=true
 fi
@@ -175,6 +177,7 @@ if docker:
     for key, db in (("REDIS_SESSION", 1), ("CELERY_BROKER_URL", 2), ("CELERY_RESULT_BACKEND", 3)):
         put(key, f"redis://:{values['REDIS_PASSWORD']}@redis:6379/{db}")
     put("DOCKER_UID", os.environ["DOCKER_UID"])
+    put("SESSION_COOKIE_SECURE", "True")  # Docker serves the app behind HTTPS
 else:
     if full:
         for key, db in (("REDIS_SESSION", 1), ("CELERY_BROKER_URL", 2), ("CELERY_RESULT_BACKEND", 3)):
@@ -272,10 +275,8 @@ else
         else if (docker == "true" && $0 ~ /^#CELERY_RESULT_BACKEND=redis:\/\/:/) {
             print "CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/3"
         }
-        else if (docker == "true" && $0 ~ /^# Docker-specific settings/) {
-            print "# Docker-specific settings"
+        else if (docker == "true" && $0 ~ /^DOCKER_UID=/) {
             print "DOCKER_UID=" uid
-            print
         }
         else {
             print $0
