@@ -6,6 +6,8 @@ All notable ReadyKit changes are documented here.
 
 ### Fixed
 
+- `./setup.sh` keeps existing secrets, Docker passwords and the previous database URL when it regenerates `.env`, so a rerun no longer invalidates stored passwords and 2FA secrets. It follows the app's database precedence and writes `.env`, its backups and its temporary file owner-only.
+- `checks.py --config` fails when the SQLite default overrides a provisioned `DATABASE_URL` or `NEON_POSTGRES_CONNECTION_STRING`.
 - A workspace whose Pro subscription lapsed or is unpaid now shows "Restore Pro" in the sidebar instead of "Upgrade to Pro".
 - The sign-in and registration pages show the Terms and Privacy notice only when `TERMS_URL` and `PRIVACY_URL` are set, instead of linking to `#`.
 

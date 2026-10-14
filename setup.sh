@@ -111,9 +111,9 @@ if [ -f .env ]; then
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         exit 1
     fi
-    # Backup existing .env
+    # Backup existing .env (owner-only: it holds secrets)
     BACKUP_FILE=".env.backup.$(date +%Y%m%d_%H%M%S)"
-    if ! cp .env "$BACKUP_FILE"; then
+    if ! (umask 077 && cp .env "$BACKUP_FILE"); then
         echo -e "${RED}Error: Failed to create backup file${NC}"
         exit 1
     fi
@@ -128,6 +128,21 @@ else
     uv sync --python "$PYTHON_CMD" --extra dev
 fi
 
+# .env and its temporary file hold secrets: owner-only, and never left behind.
+umask 077
+trap 'rm -f .env.new' EXIT
+
+# Print KEY's raw value from the previous .env, unless blank or the sample placeholder.
+previous() {
+    [ -n "$BACKUP_FILE" ] || return 0
+    local value sample
+    value=$(grep -m1 "^$1=" "$BACKUP_FILE" | cut -d= -f2-)
+    sample=$(grep -m1 "^$1=" .env-sample | cut -d= -f2-)
+    if [ -n "$value" ] && [ "$value" != '""' ] && [ "$value" != "$sample" ]; then
+        printf '%s' "$value"
+    fi
+}
+
 # Copy the sample file
 if ! cp .env-sample .env; then
     echo -e "${RED}Error: Failed to copy .env-sample to .env${NC}"
@@ -139,8 +154,11 @@ SECRET_KEY=$(generate_secure_string 32)
 TOTP_SECRET1=$(generate_secure_string 32)
 TOTP_SECRET2=$(generate_secure_string 32)
 PASSWORD_SALT=$(generate_secure_string 32)
-REDIS_PASSWORD=$(generate_secure_string 20)
-DB_PASSWORD=$(generate_secure_string 20)
+# A running Docker volume keeps its old passwords, so reuse them too.
+REDIS_PASSWORD=$(previous REDIS_PASSWORD)
+[ -n "$REDIS_PASSWORD" ] || REDIS_PASSWORD=$(generate_secure_string 20)
+DB_PASSWORD=$(previous DB_PASSWORD)
+[ -n "$DB_PASSWORD" ] || DB_PASSWORD=$(generate_secure_string 20)
 DOCKER_UID=$(id -u)
 
 # Validate generated values
@@ -149,17 +167,53 @@ if [ -z "$SECRET_KEY" ] || [ -z "$TOTP_SECRET1" ] || [ -z "$TOTP_SECRET2" ] || [
     exit 1
 fi
 
-# Keep a provisioned database URL (Fly.io, Railway, Stripe Projects' Neon) instead of SQLite.
+# Keep the previous database with the app's precedence (enferno/settings.py). The SQLite
+# default this script writes never outranks a provisioned URL (Fly.io, Railway, Neon).
 DATABASE_URL_LINE=""
-if [ -n "$BACKUP_FILE" ]; then
-    DATABASE_URL_LINE=$(grep -m1 -E '^(DATABASE_URL|NEON_POSTGRES_CONNECTION_STRING)=' "$BACKUP_FILE" || true)
+if [ "$DOCKER_CONFIG" = false ]; then
+    for key in SQLALCHEMY_DATABASE_URI DATABASE_URL NEON_POSTGRES_CONNECTION_STRING; do
+        value=$(previous "$key")
+        if [ -n "$value" ] && [ "$value" != "sqlite:///enferno.sqlite3" ]; then
+            DATABASE_URL_LINE="$key=$value"
+            break
+        fi
+    done
 fi
 export DATABASE_URL_LINE
 
-# Process the .env file
+# Process the .env file. A rerun keeps every previous value: secrets (new ones would
+# invalidate stored passwords and 2FA secrets), billing and OAuth settings, and keys the
+# sample lacks. Only the settings the selected mode controls are rewritten.
+ENV_INPUTS=(.env)
+[ -n "$BACKUP_FILE" ] && ENV_INPUTS=("$BACKUP_FILE" .env)
 if ! awk -v sk="$SECRET_KEY" -v ts1="$TOTP_SECRET1" -v ts2="$TOTP_SECRET2" -v ps="$PASSWORD_SALT" \
-       -v docker="$DOCKER_CONFIG" -v full="$FULL_CONFIG" -v rpass="$REDIS_PASSWORD" -v dbpass="$DB_PASSWORD" -v uid="$DOCKER_UID" '
+       -v docker="$DOCKER_CONFIG" -v full="$FULL_CONFIG" -v rpass="$REDIS_PASSWORD" -v dbpass="$DB_PASSWORD" -v uid="$DOCKER_UID" \
+       -v prevfile="$BACKUP_FILE" '
+BEGIN {
+    split("SQLALCHEMY_DATABASE_URI SESSION_COOKIE_SECURE REDIS_SESSION CELERY_BROKER_URL CELERY_RESULT_BACKEND DOCKER_UID REDIS_PASSWORD DB_PASSWORD", owned, " ")
+    for (i in owned) modal[owned[i]] = 1
+    dbkey = ENVIRON["DATABASE_URL_LINE"]
+    sub(/=.*/, "", dbkey)
+}
+FILENAME == prevfile {
+    if (match($0, /^[A-Z_][A-Z0-9_]*=/)) {
+        k = substr($0, 1, RLENGTH - 1)
+        if (!(k in prev)) { prev[k] = substr($0, RLENGTH + 1); order[++n] = k }
+    }
+    next
+}
 {
+    key = ""
+    if (match($0, /^#?[A-Z_][A-Z0-9_]*=/)) {
+        key = substr($0, 1, RLENGTH - 1)
+        sub(/^#/, "", key)
+        known[key] = 1
+    }
+    if (key != "" && $0 !~ /^#/ && !(key in modal) && (key in prev) \
+        && prev[key] != "" && prev[key] != "\"\"" && prev[key] != substr($0, length(key) + 2)) {
+        print key "=" prev[key]
+        next
+    }
     if ($0 ~ /^SECRET_KEY=/) {
         print "SECRET_KEY=\"" sk "\""
     }
@@ -209,7 +263,17 @@ if ! awk -v sk="$SECRET_KEY" -v ts1="$TOTP_SECRET1" -v ts2="$TOTP_SECRET2" -v ps
     else {
         print $0
     }
-}' .env > .env.new; then
+}
+END {
+    # Keys the sample does not define (provider ids, custom settings) carry over.
+    for (i = 1; i <= n; i++) {
+        k = order[i]
+        if (!(k in known) && k != dbkey && prev[k] != "") {
+            if (!carried++) print "\n# Kept from the previous .env"
+            print k "=" prev[k]
+        }
+    }
+}' "${ENV_INPUTS[@]}" > .env.new; then
     echo -e "${RED}Error: Failed to process .env file${NC}"
     exit 1
 fi
@@ -227,7 +291,11 @@ if [ ! -f .env ]; then
 fi
 
 echo -e "${GREEN}Successfully generated .env file with secure keys${NC}"
-echo -e "${GREEN}Generated secure values for: SECRET_KEY, SECURITY_TOTP_SECRETS, SECURITY_PASSWORD_SALT${NC}"
+if [ -n "$BACKUP_FILE" ]; then
+    echo -e "${GREEN}Kept existing values and secrets; generated any secrets that were missing${NC}"
+else
+    echo -e "${GREEN}Generated secure values for: SECRET_KEY, SECURITY_TOTP_SECRETS, SECURITY_PASSWORD_SALT${NC}"
+fi
 if [ "$DOCKER_CONFIG" = true ]; then
     echo -e "${GREEN}Docker configuration enabled with secure passwords for Redis and PostgreSQL${NC}"
 else

@@ -217,3 +217,12 @@ def test_celery_result_backend_requires_a_broker(config_command):
 def test_legal_links_must_be_web_urls(config_command, url, ok):
     result = config_command({"TERMS_URL": url, "PRIVACY_URL": "/privacy"})
     assert (result.returncode == 0) is ok, result.stdout
+
+
+@pytest.mark.parametrize(
+    "variable", ["DATABASE_URL", "NEON_POSTGRES_CONNECTION_STRING"]
+)
+def test_sqlite_overriding_a_provisioned_database_fails(config_command, variable):
+    result = config_command({variable: "postgresql://neon.example/app"})
+    assert result.returncode == 1
+    assert "overrides the provisioned database" in result.stdout
