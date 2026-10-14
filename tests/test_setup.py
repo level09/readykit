@@ -168,14 +168,18 @@ def test_setup_keeps_secure_cookies_for_docker(tmp_path):
         )
 
 
-def test_setup_yes_keeps_provisioned_services(tmp_path):
+@pytest.mark.parametrize(
+    "variable",
+    # Fly.io and Railway, and Stripe Projects' Neon service (observed 2026-10-14).
+    ["DATABASE_URL", "NEON_POSTGRES_CONNECTION_STRING"],
+)
+def test_setup_yes_keeps_provisioned_services(tmp_path, variable):
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     _write_python_candidates(bin_dir, supported_name="python3")
     _write_executable(bin_dir / "uv", "#!/bin/sh\nexit 0\n")
-    # Shape of an .env after `stripe projects add neon/postgres`.
     (tmp_path / ".env").write_text(
-        "DATABASE_URL=postgres://neon.example/app\n"
+        f"{variable}=postgres://neon.example/app\n"
         "REDIS_SESSION=redis://localhost:6379/1\n"
     )
 
@@ -185,7 +189,7 @@ def test_setup_yes_keeps_provisioned_services(tmp_path):
     assert result.returncode == 0, result.stdout + result.stderr
 
     values = dotenv_values(tmp_path / ".env")
-    assert values["DATABASE_URL"] == "postgres://neon.example/app"
+    assert values[variable] == "postgres://neon.example/app"
     assert "SQLALCHEMY_DATABASE_URI" not in values
     assert "REDIS_SESSION" not in values
 

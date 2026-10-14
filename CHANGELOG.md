@@ -11,6 +11,7 @@ All notable ReadyKit changes are documented here.
 
 ### Changed
 
+- Read the database URL from `NEON_POSTGRES_CONNECTION_STRING`, the name Stripe Projects' Neon service writes, after `SQLALCHEMY_DATABASE_URI` and `DATABASE_URL`; `./setup.sh --yes` keeps it. The getting-started steps for Stripe Projects now add the Neon plan first. Verified against a live Projects account.
 - Upgraded the GitHub Actions used in CI and deploys, and build the documentation on Node 22.
 
 ## v1.7.0 (2026-10-14)

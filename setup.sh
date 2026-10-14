@@ -17,7 +17,7 @@ for arg in "$@"; do
             echo "Usage: ./setup.sh [--full] [--yes]"
             echo "Default: SQLite data and sessions, no Redis required."
             echo "--full: Install and configure Redis sessions and Celery."
-            echo "--yes: Skip prompts; no Docker, regenerate .env keeping DATABASE_URL."
+            echo "--yes: Skip prompts; no Docker, regenerate .env keeping a provisioned database URL."
             echo "Choosing Docker also enables the full stack."
             exit 0
             ;;
@@ -149,10 +149,10 @@ if [ -z "$SECRET_KEY" ] || [ -z "$TOTP_SECRET1" ] || [ -z "$TOTP_SECRET2" ] || [
     exit 1
 fi
 
-# Keep a provisioned DATABASE_URL (e.g. from Stripe Projects) instead of SQLite.
+# Keep a provisioned database URL (Fly.io, Railway, Stripe Projects' Neon) instead of SQLite.
 DATABASE_URL_LINE=""
 if [ -n "$BACKUP_FILE" ]; then
-    DATABASE_URL_LINE=$(grep -m1 '^DATABASE_URL=' "$BACKUP_FILE" || true)
+    DATABASE_URL_LINE=$(grep -m1 -E '^(DATABASE_URL|NEON_POSTGRES_CONNECTION_STRING)=' "$BACKUP_FILE" || true)
 fi
 export DATABASE_URL_LINE
 
@@ -232,7 +232,7 @@ if [ "$DOCKER_CONFIG" = true ]; then
     echo -e "${GREEN}Docker configuration enabled with secure passwords for Redis and PostgreSQL${NC}"
 else
     if [ -n "$DATABASE_URL_LINE" ]; then
-        echo -e "${GREEN}Database: kept DATABASE_URL from the previous .env${NC}"
+        echo -e "${GREEN}Database: kept ${DATABASE_URL_LINE%%=*} from the previous .env${NC}"
     else
         echo -e "${GREEN}SQLite database configured at: enferno.sqlite3${NC}"
     fi
