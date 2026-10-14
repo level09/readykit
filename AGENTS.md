@@ -22,7 +22,8 @@ uv run python checks.py --config --billing  # Include billing settings
 uv run flask create-db        # Initialize database (stamps migrations head)
 uv run flask install          # Create admin user
 uv run flask stripe-setup     # Fill Stripe Pro price and local webhook secret
-uv run flask run              # Dev server on :5000
+uv run flask stripe-listen    # Forward Stripe test webhooks to the dev server
+uv run flask run              # Dev server on :5050 (.flaskenv)
 uv run flask db migrate -m "" # Draft migration from model changes
 uv run flask db upgrade       # Apply pending migrations
 uv run ruff check --fix .     # Lint

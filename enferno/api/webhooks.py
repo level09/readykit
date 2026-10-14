@@ -11,6 +11,21 @@ webhooks_bp = Blueprint("webhooks", __name__)
 
 PROVIDER = os.environ.get("BILLING_PROVIDER", "stripe")
 
+# Stripe events that change a workspace plan; `flask stripe-listen` forwards exactly these.
+STRIPE_PAYMENT_EVENTS = {
+    "checkout.session.completed",
+    "checkout.session.async_payment_succeeded",
+}
+STRIPE_SYNC_EVENTS = {
+    "customer.subscription.created",
+    "customer.subscription.updated",
+    "customer.subscription.deleted",
+    "customer.subscription.paused",
+    "customer.subscription.resumed",
+    "invoice.payment_failed",
+    "invoice.paid",
+}
+
 
 def _process_event(event_id, event_type, process):
     if not isinstance(event_id, str) or not event_id or not isinstance(event_type, str):
@@ -65,22 +80,11 @@ if PROVIDER == "stripe":
             return "Invalid request", 400
 
         def process():
-            if event["type"] in {
-                "checkout.session.completed",
-                "checkout.session.async_payment_succeeded",
-            }:
+            if event["type"] in STRIPE_PAYMENT_EVENTS:
                 HostedBilling.handle_successful_payment(
                     event["data"]["object"]["id"], commit=False
                 )
-            elif event["type"] in {
-                "customer.subscription.created",
-                "customer.subscription.updated",
-                "customer.subscription.deleted",
-                "customer.subscription.paused",
-                "customer.subscription.resumed",
-                "invoice.payment_failed",
-                "invoice.paid",
-            }:
+            elif event["type"] in STRIPE_SYNC_EVENTS:
                 HostedBilling.sync_customer(event["data"]["object"]["customer"])
 
         return _process_event(event.get("id"), event.get("type"), process)

@@ -2,6 +2,16 @@
 
 All notable ReadyKit changes are documented here.
 
+## Unreleased
+
+### Added
+
+- `flask stripe-listen` forwards the Stripe events ReadyKit handles to the dev server with the app's `sk_test_` key, replacing the long `stripe listen` command in the guides.
+
+### Changed
+
+- The dev server runs on port 5050 (`FLASK_RUN_PORT` in `.flaskenv`) because macOS AirPlay Receiver holds port 5000. Set `FLASK_RUN_PORT=5000` in `.env` to keep the old port, for example for existing OAuth redirect URLs.
+
 ## v1.7.2 (2026-10-14)
 
 ### Fixed

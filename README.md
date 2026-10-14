@@ -54,9 +54,10 @@ uv run flask run
 
 # 3. Optional: Stripe test billing (set STRIPE_SECRET_KEY=sk_test_... in .env first)
 uv run flask stripe-setup     # Creates the Pro price and local webhook secret
+uv run flask stripe-listen    # Forward test webhooks (separate terminal)
 ```
 
-Visit http://localhost:5000 and sign in with the admin credentials from `flask install`.
+Visit http://localhost:5050 and sign in with the admin credentials from `flask install`.
 Google or GitHub login appears once its client ID and secret are set in `.env`.
 On macOS, AirPlay Receiver may hold port 5000; use `uv run flask run --port 5050`.
 
