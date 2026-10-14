@@ -106,7 +106,8 @@ ReadyKit reads `SQLALCHEMY_DATABASE_URI` first, then `DATABASE_URL`, then
 `NEON_POSTGRES_CONNECTION_STRING`. `--yes` skips prompts and does not configure
 Docker. When `.env` already exists, setup backs it up and edits it in place: it adds
 missing secrets and the settings the chosen mode needs, and leaves every other line as
-written, so it is safe to run again. If you ran setup before provisioning, run
+written (Windows line endings become Unix ones), so it is safe to run again. It keeps
+the Redis and Celery extras installed while `.env` uses them. If you ran setup before provisioning, run
 `./setup.sh --yes` again to drop its SQLite default; `checks.py --config` fails until
 you do. `stripe projects env --pull` merges provider values back into `.env` without touching
 ReadyKit's own settings.

@@ -112,6 +112,11 @@ if [ -f .env ]; then
     echo -e "${GREEN}Created backup of existing .env at $BACKUP_FILE${NC}"
 fi
 
+# An existing .env that uses Redis or Celery keeps the extras it needs installed.
+if [ -n "$BACKUP_FILE" ] && grep -qE '^(REDIS_SESSION|REDIS_URL|CELERY_BROKER_URL)=.' .env; then
+    FULL_CONFIG=true
+fi
+
 # Install only the dependencies needed for the selected setup.
 echo -e "${GREEN}Installing dependencies from pyproject.toml...${NC}"
 if [ "$FULL_CONFIG" = true ]; then
@@ -162,16 +167,26 @@ if docker:
     for key in ("DB_PASSWORD", "REDIS_PASSWORD"):
         if missing(key):
             put(key, secrets.token_urlsafe(20))
-    put("SQLALCHEMY_DATABASE_URI", "postgresql://enferno:${DB_PASSWORD}@postgres/enferno")
+    # Literal values: an appended password would come after a ${VAR} that references it.
+    put("SQLALCHEMY_DATABASE_URI", f"postgresql://enferno:{values['DB_PASSWORD']}@postgres/enferno")
     for key, db in (("REDIS_SESSION", 1), ("CELERY_BROKER_URL", 2), ("CELERY_RESULT_BACKEND", 3)):
-        put(key, f"redis://:${{REDIS_PASSWORD}}@redis:6379/{db}")
+        put(key, f"redis://:{values['REDIS_PASSWORD']}@redis:6379/{db}")
     put("DOCKER_UID", os.environ["DOCKER_UID"])
 else:
     if full:
         for key, db in (("REDIS_SESSION", 1), ("CELERY_BROKER_URL", 2), ("CELERY_RESULT_BACKEND", 3)):
             if not values.get(key):
                 put(key, f"redis://localhost:6379/{db}")
-    provisioned = values.get("DATABASE_URL") or values.get("NEON_POSTGRES_CONNECTION_STRING")
+    # Flask also reads exported variables, so they count as provisioned too.
+    provisioned = next(
+        (
+            source.get(key)
+            for key in ("DATABASE_URL", "NEON_POSTGRES_CONNECTION_STRING")
+            for source in (values, os.environ)
+            if source.get(key)
+        ),
+        None,
+    )
     database = values.get("SQLALCHEMY_DATABASE_URI")
     if provisioned and database == SQLITE:
         # Setup's own default must not hide a database provisioned later (enferno/settings.py).
@@ -184,6 +199,8 @@ PY
         echo -e "${RED}Error: Failed to update .env${NC}"
         exit 1
     fi
+    # python-dotenv keeps the file's existing mode; secrets must not stay world-readable.
+    chmod 600 .env
 else
     # Copy the sample file
     if ! cp .env-sample .env; then

@@ -35,20 +35,21 @@ def _fake_uv(bin_dir):
     _write_executable(
         bin_dir / "uv",
         "#!/bin/sh\n"
+        'echo "$@" >> uv-calls.txt\n'
         'if [ "$1" = run ]; then shift 3; '
         f'exec {PROJECT_ROOT / ".venv/bin/python"} "$@"; fi\n'
         "exit 0\n",
     )
 
 
-def _run_setup(tmp_path, path, answer="n\n", args=()):
+def _run_setup(tmp_path, path, answer="n\n", args=(), env=None):
     shutil.copy(PROJECT_ROOT / "setup.sh", tmp_path / "setup.sh")
     shutil.copy(PROJECT_ROOT / ".env-sample", tmp_path / ".env-sample")
 
     return subprocess.run(
         ["bash", "setup.sh", *args],
         cwd=tmp_path,
-        env={**os.environ, "PATH": path},
+        env={**os.environ, "PATH": path, **(env or {})},
         input=answer,
         capture_output=True,
         text=True,
@@ -239,9 +240,9 @@ def quiet_setup(tmp_path):
     _write_python_candidates(bin_dir, supported_name="python3")
     _fake_uv(bin_dir)
 
-    def run():
+    def run(env=None):
         result = _run_setup(
-            tmp_path, f"{bin_dir}:/usr/bin:/bin", answer="", args=("--yes",)
+            tmp_path, f"{bin_dir}:/usr/bin:/bin", answer="", args=("--yes",), env=env
         )
         assert result.returncode == 0, result.stdout + result.stderr
         return dotenv_values(tmp_path / ".env")
@@ -259,6 +260,7 @@ def test_setup_rerun_keeps_secrets_and_private_permissions(tmp_path, quiet_setup
         "STRIPE_SECRET_KEY=sk_test_kept",
     )
     (tmp_path / ".env").write_text(env + "CUSTOM_SETTING=kept\n")
+    (tmp_path / ".env").chmod(0o644)
 
     values = quiet_setup()
 
@@ -320,6 +322,30 @@ def test_setup_switches_existing_env_to_docker_and_keeps_secrets(tmp_path, quiet
     assert _secrets(tmp_path / ".env") == first
     assert values["DB_PASSWORD"] and values["REDIS_PASSWORD"]
     assert values["SQLALCHEMY_DATABASE_URI"] == (
-        "postgresql://enferno:${DB_PASSWORD}@postgres/enferno"
+        f"postgresql://enferno:{values['DB_PASSWORD']}@postgres/enferno"
     )
-    assert values["REDIS_SESSION"] == "redis://:${REDIS_PASSWORD}@redis:6379/1"
+    assert values["REDIS_SESSION"] == (
+        f"redis://:{values['REDIS_PASSWORD']}@redis:6379/1"
+    )
+
+
+def test_setup_counts_an_exported_database_url_as_provisioned(tmp_path, quiet_setup):
+    (tmp_path / ".env").write_text("CUSTOM_SETTING=kept\n")
+
+    values = quiet_setup(env={"DATABASE_URL": "postgresql://exported.example/app"})
+
+    # A SQLite default would override the exported URL (enferno/settings.py precedence).
+    assert "SQLALCHEMY_DATABASE_URI" not in values
+
+
+def test_setup_keeps_redis_extras_while_env_uses_them(tmp_path, quiet_setup):
+    (tmp_path / ".env").write_text("REDIS_SESSION=redis://localhost:6379/1\n")
+
+    quiet_setup()
+
+    syncs = [
+        c
+        for c in (tmp_path / "uv-calls.txt").read_text().splitlines()
+        if c.startswith("sync")
+    ]
+    assert syncs and all("--extra full" in call for call in syncs)
