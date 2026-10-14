@@ -338,14 +338,44 @@ def test_setup_counts_an_exported_database_url_as_provisioned(tmp_path, quiet_se
     assert "SQLALCHEMY_DATABASE_URI" not in values
 
 
-def test_setup_keeps_redis_extras_while_env_uses_them(tmp_path, quiet_setup):
-    (tmp_path / ".env").write_text("REDIS_SESSION=redis://localhost:6379/1\n")
+@pytest.mark.parametrize(
+    "line",
+    [
+        "REDIS_SESSION=redis://localhost:6379/1",
+        "export CELERY_BROKER_URL = redis://localhost:6379/2",
+    ],
+)
+def test_setup_keeps_redis_extras_without_changing_config(tmp_path, quiet_setup, line):
+    (tmp_path / ".env").write_text(line + "\n")
 
-    quiet_setup()
+    values = quiet_setup()
 
     syncs = [
-        c
-        for c in (tmp_path / "uv-calls.txt").read_text().splitlines()
-        if c.startswith("sync")
+        call
+        for call in (tmp_path / "uv-calls.txt").read_text().splitlines()
+        if call.startswith("sync")
     ]
     assert syncs and all("--extra full" in call for call in syncs)
+    # Only the configured service stays; nothing else is invented.
+    configured = {"REDIS_SESSION", "CELERY_BROKER_URL", "CELERY_RESULT_BACKEND"} & set(
+        values
+    )
+    assert len(configured) == 1
+
+
+def test_fresh_setup_does_not_override_an_exported_database_url(tmp_path):
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    _write_python_candidates(bin_dir, supported_name="python3")
+    _fake_uv(bin_dir)
+
+    result = _run_setup(
+        tmp_path,
+        f"{bin_dir}:/usr/bin:/bin",
+        answer="",
+        args=("--yes",),
+        env={"DATABASE_URL": "postgresql://exported.example/app"},
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    assert "SQLALCHEMY_DATABASE_URI" not in dotenv_values(tmp_path / ".env")
