@@ -112,14 +112,17 @@ if [ -f .env ]; then
     echo -e "${GREEN}Created backup of existing .env at $BACKUP_FILE${NC}"
 fi
 
-# An existing .env that uses Redis or Celery keeps the extras it needs installed.
-if [ -n "$BACKUP_FILE" ] && grep -qE '^(REDIS_SESSION|REDIS_URL|CELERY_BROKER_URL)=.' .env; then
-    FULL_CONFIG=true
+# An existing .env that uses Redis or Celery keeps their packages installed; its
+# configuration is left alone.
+KEEP_EXTRAS=false
+if [ -n "$BACKUP_FILE" ] && grep -qE \
+    '^[[:space:]]*(export[[:space:]]+)?(REDIS_SESSION|REDIS_URL|CELERY_BROKER_URL)[[:space:]]*=[[:space:]]*[^[:space:]#]' .env; then
+    KEEP_EXTRAS=true
 fi
 
 # Install only the dependencies needed for the selected setup.
 echo -e "${GREEN}Installing dependencies from pyproject.toml...${NC}"
-if [ "$FULL_CONFIG" = true ]; then
+if [ "$FULL_CONFIG" = true ] || [ "$KEEP_EXTRAS" = true ]; then
     uv sync --python "$PYTHON_CMD" --extra dev --extra full
 else
     uv sync --python "$PYTHON_CMD" --extra dev
@@ -235,6 +238,10 @@ else
         }
         else if ($0 ~ /^SECURITY_PASSWORD_SALT=/) {
             print "SECURITY_PASSWORD_SALT=\"" ps "\""
+        }
+        else if ($0 ~ /^SQLALCHEMY_DATABASE_URI=/ && (ENVIRON["DATABASE_URL"] != "" || ENVIRON["NEON_POSTGRES_CONNECTION_STRING"] != "")) {
+            # An exported database URL would be overridden by the SQLite default.
+            print "# SQLALCHEMY_DATABASE_URI=sqlite:///enferno.sqlite3"
         }
         else if ($0 ~ /^SQLALCHEMY_DATABASE_URI=/) {
             print "SQLALCHEMY_DATABASE_URI=sqlite:///enferno.sqlite3"
