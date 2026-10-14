@@ -102,3 +102,27 @@ def test_stripe_setup_refuses_chargebee(app, stripe_env, monkeypatch):
     assert result.exit_code != 0
     assert "BILLING_PROVIDER=stripe" in result.output
     assert stripe_env.calls == []
+
+
+def test_stripe_listen_forwards_handled_events_with_the_app_key(app, monkeypatch):
+    from enferno.api.webhooks import STRIPE_PAYMENT_EVENTS, STRIPE_SYNC_EVENTS
+
+    monkeypatch.setitem(app.config, "STRIPE_SECRET_KEY", "sk_test_app")
+    monkeypatch.setenv("FLASK_RUN_PORT", "5050")
+    calls = []
+    monkeypatch.setattr(
+        commands.os, "execvpe", lambda file, args, env: calls.append((args, env))
+    )
+
+    result = app.test_cli_runner().invoke(commands.stripe_listen)
+    assert result.exit_code == 0, result.output
+
+    ((args, env),) = calls
+    assert args[:4] == [
+        "stripe",
+        "listen",
+        "--forward-to",
+        "localhost:5050/stripe/webhook",
+    ]
+    assert set(args[5].split(",")) == STRIPE_PAYMENT_EVENTS | STRIPE_SYNC_EVENTS
+    assert env["STRIPE_API_KEY"] == "sk_test_app"

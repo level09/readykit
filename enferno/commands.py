@@ -311,6 +311,29 @@ def stripe_setup(amount):
     print(f"Stripe is configured in {env_file}.")
 
 
+@click.command("stripe-listen")
+@with_appcontext
+def stripe_listen():
+    """Forward Stripe test webhooks to the local dev server."""
+    from enferno.api.webhooks import STRIPE_PAYMENT_EVENTS, STRIPE_SYNC_EVENTS
+
+    key = current_app.config["STRIPE_SECRET_KEY"] or ""
+    if not key.startswith("sk_test_") or "your_" in key:
+        raise click.ClickException("Set STRIPE_SECRET_KEY to an sk_test_ key first.")
+    port = os.environ.get(
+        "FLASK_RUN_PORT", "5000"
+    )  # flask run's port, set in .flaskenv
+    events = ",".join(sorted(STRIPE_PAYMENT_EVENTS | STRIPE_SYNC_EVENTS))
+    args = ["stripe", "listen", "--forward-to", f"localhost:{port}/stripe/webhook"]
+    try:
+        # The app's key, as in stripe-setup, so events match the saved webhook secret.
+        os.execvpe(
+            "stripe", [*args, "--events", events], {**os.environ, "STRIPE_API_KEY": key}
+        )
+    except FileNotFoundError as e:
+        raise click.ClickException("Install the Stripe CLI first.") from e
+
+
 i18n_cli = AppGroup("i18n")
 
 

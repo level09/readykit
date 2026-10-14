@@ -62,7 +62,7 @@ uv run flask run          # Start development server (macOS: --port 5050 if AirP
 After initializing the database, `uv run python checks.py` runs the existing app
 and database smoke checks.
 
-Visit `http://localhost:5000` - you're ready to go!
+Visit `http://localhost:5050` - you're ready to go!
 
 ::: tip
 The first user created with `flask install` becomes a superadmin with full platform access.
@@ -99,8 +99,8 @@ uv run python checks.py --config --billing
 uv run flask run
 ```
 
-Forward webhooks while testing billing so plan changes reach the app; see
-[Testing Locally](billing.md#testing-locally) for the `stripe listen` command.
+Run `uv run flask stripe-listen` in another terminal while testing billing so
+plan changes reach the app; see [Testing Locally](billing.md#testing-locally).
 
 ReadyKit reads `SQLALCHEMY_DATABASE_URI` first, then `DATABASE_URL`, then
 `NEON_POSTGRES_CONNECTION_STRING`. `--yes` skips prompts and does not configure
