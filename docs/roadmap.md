@@ -1,8 +1,13 @@
 # Roadmap
 
 Direction, not delivery dates. See [CHANGELOG.md](https://github.com/level09/readykit/blob/master/CHANGELOG.md)
-for release history. Version 1.7.2 finds the Flask app when Stripe Projects writes
-`.env` before setup runs; 1.7.1 makes `./setup.sh` safe to rerun.
+for release history. Version 1.7.3 adds `flask stripe-listen` and moves the dev server
+to port 5050; 1.7.2 finds the Flask app when Stripe Projects writes `.env` first.
+
+## In 1.7.3
+
+- `flask stripe-listen` forwards exactly the handled Stripe events with the app's test key.
+- Dev server on port 5050, clear of macOS AirPlay Receiver on 5000.
 
 ## In 1.7.2
 
