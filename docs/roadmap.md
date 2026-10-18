@@ -1,8 +1,12 @@
 # Roadmap
 
 Direction, not delivery dates. See [CHANGELOG.md](https://github.com/level09/readykit/blob/master/CHANGELOG.md)
-for release history. Version 1.7.3 adds `flask stripe-listen` and moves the dev server
-to port 5050; 1.7.2 finds the Flask app when Stripe Projects writes `.env` first.
+for release history. Version 1.7.4 makes `AGENTS.md` the single agent instruction file;
+1.7.3 adds `flask stripe-listen` and moves the dev server to port 5050.
+
+## In 1.7.4
+
+- One instruction file, `AGENTS.md`, read by every coding agent including Claude Code.
 
 ## In 1.7.3
 

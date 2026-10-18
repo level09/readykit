@@ -2,6 +2,12 @@
 
 All notable ReadyKit changes are documented here.
 
+## v1.7.4 (2026-10-18)
+
+### Changed
+
+- `AGENTS.md` is the single instruction file for every coding agent. Removed `.windsurfrules`, stopped ignoring `CLAUDE.md`, and added the guide links and the checks to run before work is reported as done. Claude Code reads `AGENTS.md` when a project has no `CLAUDE.md`.
+
 ## v1.7.3 (2026-10-14)
 
 ### Added
