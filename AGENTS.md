@@ -281,8 +281,18 @@ def before_request():
 - Python 3.11+, 88-char lines, double quotes
 - Modern SQLAlchemy (`db.select()`, not `.query`)
 - Ruff for linting/formatting
-- Selective git add (never `git add .`)
-- No AI mentions in commits
+- Before reporting work as done, run `uv run ruff check .` and `uv run python checks.py` and fix what fails
+- Conventional commit messages about the change; stage files selectively (never `git add .`)
+- No tool attribution or co-author trailers in commits
+
+## Guides
+
+- [Setup](docs/getting-started.md)
+- [Authentication](docs/authentication.md)
+- [Workspaces](docs/workspaces.md)
+- [Billing](docs/billing.md)
+- [Tests and contributions](CONTRIBUTING.md)
+- [Release changes](CHANGELOG.md) and [remaining work](docs/roadmap.md)
 
 ## Key Files
 

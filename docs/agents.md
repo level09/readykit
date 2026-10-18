@@ -8,11 +8,10 @@ ReadyKit is designed to work seamlessly with AI-powered development tools like C
 
 ## Project Instructions
 
-The repository includes `AGENTS.md` with shared project patterns. `CLAUDE.md` is
-ignored by Git; if you use one locally, point it to `AGENTS.md` instead of maintaining
-a second copy. Update the shared instructions when the architecture changes.
+`AGENTS.md` at the repository root is the instruction file every coding agent reads.
+It is the single source of truth: update it when the architecture changes.
 
-The shared instructions cover:
+It covers:
 
 - Project architecture overview
 - Multi-tenant patterns and conventions
@@ -20,10 +19,7 @@ The shared instructions cover:
 - Route protection patterns
 - Database query conventions
 - Billing integration details
-
-::: tip
-AI assistants that support project context (like Claude Code) will automatically read `CLAUDE.md` to understand your codebase and follow your project's patterns.
-:::
+- The checks to run before work is reported as done
 
 ## Key Patterns for AI Prompts
 
