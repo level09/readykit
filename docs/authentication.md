@@ -203,28 +203,11 @@ SECURITY_EMAIL_SENDER=noreply@yourdomain.com
 The defaults are port 465 with SSL on and TLS off. For a provider that uses STARTTLS,
 set `MAIL_PORT=587`, `MAIL_USE_SSL=False` and `MAIL_USE_TLS=True`.
 
-For example, [Mailtrap Email API/SMTP](https://docs.mailtrap.io/email-api-smtp/setup/smtp-integration)
-on 587 with STARTTLS, after verifying your sending domain:
-
-```bash
-# .env
-MAIL_SERVER=live.smtp.mailtrap.io
-MAIL_PORT=587
-MAIL_USE_SSL=False
-MAIL_USE_TLS=True
-MAIL_USERNAME=api
-MAIL_PASSWORD=your_mailtrap_api_token
-SECURITY_EMAIL_SENDER=noreply@yourdomain.com
-```
-
 Check your settings by sending a test email:
 
 ```bash
 uv run flask mail-test --to you@example.com
 ```
-
-With Mailtrap Email API/SMTP, the message then shows in Email Logs with its delivery
-status.
 
 Mail credentials alone do not enable password recovery or confirmation flows.
 
