@@ -194,12 +194,30 @@ Mail configuration available through `.env`:
 MAIL_SERVER=your_smtp_host
 MAIL_USERNAME=your_email
 MAIL_PASSWORD=your_app_password
+MAIL_PORT=465
+MAIL_USE_SSL=True
+MAIL_USE_TLS=False
 SECURITY_EMAIL_SENDER=noreply@yourdomain.com
 ```
 
-The current settings use SMTP over SSL on port 465. Change `Config` if your provider
-requires another transport. Mail credentials alone do not enable password recovery
-or confirmation flows.
+The defaults are port 465 with SSL on and TLS off. For a provider that uses STARTTLS,
+set `MAIL_PORT=587`, `MAIL_USE_SSL=False` and `MAIL_USE_TLS=True`.
+
+For example, [Mailtrap Email API/SMTP](https://docs.mailtrap.io/email-api-smtp/setup/smtp-integration)
+on 587 with STARTTLS, after verifying your sending domain:
+
+```bash
+# .env
+MAIL_SERVER=live.smtp.mailtrap.io
+MAIL_PORT=587
+MAIL_USE_SSL=False
+MAIL_USE_TLS=True
+MAIL_USERNAME=api
+MAIL_PASSWORD=your_mailtrap_api_token
+SECURITY_EMAIL_SENDER=noreply@yourdomain.com
+```
+
+Mail credentials alone do not enable password recovery or confirmation flows.
 
 ## User Model
 
