@@ -217,6 +217,15 @@ MAIL_PASSWORD=your_mailtrap_api_token
 SECURITY_EMAIL_SENDER=noreply@yourdomain.com
 ```
 
+Check your settings by sending a test email:
+
+```bash
+uv run flask mail-test --to you@example.com
+```
+
+With Mailtrap Email API/SMTP, the message then shows in Email Logs with its delivery
+status.
+
 Mail credentials alone do not enable password recovery or confirmation flows.
 
 ## User Model
