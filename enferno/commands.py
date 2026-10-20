@@ -2,6 +2,7 @@
 
 import os
 import secrets
+import smtplib
 import string
 import subprocess
 import sys
@@ -9,10 +10,11 @@ import sys
 import click
 from flask import current_app
 from flask.cli import AppGroup, with_appcontext
+from flask_mail import Message
 from flask_security.utils import hash_password
 from rich.console import Console
 
-from enferno.extensions import db
+from enferno.extensions import db, mail
 from enferno.user.models import User
 
 console = Console()
@@ -332,6 +334,31 @@ def stripe_listen():
         )
     except FileNotFoundError as e:
         raise click.ClickException("Install the Stripe CLI first.") from e
+
+
+@click.command("mail-test")
+@click.option("--to", required=True, help="Address to send the test email to.")
+@with_appcontext
+def mail_test(to):
+    """Send a test email with the current mail settings."""
+    config = current_app.config
+    if not config.get("MAIL_SERVER"):
+        raise click.ClickException("Set MAIL_SERVER in .env first.")
+
+    server = f"{config['MAIL_SERVER']}:{config['MAIL_PORT']}"
+    try:
+        mail.send(
+            Message(
+                subject="ReadyKit mail test",
+                recipients=[to],
+                sender=config["SECURITY_EMAIL_SENDER"],
+                body=f"Your ReadyKit mail settings work. Sent through {server}.",
+            )
+        )
+    except (smtplib.SMTPException, OSError) as exc:
+        raise click.ClickException(f"{type(exc).__name__}: {exc}") from exc
+
+    print(f"Test email sent to {to} through {server}.")
 
 
 i18n_cli = AppGroup("i18n")
