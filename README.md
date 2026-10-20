@@ -9,7 +9,7 @@ Multi-tenant workspaces, subscription billing (Stripe or Chargebee), OAuth, and 
 [![Documentation](https://github.com/level09/readykit/actions/workflows/docs.yml/badge.svg)](https://github.com/level09/readykit/actions/workflows/docs.yml)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
 
-**[Documentation](https://level09.github.io/readykit/)** · **[Live Demo](https://try.readykit.dev)**
+**[Documentation](https://level09.github.io/readykit/)** · **[Demo Video](https://readykit.dev/#demo)**
 
 ---
 
