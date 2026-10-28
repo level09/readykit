@@ -2016,7 +2016,7 @@ wheels = [
 
 [[package]]
 name = "readykit"
-version = "1.7.4"
+version = "1.8.0"
 source = { editable = "." }
 dependencies = [
     { name = "argon2-cffi" },

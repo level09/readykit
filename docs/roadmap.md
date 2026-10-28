@@ -1,8 +1,13 @@
 # Roadmap
 
 Direction, not delivery dates. See [CHANGELOG.md](https://github.com/level09/readykit/blob/master/CHANGELOG.md)
-for release history. Version 1.7.4 makes `AGENTS.md` the single agent instruction file;
-1.7.3 adds `flask stripe-listen` and moves the dev server to port 5050.
+for release history. Version 1.8.0 moves every icon to vendored Tabler and drops MDI;
+1.7.4 makes `AGENTS.md` the single agent instruction file.
+
+## In 1.8.0
+
+- Icons are Tabler only, pinned and vendored by `./vendor.sh`; Material Design Icons are gone.
+- Dependency minimums and the vendored axios no longer allow versions with known vulnerabilities.
 
 ## In 1.7.4
 
