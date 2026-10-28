@@ -4,9 +4,9 @@
 <v-container class="py-12 px-4" style="max-width: 560px">
     <div class="d-flex flex-column align-center text-center">
         {% if error_type == "portal_config" %}
-        <v-icon size="56" color="warning" class="mb-6">mdi-cog-outline</v-icon>
+        <v-icon size="56" color="warning" class="mb-6">ti-settings</v-icon>
         {% else %}
-        <v-icon size="56" color="error" class="mb-6">mdi-alert-circle-outline</v-icon>
+        <v-icon size="56" color="error" class="mb-6">ti-alert-circle</v-icon>
         {% endif %}
 
         <h1 class="text-h5 font-weight-bold mb-2">{{ title }}</h1>
@@ -34,7 +34,7 @@
 
         <div class="d-flex ga-3 justify-center flex-wrap">
             <v-btn variant="text" href="/dashboard" class="text-none">
-                <v-icon start>mdi-arrow-left</v-icon>
+                <v-icon start>ti-arrow-left</v-icon>
                 Go Back
             </v-btn>
 
@@ -44,13 +44,13 @@
                 href="{{ action_url }}"
                 class="text-none"
             >
-                <v-icon start>{% if error_type == "portal_config" %}mdi-cog{% else %}mdi-refresh{% endif %}</v-icon>
+                <v-icon start>{% if error_type == "portal_config" %}ti-settings{% else %}ti-refresh{% endif %}</v-icon>
                 {{ action_text }}
             </v-btn>
 
             {% if error_type == "portal_config" %}
             <v-btn color="warning" href="/dashboard" class="text-none">
-                <v-icon start>mdi-home</v-icon>
+                <v-icon start>ti-home</v-icon>
                 Return to Dashboard
             </v-btn>
             {% endif %}

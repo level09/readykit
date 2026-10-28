@@ -11,7 +11,7 @@
         </div>
         {% if user_role == 'admin' %}
         <v-btn
-            prepend-icon="mdi-account-plus"
+            prepend-icon="ti-user-plus"
             @click="createItem"
             color="primary"
             class="text-none"
@@ -68,7 +68,7 @@
             <template v-slot:item.actions="{ item }">
                 <v-btn
                     v-if="item.user_id !== {{ current_user.id }}"
-                    icon="mdi-pencil"
+                    icon="ti-pencil"
                     variant="text"
                     size="small"
                     class="mr-1"
@@ -77,7 +77,7 @@
                 ></v-btn>
                 <v-btn
                     v-if="item.user_id !== {{ current_user.id }}"
-                    icon="mdi-delete"
+                    icon="ti-trash"
                     variant="text"
                     size="small"
                     :aria-label="`Remove ${item.name} from workspace`"
@@ -94,7 +94,7 @@
     <v-card v-if="edialog">
         <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
             <span class="text-h6">${editMode ? 'Change Role' : 'Add Member'}</span>
-            <v-btn @click="edialog=false" icon="mdi-close" variant="text" size="small" aria-label="Close dialog"></v-btn>
+            <v-btn @click="edialog=false" icon="ti-x" variant="text" size="small" aria-label="Close dialog"></v-btn>
         </v-card-title>
 
         <v-card-text class="px-5">
@@ -156,7 +156,7 @@
 <v-snackbar size="small" class="d-flex" v-model="snackBar" rounded="pill" elevation="25">
     ${snackMessage}
     <template v-slot:actions>
-        <v-btn @click="snackBar=false" icon="mdi-close" class="ml-auto" size="small" variant="text" aria-label="Close notification"></v-btn>
+        <v-btn @click="snackBar=false" icon="ti-x" class="ml-auto" size="small" variant="text" aria-label="Close notification"></v-btn>
     </template>
 </v-snackbar>
 

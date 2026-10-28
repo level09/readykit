@@ -8,7 +8,7 @@
                 <h1 class="text-h5 font-weight-bold">Users Dashboard</h1>
                 <p class="text-body-2 text-medium-emphasis mt-1">Manage user accounts and workspace access</p>
             </div>
-            <v-btn prepend-icon="mdi-plus" @click="createItem" color="primary">Add User</v-btn>
+            <v-btn prepend-icon="ti-plus" @click="createItem" color="primary">Add User</v-btn>
         </div>
 
         <v-data-table-server
@@ -23,11 +23,11 @@
         >
             <template v-slot:item.user_type="{ item }">
                 <v-chip v-if="item.is_superadmin" size="small" variant="outlined">
-                    <v-icon start size="14">mdi-shield-crown</v-icon>
+                    <v-icon start size="14">ti-crown</v-icon>
                     Super Admin
                 </v-chip>
                 <v-chip v-else size="small" variant="outlined">
-                    <v-icon start size="14">mdi-account</v-icon>
+                    <v-icon start size="14">ti-user</v-icon>
                     User
                 </v-chip>
             </template>
@@ -54,8 +54,8 @@
             </template>
 
             <template v-slot:item.actions="{ item }">
-                <v-btn icon="mdi-pencil" variant="text" size="small" class="mr-1" aria-label="Edit user" @click="editItem(item)"></v-btn>
-                <v-btn icon="mdi-delete" variant="text" size="small" aria-label="Delete user" @click="deleteItem(item)"></v-btn>
+                <v-btn icon="ti-pencil" variant="text" size="small" class="mr-1" aria-label="Edit user" @click="editItem(item)"></v-btn>
+                <v-btn icon="ti-trash" variant="text" size="small" aria-label="Delete user" @click="deleteItem(item)"></v-btn>
             </template>
         </v-data-table-server>
     </v-container>
@@ -66,7 +66,7 @@
         <v-card v-if="edialog">
             <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
                 <span class="text-h6">${eitem.id ? 'Edit User' : 'New User'}</span>
-                <v-btn @click="edialog=false" icon="mdi-close" variant="text" size="small" aria-label="Close dialog"></v-btn>
+                <v-btn @click="edialog=false" icon="ti-x" variant="text" size="small" aria-label="Close dialog"></v-btn>
             </v-card-title>
 
             <v-card-text class="px-5">
@@ -113,7 +113,7 @@
 
         ${snackMessage}
         <template v-slot:actions>
-            <v-btn @click="snackBar=false" icon="mdi-close" class="ml-auto" size="small" variant="text" aria-label="Close notification"></v-btn>
+            <v-btn @click="snackBar=false" icon="ti-x" class="ml-auto" size="small" variant="text" aria-label="Close notification"></v-btn>
         </template>
     </v-snackbar>
 

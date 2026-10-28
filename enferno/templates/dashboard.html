@@ -24,7 +24,7 @@
         <v-btn
             v-if="workspaces.length > 0"
             color="primary"
-            prepend-icon="mdi-plus"
+            prepend-icon="ti-plus"
             @click="createDialog = true"
         >
             Create Workspace
@@ -99,7 +99,7 @@
         <v-btn
             color="primary"
             @click="createDialog = true"
-            prepend-icon="mdi-plus"
+            prepend-icon="ti-plus"
         >
             Create Workspace
         </v-btn>
@@ -113,7 +113,7 @@
     <v-card>
         <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
             <span class="text-h6">New Workspace</span>
-            <v-btn @click="createDialog=false" icon="mdi-close" variant="text" size="small" aria-label="Close dialog"></v-btn>
+            <v-btn @click="createDialog=false" icon="ti-x" variant="text" size="small" aria-label="Close dialog"></v-btn>
         </v-card-title>
 
         <v-card-text class="px-5 pb-0">

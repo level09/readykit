@@ -38,7 +38,7 @@
             <v-card-title class="d-flex align-center">
                 Activity Data
                 <v-spacer></v-spacer>
-                <v-btn icon="mdi-close" size="small" variant="text" aria-label="Close activity data" @click="dataDialog = false"></v-btn>
+                <v-btn icon="ti-x" size="small" variant="text" aria-label="Close activity data" @click="dataDialog = false"></v-btn>
             </v-card-title>
 
             <v-card-text>
@@ -50,7 +50,7 @@
     <v-snackbar size="small" class="d-flex" v-model="snackBar" rounded="pill" elevation="25">
         ${snackMessage}
         <template v-slot:actions>
-            <v-btn @click="snackBar=false" icon="mdi-close" class="ml-auto" variant="text" size="small" aria-label="Close notification"></v-btn>
+            <v-btn @click="snackBar=false" icon="ti-x" class="ml-auto" variant="text" size="small" aria-label="Close notification"></v-btn>
         </template>
     </v-snackbar>
 
