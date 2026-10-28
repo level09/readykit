@@ -9,6 +9,11 @@ All notable ReadyKit changes are documented here.
 - Icons are Tabler only, vendored at a pinned version in `enferno/static/tabler/` instead of loaded from the CDN at `@latest`. Vuetify's built-in icons (sort, pagination, checkboxes, dialogs) are mapped to Tabler in `static/js/config.js`, and the 5 MB Material Design Icons bundle is removed. Write icons as `ti-*`; `mdi-*` renders blank.
 - `./vendor.sh` refreshes the vendored Vue, Vuetify, axios and Tabler files from their pinned versions. Vue 3.5.44, Vuetify 3.13.7 and axios 1.21.0, which fixes GHSA-m8m8-qj5v-23w3, GHSA-x97p-jq2g-jp4f and ten other axios advisories.
 
+### Security
+
+- Dependency minimums no longer allow versions with known vulnerabilities: flask 3.1.3, werkzeug 3.1.9, pillow 13.0.0, orjson 3.11.6, python-dotenv 1.2.2. The locked dependencies are updated too (flask-security-too 5.9.2, sqlalchemy 2.1.6, stripe 16.0.1, chargebee 3.30.0, python-dateutil 3.0.0).
+- CI audits the locked dependencies for known vulnerabilities with `uv audit`.
+
 ## v1.7.4 (2026-10-18)
 
 ### Changed
