@@ -2,6 +2,20 @@
 
 All notable ReadyKit changes are documented here.
 
+## v1.9.0 (2026-11-11)
+
+### Changed
+
+- Vuetify 4.3.3 replaces 3.13.7, matching Enferno. Pages keep their look; body text now uses Vuetify's standard 87% emphasis where some headings were pure black.
+
+### Upgrade notes for existing apps
+
+- Typography classes are Material Design 3: `text-h4` is `text-headline-large`, `text-h5` is `text-headline-small`, `text-h6` is `text-title-large`, `text-subtitle-1` and `text-body-1` are `text-body-large`, `text-subtitle-2` is `text-label-large`, `text-body-2` is `text-body-medium` and `text-caption` is `text-body-small`. The old names no longer exist.
+- `v-row` has no `align`, `justify` or `dense` props. Use classes (`class="align-center justify-center"`) and `density="compact"`.
+- Vuetify's CSS is in cascade layers and its utility classes are no longer `!important`. Any unlayered rule beats every component style, and an inline `margin` or `padding` beats `mb-8`. Put element-level rules such as `a { }` in `@layer vuetify-core.reset`, as `app.css` does.
+- Vuetify's reset no longer zeroes margins. `app.css` restores zero margins for headings, paragraphs and lists in the reset layer, so spacing still comes from utility classes.
+- `layout.html` mounts Vue on a `<div id="app">` that wraps `<v-app>`, and the main area no longer centers its content vertically.
+
 ## v1.8.1 (2026-11-11)
 
 ### Security
