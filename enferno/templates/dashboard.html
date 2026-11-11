@@ -5,14 +5,14 @@
     <!-- Header Section -->
     <div class="d-flex align-start justify-space-between flex-wrap ga-4 mb-8">
         <div>
-            <h1 class="text-h5 font-weight-bold">
+            <h1 class="text-headline-small font-weight-bold">
                 {% if current_user.is_superadmin %}
                     Platform Overview
                 {% else %}
                     Your Workspaces
                 {% endif %}
             </h1>
-            <p class="text-body-2 text-medium-emphasis mt-1">
+            <p class="text-body-medium text-medium-emphasis mt-1">
                 {% if current_user.is_superadmin %}
                     Manage the entire platform, workspaces, and users
                 {% else %}
@@ -36,7 +36,7 @@
     <!-- Workspaces Section -->
     <div v-if="workspaces.length > 0">
         <div class="d-flex align-center mb-4">
-            <h2 class="text-subtitle-1 font-weight-medium">
+            <h2 class="text-body-large font-weight-medium">
                 {% if current_user.is_superadmin %}
                     All Workspaces
                 {% else %}
@@ -44,7 +44,7 @@
                 {% endif %}
             </h2>
             <v-spacer></v-spacer>
-            <span class="text-body-2 text-medium-emphasis">${workspaces.length} workspace${workspaces.length !== 1 ? 's' : ''}</span>
+            <span class="text-body-medium text-medium-emphasis">${workspaces.length} workspace${workspaces.length !== 1 ? 's' : ''}</span>
         </div>
 
         <v-row>
@@ -65,10 +65,10 @@
                         <div class="d-flex align-center">
                             <div class="flex-grow-1">
                                 <div class="d-flex align-center">
-                                    <div class="text-subtitle-1 font-weight-medium mr-2">${workspace.name}</div>
+                                    <div class="text-body-large font-weight-medium mr-2">${workspace.name}</div>
                                     <v-chip v-if="workspace.is_pro" variant="outlined">Pro</v-chip>
                                 </div>
-                                <div class="text-body-2 text-medium-emphasis mt-1">
+                                <div class="text-body-medium text-medium-emphasis mt-1">
                                     {% if current_user.is_superadmin %}
                                         Client workspace
                                     {% else %}
@@ -87,8 +87,8 @@
     <!-- Empty State -->
     <div v-else class="text-center py-16">
         <i class="ti ti-briefcase-2 mb-4 text-medium-emphasis" style="font-size: 48px;" aria-hidden="true"></i>
-        <h2 class="text-subtitle-1 font-weight-medium mb-2">No workspaces yet</h2>
-        <p class="text-body-2 text-medium-emphasis mb-6">
+        <h2 class="text-body-large font-weight-medium mb-2">No workspaces yet</h2>
+        <p class="text-body-medium text-medium-emphasis mb-6">
             {% if current_user.is_superadmin %}
                 Create your first workspace to get started.
             {% else %}
@@ -112,7 +112,7 @@
 <v-dialog v-model="createDialog" max-width="440" persistent>
     <v-card>
         <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
-            <span class="text-h6">New Workspace</span>
+            <span class="text-title-large">New Workspace</span>
             <v-btn @click="createDialog=false" icon="ti-x" variant="text" size="small" aria-label="Close dialog"></v-btn>
         </v-card-title>
 
@@ -125,7 +125,7 @@
                 hide-details="auto"
                 class="mb-2"
             ></v-text-field>
-            <p class="text-caption text-medium-emphasis">You'll be the admin and can invite team members later.</p>
+            <p class="text-body-small text-medium-emphasis">You'll be the admin and can invite team members later.</p>
         </v-card-text>
 
         <v-card-actions class="pa-5 pt-2">

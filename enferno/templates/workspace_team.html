@@ -6,8 +6,8 @@
 <v-container class="py-8 px-4 px-md-8" style="max-width: 960px">
     <div class="d-flex align-start justify-space-between flex-wrap ga-4 mb-8">
         <div>
-            <h1 class="text-h5 font-weight-bold">Team Members</h1>
-            <p class="text-body-2 text-medium-emphasis mt-1">Manage who can access this workspace and their roles.</p>
+            <h1 class="text-headline-small font-weight-bold">Team Members</h1>
+            <p class="text-body-medium text-medium-emphasis mt-1">Manage who can access this workspace and their roles.</p>
         </div>
         {% if user_role == 'admin' %}
         <v-btn
@@ -36,13 +36,13 @@
             <template v-slot:item.name="{ item }">
                 <div class="d-flex align-center">
                     <v-avatar color="grey-lighten-1" size="32" class="mr-3">
-                        <span class="text-white text-caption">
+                        <span class="text-white text-body-small">
                             ${item.name?.charAt(0)?.toUpperCase() || 'U'}
                         </span>
                     </v-avatar>
                     <div>
                         <div class="font-weight-medium">${item.name}</div>
-                        <div class="text-caption text-medium-emphasis">${item.email}</div>
+                        <div class="text-body-small text-medium-emphasis">${item.email}</div>
                     </div>
                 </div>
             </template>
@@ -59,7 +59,7 @@
             </template>
 
             <template v-slot:item.created_at="{ item }">
-                <div class="text-body-2 text-medium-emphasis">
+                <div class="text-body-medium text-medium-emphasis">
                     ${formatDate(item.created_at)}
                 </div>
             </template>
@@ -93,14 +93,14 @@
 <v-dialog v-model="edialog" max-width="500">
     <v-card v-if="edialog">
         <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
-            <span class="text-h6">${editMode ? 'Change Role' : 'Add Member'}</span>
+            <span class="text-title-large">${editMode ? 'Change Role' : 'Add Member'}</span>
             <v-btn @click="edialog=false" icon="ti-x" variant="text" size="small" aria-label="Close dialog"></v-btn>
         </v-card-title>
 
         <v-card-text class="px-5">
             <div v-if="editMode && eitem.name" class="mb-4">
                 <strong>${eitem.name}</strong>
-                <div class="text-caption text-medium-emphasis">${eitem.email}</div>
+                <div class="text-body-small text-medium-emphasis">${eitem.email}</div>
             </div>
 
             <div v-if="!editMode">

@@ -5,7 +5,7 @@ Context for AI agents working with ReadyKit, a Flask SaaS template with multi-te
 ## Stack
 
 - **Backend**: Flask 3.1, SQLAlchemy 2.x, Flask-Security-Too
-- **Frontend**: Vue 3 + Vuetify 3 (no build step, loaded from static/)
+- **Frontend**: Vue 3 + Vuetify 4 (no build step, loaded from static/)
 - **Database**: PostgreSQL (production), SQLite (dev)
 - **Auth**: Email/password, OAuth (Google, GitHub), 2FA, WebAuthn
 - **Billing**: Stripe or Chargebee (via `BILLING_PROVIDER` env var)

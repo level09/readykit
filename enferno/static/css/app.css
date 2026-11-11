@@ -53,13 +53,25 @@ html, body {
 }
 
 /* ===== Links ===== */
-a {
-    color: #18181B;
-    transition: opacity 0.2s;
-}
+/* Vuetify 4 layers its CSS; unlayered rules would beat v-btn and v-list-item links */
+@layer vuetify-core.reset {
+    /* Vuetify 4's reset keeps browser margins; pages space text with utility classes */
+    h1, h2, h3, h4, h5, h6, p, ul, ol, dl, dd, figure, blockquote, pre {
+        margin: 0;
+    }
 
-a:hover {
-    opacity: 0.7;
+    ul, ol {
+        padding: 0;
+    }
+
+    a {
+        color: #18181B;
+        transition: opacity 0.2s;
+    }
+
+    a:hover {
+        opacity: 0.7;
+    }
 }
 
 /* ===== Feature List (billing) ===== */

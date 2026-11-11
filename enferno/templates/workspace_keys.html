@@ -5,8 +5,8 @@
 <v-container class="py-8 px-4 px-md-8" style="max-width: 960px">
     <div class="d-flex align-start justify-space-between flex-wrap ga-4 mb-8">
         <div>
-            <h1 class="text-h5 font-weight-bold">API Keys</h1>
-            <p class="text-body-2 text-medium-emphasis mt-1">Manage API keys for this workspace.</p>
+            <h1 class="text-headline-small font-weight-bold">API Keys</h1>
+            <p class="text-body-medium text-medium-emphasis mt-1">Manage API keys for this workspace.</p>
         </div>
         {% if user_role == 'admin' %}
         <v-btn color="primary" @click="showCreate = true" class="text-none" prepend-icon="ti-plus">
@@ -17,10 +17,10 @@
 
     <!-- New key revealed once -->
     <v-alert v-if="newKey" variant="outlined" class="mb-6" closable @click:close="newKey = ''">
-        <div class="text-subtitle-2 font-weight-medium mb-2">Your new API key</div>
-        <div class="text-body-2 text-medium-emphasis mb-3">Copy it now. You won't be able to see it again.</div>
+        <div class="text-label-large font-weight-medium mb-2">Your new API key</div>
+        <div class="text-body-medium text-medium-emphasis mb-3">Copy it now. You won't be able to see it again.</div>
         <div class="d-flex align-center pa-3" style="background: #F4F4F5; border-radius: 4px; font-family: monospace;">
-            <span class="flex-grow-1 text-body-2">${ newKey }</span>
+            <span class="flex-grow-1 text-body-medium">${ newKey }</span>
             <v-btn icon size="small" variant="text" aria-label="Copy API key" @click="copyKey">
                 <i class="ti ti-copy"></i>
             </v-btn>
@@ -33,8 +33,8 @@
             <v-divider v-if="index"></v-divider>
             <div class="d-flex align-center justify-space-between pa-4">
                 <div>
-                    <div class="text-body-2 font-weight-medium">${ key.name }</div>
-                    <div class="text-caption text-medium-emphasis">
+                    <div class="text-body-medium font-weight-medium">${ key.name }</div>
+                    <div class="text-body-small text-medium-emphasis">
                         <code>${ key.prefix }...</code>
                         · Created ${ formatDate(key.created_at) }
                         <span v-if="key.last_used_at"> · Last used ${ formatDate(key.last_used_at) }</span>
@@ -51,7 +51,7 @@
 
     <div v-else class="text-center py-12">
         <i class="ti ti-key mb-3" style="font-size: 40px; opacity: 0.15;"></i>
-        <div class="text-body-2 text-medium-emphasis">No API keys yet</div>
+        <div class="text-body-medium text-medium-emphasis">No API keys yet</div>
     </div>
 </v-container>
 
@@ -59,7 +59,7 @@
 <v-dialog v-model="showCreate" max-width="400">
     <v-card>
         <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
-            <span class="text-h6">Create API Key</span>
+            <span class="text-title-large">Create API Key</span>
             <v-btn @click="showCreate = false" icon="ti-x" variant="text" size="small" aria-label="Close dialog"></v-btn>
         </v-card-title>
         <v-card-text class="px-5">

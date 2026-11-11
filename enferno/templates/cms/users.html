@@ -5,8 +5,8 @@
     <v-container class="py-8 px-4 px-md-8" style="max-width: 960px">
         <div class="d-flex align-start justify-space-between flex-wrap ga-4 mb-8">
             <div>
-                <h1 class="text-h5 font-weight-bold">Users Dashboard</h1>
-                <p class="text-body-2 text-medium-emphasis mt-1">Manage user accounts and workspace access</p>
+                <h1 class="text-headline-small font-weight-bold">Users Dashboard</h1>
+                <p class="text-body-medium text-medium-emphasis mt-1">Manage user accounts and workspace access</p>
             </div>
             <v-btn prepend-icon="ti-plus" @click="createItem" color="primary">Add User</v-btn>
         </div>
@@ -65,7 +65,7 @@
     <v-dialog v-model="edialog" max-width="660">
         <v-card v-if="edialog">
             <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
-                <span class="text-h6">${eitem.id ? 'Edit User' : 'New User'}</span>
+                <span class="text-title-large">${eitem.id ? 'Edit User' : 'New User'}</span>
                 <v-btn @click="edialog=false" icon="ti-x" variant="text" size="small" aria-label="Close dialog"></v-btn>
             </v-card-title>
 

@@ -5,14 +5,14 @@
 <v-container class="py-8 px-4 px-md-8" style="max-width: 960px">
     <div class="d-flex align-start justify-space-between flex-wrap ga-4 mb-8">
         <div>
-            <h1 class="text-h5 font-weight-bold">Workspace Settings</h1>
-            <p class="text-body-2 text-medium-emphasis mt-1">Name, plan and access for this workspace.</p>
+            <h1 class="text-headline-small font-weight-bold">Workspace Settings</h1>
+            <p class="text-body-medium text-medium-emphasis mt-1">Name, plan and access for this workspace.</p>
         </div>
     </div>
 
     <!-- Workspace Name -->
     <section class="mb-8">
-        <div class="text-subtitle-2 font-weight-medium mb-3">Name</div>
+        <div class="text-label-large font-weight-medium mb-3">Name</div>
         {% if user_role == 'admin' %}
         <v-form @submit.prevent="updateWorkspaceName" style="max-width: 400px;">
             <v-text-field
@@ -30,30 +30,30 @@
             </v-btn>
         </v-form>
         {% else %}
-        <div class="text-body-2">${ workspaceData.name }</div>
+        <div class="text-body-medium">${ workspaceData.name }</div>
         {% endif %}
     </section>
 
     <!-- Details -->
     <section class="mb-8">
-        <div class="text-subtitle-2 font-weight-medium mb-3">Details</div>
+        <div class="text-label-large font-weight-medium mb-3">Details</div>
         <v-card variant="outlined" class="pa-5">
             <div class="d-flex flex-wrap ga-8">
                 <div>
-                    <div class="text-caption text-medium-emphasis">Your Role</div>
-                    <div class="text-body-2 mt-1">{{ user_role.title() }}</div>
+                    <div class="text-body-small text-medium-emphasis">Your Role</div>
+                    <div class="text-body-medium mt-1">{{ user_role.title() }}</div>
                 </div>
                 <div>
-                    <div class="text-caption text-medium-emphasis">Plan</div>
-                    <div class="text-body-2 mt-1">${ workspaceData.is_pro ? 'Pro' : 'Free' }</div>
+                    <div class="text-body-small text-medium-emphasis">Plan</div>
+                    <div class="text-body-medium mt-1">${ workspaceData.is_pro ? 'Pro' : 'Free' }</div>
                 </div>
                 <div>
-                    <div class="text-caption text-medium-emphasis">Members</div>
-                    <div class="text-body-2 mt-1">${ memberCount }</div>
+                    <div class="text-body-small text-medium-emphasis">Members</div>
+                    <div class="text-body-medium mt-1">${ memberCount }</div>
                 </div>
                 <div>
-                    <div class="text-caption text-medium-emphasis">Created</div>
-                    <div class="text-body-2 mt-1">${ workspaceData.created_at ? new Date(workspaceData.created_at).toLocaleDateString() : '—' }</div>
+                    <div class="text-body-small text-medium-emphasis">Created</div>
+                    <div class="text-body-medium mt-1">${ workspaceData.created_at ? new Date(workspaceData.created_at).toLocaleDateString() : '—' }</div>
                 </div>
             </div>
         </v-card>
@@ -64,7 +64,7 @@
 
     <!-- Plan & Billing -->
     <section class="mb-8">
-        <div class="text-subtitle-2 font-weight-medium mb-3">Plan & Billing</div>
+        <div class="text-label-large font-weight-medium mb-3">Plan & Billing</div>
 
         {% if payment_issue %}
         <v-alert type="warning" variant="tonal" density="compact" class="mb-4">
@@ -75,14 +75,14 @@
         </v-btn>
         {% else %}
         <div v-if="!workspaceData.is_pro">
-            <p class="text-body-2 text-medium-emphasis mb-4">You're on the Free plan.</p>
+            <p class="text-body-medium text-medium-emphasis mb-4">You're on the Free plan.</p>
             <v-btn color="primary" href="/workspace/upgrade" class="text-none">
                 Upgrade to Pro, {{ pro_price }}/{{ pro_interval }}
             </v-btn>
         </div>
 
         <div v-else>
-            <p class="text-body-2 text-medium-emphasis mb-4">
+            <p class="text-body-medium text-medium-emphasis mb-4">
                 You're on the Pro plan, {{ pro_price }}/{{ pro_interval }}.
                 <span v-if="workspaceData.upgraded_at">Upgraded ${ new Date(workspaceData.upgraded_at).toLocaleDateString() }.</span>
             </p>
@@ -97,12 +97,12 @@
 
     <!-- Danger Zone -->
     <section class="mb-8">
-        <div class="text-subtitle-2 font-weight-medium mb-3 text-error">Danger Zone</div>
+        <div class="text-label-large font-weight-medium mb-3 text-error">Danger Zone</div>
         <v-card variant="outlined" class="pa-5">
             <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between ga-4">
                 <div>
-                    <div class="text-body-2 font-weight-medium">Delete Workspace</div>
-                    <div class="text-caption text-medium-emphasis mt-1">Permanently delete this workspace and all its data.</div>
+                    <div class="text-body-medium font-weight-medium">Delete Workspace</div>
+                    <div class="text-body-small text-medium-emphasis mt-1">Permanently delete this workspace and all its data.</div>
                 </div>
                 <v-btn
                     color="error"
@@ -124,8 +124,8 @@
         <v-card variant="outlined" class="pa-5">
             <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between ga-4">
                 <div>
-                    <div class="text-body-2 font-weight-medium">Leave Workspace</div>
-                    <div class="text-caption text-medium-emphasis mt-1">Remove yourself from this workspace.</div>
+                    <div class="text-body-medium font-weight-medium">Leave Workspace</div>
+                    <div class="text-body-small text-medium-emphasis mt-1">Remove yourself from this workspace.</div>
                 </div>
                 <v-btn
                     variant="outlined"

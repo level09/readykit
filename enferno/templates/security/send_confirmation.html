@@ -13,8 +13,8 @@
             <div style="width: 100%; max-width: 380px;">
 
                 <div class="text-center mb-8">
-                    <div class="text-h5 font-weight-bold mb-1">ReadyKit</div>
-                    <div class="text-body-2 text-medium-emphasis">Resend confirmation email</div>
+                    <div class="text-headline-small font-weight-bold mb-1">ReadyKit</div>
+                    <div class="text-body-medium text-medium-emphasis">Resend confirmation email</div>
                 </div>
 
                 <v-form action="{{ url_for_security('send_confirmation') }}" method="POST" id="sendConfirmationForm">
@@ -31,7 +31,7 @@
                 </v-alert>
 
                 <div class="text-center">
-                    <a href="{{ url_for_security('login') }}" class="text-decoration-none text-caption">Back to login</a>
+                    <a href="{{ url_for_security('login') }}" class="text-decoration-none text-body-small">Back to login</a>
                 </div>
             </div>
         </v-container>

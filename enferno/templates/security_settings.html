@@ -4,14 +4,14 @@
 
 <v-container class="py-8 px-4 px-md-8" style="max-width: 960px">
     <div class="mb-8">
-        <h1 class="text-h5 font-weight-bold">Security</h1>
-        <p class="text-body-2 text-medium-emphasis mt-1">Manage your password and two-factor authentication.</p>
+        <h1 class="text-headline-small font-weight-bold">Security</h1>
+        <p class="text-body-medium text-medium-emphasis mt-1">Manage your password and two-factor authentication.</p>
     </div>
 
     <!-- Password Section -->
     <div class="mb-8">
-        <div class="text-subtitle-1 font-weight-medium mb-1">Password</div>
-        <div class="text-body-2 text-medium-emphasis mb-4">
+        <div class="text-body-large font-weight-medium mb-1">Password</div>
+        <div class="text-body-medium text-medium-emphasis mb-4">
             {% if current_user.has_usable_password %}
             Update your account password.
             {% else %}
@@ -76,8 +76,8 @@
 
     <!-- Two-Factor Authentication Section -->
     <div>
-        <div class="text-subtitle-1 font-weight-medium mb-1">Two-Factor Authentication</div>
-        <div class="text-body-2 text-medium-emphasis mb-4">Add an extra layer of security to your account.</div>
+        <div class="text-body-large font-weight-medium mb-1">Two-Factor Authentication</div>
+        <div class="text-body-medium text-medium-emphasis mb-4">Add an extra layer of security to your account.</div>
 
         {% if current_user.tf_primary_method %}
         <v-card color="primary" variant="tonal" class="mb-4" style="max-width: 480px;">
@@ -87,7 +87,7 @@
                 </v-avatar>
                 <div class="flex-grow-1">
                     <div class="font-weight-medium text-uppercase">{{ current_user.tf_primary_method }}</div>
-                    <div class="text-caption text-medium-emphasis">Currently enabled</div>
+                    <div class="text-body-small text-medium-emphasis">Currently enabled</div>
                 </div>
                 <v-btn variant="outlined" size="small" href="/tf-setup" class="text-none">
                     Manage
@@ -102,7 +102,7 @@
                 </v-avatar>
                 <div class="flex-grow-1">
                     <div class="font-weight-medium">Not enabled</div>
-                    <div class="text-caption text-medium-emphasis">Protect your account with 2FA</div>
+                    <div class="text-body-small text-medium-emphasis">Protect your account with 2FA</div>
                 </div>
                 <v-btn variant="outlined" color="primary" size="small" href="/tf-setup" class="text-none">
                     Setup

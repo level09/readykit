@@ -18,14 +18,15 @@
 </head>
 
 <body class="{% block body_class %} {% endblock %}">
-<v-app id="app" v-cloak>
+<div id="app" v-cloak>
+<v-app>
     <v-layout class="rounded rounded-md">
         <v-app-bar color="white" density="comfortable" elevation="0" border="b">
             <v-app-bar-nav-icon @click="drawer = !drawer" class="d-md-none" aria-label="Toggle navigation"></v-app-bar-nav-icon>
 
             <v-app-bar-title>
                 <a href="/" class="text-decoration-none d-flex align-center">
-                    <span class="text-h5 font-weight-bold">ReadyKit</span>
+                    <span class="text-headline-small font-weight-bold">ReadyKit</span>
                 </a>
             </v-app-bar-title>
             <v-spacer></v-spacer>
@@ -35,14 +36,14 @@
                 <template v-slot:activator="{ props }">
                     <v-btn v-bind="props" icon variant="text" size="small" class="mr-2" aria-label="Account menu">
                         <v-avatar size="30" color="#E4E4E7">
-                            <span class="font-weight-bold text-caption" style="color: #52525B;">{{ current_user.name[:1].upper() if current_user.name else 'U' }}</span>
+                            <span class="font-weight-bold text-body-small" style="color: #52525B;">{{ current_user.name[:1].upper() if current_user.name else 'U' }}</span>
                         </v-avatar>
                     </v-btn>
                 </template>
                 <v-card min-width="200" rounded="lg" elevation="2">
                     <div class="px-4 py-3 border-b">
-                        <div class="text-body-2 font-weight-medium">{{ current_user.name or 'User' }}</div>
-                        <div class="text-caption text-medium-emphasis">{{ current_user.email }}</div>
+                        <div class="text-body-medium font-weight-medium">{{ current_user.name or 'User' }}</div>
+                        <div class="text-body-small text-medium-emphasis">{{ current_user.email }}</div>
                     </div>
                     <v-divider></v-divider>
                     <v-list density="compact" nav class="py-1">
@@ -66,11 +67,11 @@
             <a href="/settings/profile" class="d-block pa-4 pb-2 text-decoration-none" style="color: inherit;">
                 <div class="d-flex align-center mb-1">
                     <v-avatar size="32" color="#E4E4E7" class="mr-2">
-                        <span class="font-weight-bold text-caption" style="color: #52525B;">{{ current_user.name[:1].upper() if current_user.name else 'U' }}</span>
+                        <span class="font-weight-bold text-body-small" style="color: #52525B;">{{ current_user.name[:1].upper() if current_user.name else 'U' }}</span>
                     </v-avatar>
                     <div style="min-width: 0;">
-                        <div class="text-body-2 font-weight-medium text-truncate">{{ current_user.name or 'User' }}</div>
-                        <div class="text-caption text-medium-emphasis text-truncate">{{ current_user.email }}</div>
+                        <div class="text-body-medium font-weight-medium text-truncate">{{ current_user.name or 'User' }}</div>
+                        <div class="text-body-small text-medium-emphasis text-truncate">{{ current_user.email }}</div>
                     </div>
                 </div>
             </a>
@@ -90,7 +91,7 @@
                 {% if current_workspace %}
                     {% if current_user.is_superadmin %}
                     <v-divider class="my-1"></v-divider>
-                    <div class="px-4 py-2 text-caption text-medium-emphasis text-truncate">{{ current_workspace.name }}</div>
+                    <div class="px-4 py-2 text-body-small text-medium-emphasis text-truncate">{{ current_workspace.name }}</div>
                     {% endif %}
 
                     <v-list-item href="/workspace/" title="Home" prepend-icon="ti-home"></v-list-item>
@@ -110,7 +111,7 @@
                 {% endif %}
 
                 <v-divider class="my-1"></v-divider>
-                <div class="px-4 py-2 text-caption text-medium-emphasis">Account</div>
+                <div class="px-4 py-2 text-body-small text-medium-emphasis">Account</div>
 
                 <v-list-item href="/settings/profile" title="Profile" prepend-icon="ti-user"></v-list-item>
                 <v-list-item href="/settings/security" title="Security" prepend-icon="ti-shield-lock"></v-list-item>
@@ -123,14 +124,14 @@
                     <div class="pa-3 border rounded-lg">
                         {# A billing customer without Pro had a subscription: lapsed or unpaid. #}
                         {% if current_workspace.billing_customer_id %}
-                        <div class="text-caption font-weight-medium mb-1">Pro inactive</div>
-                        <div class="text-caption text-medium-emphasis mb-2">Check billing to restore access</div>
+                        <div class="text-body-small font-weight-medium mb-1">Pro inactive</div>
+                        <div class="text-body-small text-medium-emphasis mb-2">Check billing to restore access</div>
                         <v-btn href="/workspace/upgrade" color="primary" size="small" block class="text-none">
                             Restore Pro
                         </v-btn>
                         {% else %}
-                        <div class="text-caption font-weight-medium mb-1">Free Plan</div>
-                        <div class="text-caption text-medium-emphasis mb-2">Upgrade for full access</div>
+                        <div class="text-body-small font-weight-medium mb-1">Free Plan</div>
+                        <div class="text-body-small text-medium-emphasis mb-2">Upgrade for full access</div>
                         <v-btn href="/workspace/upgrade" color="primary" size="small" block class="text-none">
                             Upgrade to Pro
                         </v-btn>
@@ -155,13 +156,13 @@
         </v-navigation-drawer>
 
 
-        <v-main class="d-flex align-center justify-center" style="min-height: 300px;">
+        <v-main class="d-flex justify-center" style="min-height: 300px;">
             {% block content %}
             {% endblock %}
         </v-main>
 
         <!-- Footer Attribution -->
-        <v-footer app class="text-center py-2 text-caption text-medium-emphasis">
+        <v-footer app class="text-center py-2 text-body-small text-medium-emphasis">
             <v-container>
                 Powered by <a href="https://github.com/level09/enferno" target="_blank" class="text-decoration-none">Enferno Framework</a>
             </v-container>
@@ -192,6 +193,7 @@
         {% endwith %}
     </v-layout>
 </v-app>
+</div>
 <script src="/static/js/vue.min.js"></script>
 <script src="/static/js/config.js"></script>
 <script src="/static/js/vuetify.min.js"></script>

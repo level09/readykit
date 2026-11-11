@@ -28,7 +28,7 @@ features:
     details: Email/password, Google & GitHub OAuth, 2FA with TOTP, WebAuthn passkeys, and recovery codes.
   - icon: ⚡
     title: Modern Stack
-    details: Flask 3.1, Vue 3, Vuetify 3, and SQLAlchemy. SQLite for local setup, with optional Redis and Celery.
+    details: Flask 3.1, Vue 3, Vuetify 4, and SQLAlchemy. SQLite for local setup, with optional Redis and Celery.
   - icon: 🚀
     title: Deploy Anywhere
     details: Docker Compose for any server, Fly.io with CI/CD, or traditional deployment guides.

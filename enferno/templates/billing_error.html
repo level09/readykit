@@ -9,8 +9,8 @@
         <v-icon size="56" color="error" class="mb-6">ti-alert-circle</v-icon>
         {% endif %}
 
-        <h1 class="text-h5 font-weight-bold mb-2">{{ title }}</h1>
-        <p class="text-body-2 text-medium-emphasis mb-6">{{ message }}</p>
+        <h1 class="text-headline-small font-weight-bold mb-2">{{ title }}</h1>
+        <p class="text-body-medium text-medium-emphasis mb-6">{{ message }}</p>
 
         {% if details %}
         <v-alert
@@ -23,7 +23,7 @@
             <small>{{ details }}</small>
 
             {% if error_type == "portal_config" %}
-            <div class="text-body-2 mt-3">
+            <div class="text-body-medium mt-3">
                 <strong>What this means:</strong>
                 The billing portal needs to be configured in your Stripe account settings.
                 This is a one-time setup that enables customers to manage their subscriptions.

@@ -4,19 +4,19 @@
 
 <v-container class="py-8 px-4 px-md-8" style="max-width: 960px">
     <div class="mb-8">
-        <h1 class="text-h5 font-weight-bold">Profile</h1>
-        <p class="text-body-2 text-medium-emphasis mt-1">Update your name. Your email is managed by your sign-in.</p>
+        <h1 class="text-headline-small font-weight-bold">Profile</h1>
+        <p class="text-body-medium text-medium-emphasis mt-1">Update your name. Your email is managed by your sign-in.</p>
     </div>
 
     <v-form @submit.prevent="updateProfile" style="max-width: 480px;">
-        <div class="text-subtitle-2 font-weight-medium mb-3">Name</div>
+        <div class="text-label-large font-weight-medium mb-3">Name</div>
         <v-text-field
             v-model="userData.name"
             density="comfortable"
             class="mb-4"
         ></v-text-field>
 
-        <div class="text-subtitle-2 font-weight-medium mb-3">Email</div>
+        <div class="text-label-large font-weight-medium mb-3">Email</div>
         <v-text-field
             v-model="userData.email"
             density="comfortable"

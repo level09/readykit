@@ -27,7 +27,7 @@ https://github.com/user-attachments/assets/c955e2a2-8f25-4430-98fe-5bbc95ffb4da
 - **Subscription billing** - Stripe or Chargebee, hosted checkout, webhooks, customer portal
 - **OAuth authentication** - Google & GitHub login
 - **Team collaboration** - Roles (admin/member), member management
-- **Modern stack** - Flask 3.1, Vue 3, Vuetify 3, PostgreSQL, Redis
+- **Modern stack** - Flask 3.1, Vue 3, Vuetify 4, PostgreSQL, Redis
 - **Production ready** - Docker Compose, Celery background jobs
 
 ### Workspace Flow

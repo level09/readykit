@@ -6,13 +6,13 @@
     <!-- Hero -->
     <section style="padding: 80px 0 60px;">
         <v-container>
-            <v-row justify="center">
+            <v-row class="justify-center">
                 <v-col cols="12" md="8" lg="6" class="text-center">
                     <h1 class="mb-5" style="font-size: 3rem; font-weight: 800; line-height: 1.1; letter-spacing: -1px;">
                         Ship your SaaS<br>in days, not months
                     </h1>
 
-                    <p class="text-body-1 text-medium-emphasis mb-8" style="max-width: 440px; margin: 0 auto; line-height: 1.7;">
+                    <p class="text-body-large text-medium-emphasis mb-8" style="max-width: 440px; margin-inline: auto; line-height: 1.7;">
                         Auth, billing, workspaces, and teams, wired up and ready to go. Clone it, build on it, launch.
                     </p>
 
@@ -51,18 +51,18 @@
     <!-- What's included -->
     <section class="py-12" style="border-top: 1px solid #E4E4E7;">
         <v-container>
-            <v-row justify="center">
+            <v-row class="justify-center">
                 <v-col cols="12" md="10" lg="8">
-                    <h2 class="text-h5 font-weight-bold text-center mb-8">What's included</h2>
+                    <h2 class="text-headline-small font-weight-bold text-center mb-8">What's included</h2>
 
                     <v-row>
                         <v-col cols="12" sm="6" md="4" class="mb-6" v-for="f in features" :key="f.title">
-                            <div class="text-subtitle-2 font-weight-bold mb-1">${ f.title }</div>
-                            <div class="text-body-2 text-medium-emphasis" style="line-height: 1.7;">${ f.desc }</div>
+                            <div class="text-label-large font-weight-bold mb-1">${ f.title }</div>
+                            <div class="text-body-medium text-medium-emphasis" style="line-height: 1.7;">${ f.desc }</div>
                         </v-col>
                     </v-row>
 
-                    <div class="text-center mt-4 text-caption text-medium-emphasis">
+                    <div class="text-center mt-4 text-body-small text-medium-emphasis">
                         Flask 3.1 · Vue 3 · Vuetify · SQLAlchemy 2 · PostgreSQL · Redis · Celery · Docker
                     </div>
                 </v-col>
