@@ -2,6 +2,14 @@
 
 All notable ReadyKit changes are documented here.
 
+## v1.9.1 (2026-11-11)
+
+### Changed
+
+- The Docker image runs Python 3.13.
+- stripe 17.0.0 and gunicorn 27.0.0 are locked. Stripe objects no longer keep their API key when pickled, which ReadyKit never relied on. gunicorn rejects requests whose `Transfer-Encoding` does not end with `chunked`.
+- celery stays at 5.6.3 and python-dateutil at 3.0.0: celery 5.7.0 pins python-dateutil 2.9.0.post0, and kombu 5.7.0 with celery 5.6.3 fails to start a Redis worker in the image (`No module named 'packaging'`).
+
 ## v1.9.0 (2026-11-11)
 
 ### Changed
