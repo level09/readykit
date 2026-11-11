@@ -2,6 +2,13 @@
 
 All notable ReadyKit changes are documented here.
 
+## v1.8.1 (2026-11-11)
+
+### Security
+
+- oauthlib is locked at 4.0.1 (GHSA-3jp2-3mrg-2vxc).
+- Vendored axios 1.21.1, Vue 3.5.45 and Tabler icons 3.51.0, and the locked dependencies are updated (sqlalchemy 2.1.8, psycopg 3.3.8, wtforms 3.3.2, click 8.5.1, pytz 2026.6, chargebee 3.31.0).
+
 ## v1.8.0 (2026-10-28)
 
 ### Changed
