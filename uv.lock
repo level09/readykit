@@ -969,11 +969,11 @@ wheels = [
 
 [[package]]
 name = "gunicorn"
-version = "26.2.0"
+version = "27.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d9/8a/e4ef6ee11701b6cd64702848415ffb69eeff85cb388a3c6c7fe86f22f3f8/gunicorn-26.2.0.tar.gz", hash = "sha256:62b864895d9ebff0b2f9867ba04fe811c93121596540830c9c916d0769668447", size = 787921, upload-time = "2026-08-24T15:05:59.3Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0a/b3/addb4f148b938633977d983b852c82177b6c92d17837102a9a2aca061905/gunicorn-27.0.0.tar.gz", hash = "sha256:88d52e7c60b3af07bc8db431fbb450a94780f2cbe7c420c7cf1891392661c591", size = 932048, upload-time = "2026-11-10T11:20:59.207Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fe/85/7522a52e5e2f42faf1a129113ab63e548c42e103e9af395b7bfe65e403e2/gunicorn-26.2.0-py3-none-any.whl", hash = "sha256:bd249d0b3f7972f7432f0a6b6ff3b3ee2d129f70cd1ff6c09a9dd9e29a2b88e3", size = 228389, upload-time = "2026-08-24T15:05:57.67Z" },
+    { url = "https://files.pythonhosted.org/packages/85/2b/367de7fc2fd4cfd1814b0a31da023195eb4037c1fddc4d9e11cc965e1c00/gunicorn-27.0.0-py3-none-any.whl", hash = "sha256:1380f2f520abc3beb9e72cd2e728bd2d08a19b3ff6ac03ebd8da71d1798a4008", size = 261789, upload-time = "2026-11-10T11:20:57.621Z" },
 ]
 
 [[package]]
@@ -1984,7 +1984,7 @@ wheels = [
 
 [[package]]
 name = "readykit"
-version = "1.9.0"
+version = "1.9.1"
 source = { editable = "." }
 dependencies = [
     { name = "argon2-cffi" },
@@ -2290,15 +2290,15 @@ wheels = [
 
 [[package]]
 name = "stripe"
-version = "16.0.1"
+version = "17.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a3/23/aed4a83f9ab867993a96bb6dc6a4be13b42629fa66362000e7b709218c71/stripe-16.0.1.tar.gz", hash = "sha256:44f20abd85c5cdac1d019c290b2fa055db2b6f4890f7f3b2daa493eb48c9a0d2", size = 1544782, upload-time = "2026-10-27T00:45:50.118Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b7/35/d0e4eb5140e0e8a6cdce1777b54bcadd6366a2c2109db1b2b139c1c7d597/stripe-17.0.0.tar.gz", hash = "sha256:5e1bdde6eac0311f6c3dea60457e3e49091789785db9c90d28d75a0398835589", size = 1632141, upload-time = "2026-11-11T19:56:14.529Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/31/aa/2826a75adb7f9007d713e0a073a70e750d69cf603783b8650d4c5eb757dc/stripe-16.0.1-py3-none-any.whl", hash = "sha256:f87d6aaf6d20c9e788c8532d23511eb42be4602e48cf4f425327e96ccb7e4f00", size = 2424918, upload-time = "2026-10-27T00:45:48.413Z" },
+    { url = "https://files.pythonhosted.org/packages/28/48/9f6f4f96ba79c5844180e206ad3e7e8decb09f897a570d5f67f3b5f8b361/stripe-17.0.0-py3-none-any.whl", hash = "sha256:955bd99082dadcaf41b0d2d5075c0da8e6e848df1dccbbfcf7c856d9ac003420", size = 2648192, upload-time = "2026-11-11T19:56:12.419Z" },
 ]
 
 [[package]]
