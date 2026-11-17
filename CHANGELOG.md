@@ -2,6 +2,13 @@
 
 All notable ReadyKit changes are documented here.
 
+## v1.9.2 (2026-11-17)
+
+### Security
+
+- dnspython is locked at 2.9.2 (GHSA-vvf4-9x63-8xvv).
+- The locked dependencies are updated (sqlalchemy 2.1.9, psycopg 3.3.9, gunicorn 27.0.1, chargebee 3.32.0, email-validator 2.4.0, playwright 1.65.2).
+
 ## v1.9.1 (2026-11-11)
 
 ### Changed
